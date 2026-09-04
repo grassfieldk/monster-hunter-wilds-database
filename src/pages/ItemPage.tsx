@@ -22,11 +22,11 @@ export function ItemPage() {
     <Stack className="page-stack" gap="md">
       <div>
         <Group gap="sm">
-          <Title order={1} size="h2">{text(item.names)}</Title>
+          <Title order={1} size="h3">{text(item.names)}</Title>
           <Badge variant="light">RARE {item.rarity}</Badge>
         </Group>
         <Text c="dimmed" mt={4}>{label(item.kind)}</Text>
-        <FormattedText mt="sm" style={{ whiteSpace: 'pre-line' }}>{text(item.descriptions)}</FormattedText>
+        <FormattedText className="long-description" size="sm" mt="sm" style={{ whiteSpace: 'pre-line' }}>{text(item.descriptions)}</FormattedText>
       </div>
 
       <SimpleGrid cols={{ base: 1, md: 2 }}>

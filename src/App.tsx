@@ -18,7 +18,7 @@ export function App() {
     <DatabaseProvider>
       <AppShell
         header={{ height: { base: 0, sm: 60 } }}
-        footer={{ height: { base: 64, sm: 0 }, offset: true }}
+        footer={{ height: { base: 52, sm: 0 }, offset: true }}
         padding={{ base: 'xs', sm: 'md' }}
       >
         <AppShell.Header visibleFrom="sm">
@@ -38,19 +38,19 @@ export function App() {
             </Group>
           </Container>
         </AppShell.Header>
-        <AppShell.Footer hiddenFrom="sm" p={4}>
-          <Group grow gap={4} h="100%" align="stretch">
-            <Button variant="subtle" size="sm" h="100%" p={4} onClick={openSearch} styles={{ inner: { flexDirection: 'column', gap: 2 } }}>
-              <IconSearch size={18} />
-              <Text size="xs" lh={1}>検索</Text>
+        <AppShell.Footer hiddenFrom="sm" p={2}>
+          <Group grow gap={2} h="100%" align="stretch">
+            <Button variant="subtle" size="sm" h="100%" p={2} onClick={openSearch} styles={{ inner: { flexDirection: 'column', gap: 1 } }}>
+              <IconSearch size={16} />
+              <Text size="sm" lh={1}>検索</Text>
             </Button>
-            <Button component={Link} to="/monsters" variant="subtle" size="sm" h="100%" p={4} styles={{ inner: { flexDirection: 'column', gap: 2 } }}>
-              <IconSwords size={18} />
-              <Text size="xs" lh={1}>モンスター</Text>
+            <Button component={Link} to="/monsters" variant="subtle" size="sm" h="100%" p={2} styles={{ inner: { flexDirection: 'column', gap: 1 } }}>
+              <IconSwords size={16} />
+              <Text size="sm" lh={1}>モンスター</Text>
             </Button>
-            <Button component={Link} to="/items" variant="subtle" size="sm" h="100%" p={4} styles={{ inner: { flexDirection: 'column', gap: 2 } }}>
-              <IconPackage size={18} />
-              <Text size="xs" lh={1}>アイテム</Text>
+            <Button component={Link} to="/items" variant="subtle" size="sm" h="100%" p={2} styles={{ inner: { flexDirection: 'column', gap: 1 } }}>
+              <IconPackage size={16} />
+              <Text size="sm" lh={1}>アイテム</Text>
             </Button>
           </Group>
         </AppShell.Footer>

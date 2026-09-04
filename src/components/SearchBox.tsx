@@ -67,7 +67,7 @@ export function SearchBox({ large = false, onNavigate }: { large?: boolean; onNa
                   <Group justify="space-between" wrap="nowrap">
                     <div>
                       <Text fw={500}>{result.name}</Text>
-                      <FormattedText size="xs" c="dimmed" lineClamp={1}>{result.description}</FormattedText>
+                      <FormattedText size="sm" c="dimmed" lineClamp={1}>{result.description}</FormattedText>
                     </div>
                     <Badge variant="light">{result.kind === 'monsters' ? 'モンスター' : 'アイテム'}</Badge>
                   </Group>

@@ -35,27 +35,27 @@ export function MonsterPage() {
     <Stack className="page-stack" gap="md">
       <div>
         <Group gap="sm">
-          <Title order={1} size="h2">{text(monster.names)}</Title>
+          <Title order={1} size="h3">{text(monster.names)}</Title>
           <Badge variant="light">{label(monster.species)}</Badge>
         </Group>
-        <FormattedText size="sm" mt="xs" style={{ whiteSpace: 'pre-line' }}>{text(monster.descriptions)}</FormattedText>
+        <FormattedText className="long-description" size="sm" mt="xs" style={{ whiteSpace: 'pre-line' }}>{text(monster.descriptions)}</FormattedText>
       </div>
 
       <SimpleGrid visibleFrom="sm" cols={{ sm: 2 }}>
         <Section title="特徴">
-          <FormattedText size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.features)}</FormattedText>
+          <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.features)}</FormattedText>
         </Section>
         <Section title="攻略の要点">
-          <FormattedText size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.tips)}</FormattedText>
+          <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.tips)}</FormattedText>
         </Section>
       </SimpleGrid>
 
       <Section title="基本情報">
         <SimpleGrid cols={{ base: 2, sm: 4 }} spacing={{ base: 'xs', sm: 'sm' }}>
-          <div><Text size="xs" c="dimmed">基礎体力</Text><Text size="sm" fw={500}>{monster.base_health.toLocaleString('ja-JP')}</Text></div>
-          <div><Text size="xs" c="dimmed">基準サイズ</Text><Text size="sm" fw={500}>{monster.size.base?.toFixed(2) ?? '不明'}</Text></div>
-          <div><Text size="xs" c="dimmed">最小金冠</Text><Text size="sm" fw={500}>{monster.size.mini?.toFixed(2) ?? '不明'}</Text></div>
-          <div><Text size="xs" c="dimmed">最大金冠</Text><Text size="sm" fw={500}>{monster.size.gold?.toFixed(2) ?? '不明'}</Text></div>
+          <div><Text size="sm" c="dimmed">基礎体力</Text><Text size="sm" fw={500}>{monster.base_health.toLocaleString('ja-JP')}</Text></div>
+          <div><Text size="sm" c="dimmed">基準サイズ</Text><Text size="sm" fw={500}>{monster.size.base?.toFixed(2) ?? '不明'}</Text></div>
+          <div><Text size="sm" c="dimmed">最小金冠</Text><Text size="sm" fw={500}>{monster.size.mini?.toFixed(2) ?? '不明'}</Text></div>
+          <div><Text size="sm" c="dimmed">最大金冠</Text><Text size="sm" fw={500}>{monster.size.gold?.toFixed(2) ?? '不明'}</Text></div>
         </SimpleGrid>
         <Divider my={{ base: 'sm', sm: 'md' }} />
         <Stack gap="xs">
@@ -90,7 +90,7 @@ export function MonsterPage() {
         title={detailType === 'features' ? '特徴' : '攻略の要点'}
         centered
       >
-        <FormattedText size="sm" style={{ whiteSpace: 'pre-line' }}>
+        <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>
           {detailType === 'features' ? text(monster.features) : text(monster.tips)}
         </FormattedText>
       </Modal>
