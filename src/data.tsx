@@ -1,0 +1,66 @@
+import { Center, Loader } from '@mantine/core';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { Item, ItemUse, Lookups, Monster, SourceInfo } from './types';
+
+type Database = {
+  items: Item[];
+  monsters: Monster[];
+  lookups: Lookups;
+  itemUses: Record<string, ItemUse[]>;
+  source: SourceInfo;
+  itemById: Map<number, Item>;
+  monsterById: Map<number, Monster>;
+};
+
+const DatabaseContext = createContext<Database | null>(null);
+
+async function loadJson<T>(path: string): Promise<T> {
+  const response = await fetch(path);
+  if (!response.ok) throw new Error(`${path} を読み込めませんでした`);
+  return response.json() as Promise<T>;
+}
+
+export function DatabaseProvider({ children }: { children: ReactNode }) {
+  const [data, setData] = useState<Omit<Database, 'itemById' | 'monsterById'> | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      loadJson<Item[]>('/data/items.json'),
+      loadJson<Monster[]>('/data/monsters.json'),
+      loadJson<Lookups>('/data/lookups.json'),
+      loadJson<Record<string, ItemUse[]>>('/data/item-uses.json'),
+      loadJson<SourceInfo>('/data/source.json'),
+    ]).then(([items, monsters, lookups, itemUses, source]) => {
+      setData({ items, monsters, lookups, itemUses, source });
+    });
+  }, []);
+
+  const database = useMemo<Database | null>(() => {
+    if (!data) return null;
+    return {
+      ...data,
+      itemById: new Map(data.items.map((item) => [item.game_id, item])),
+      monsterById: new Map(data.monsters.map((monster) => [monster.game_id, monster])),
+    };
+  }, [data]);
+
+  if (!database) {
+    return (
+      <Center mih="100dvh">
+        <Loader />
+      </Center>
+    );
+  }
+
+  return <DatabaseContext.Provider value={database}>{children}</DatabaseContext.Provider>;
+}
+
+export function useDatabase() {
+  const database = useContext(DatabaseContext);
+  if (!database) throw new Error('DatabaseProvider が必要です');
+  return database;
+}
+
+export function text(value?: Record<string, string>) {
+  return value?.ja || value?.en || '名称不明';
+}

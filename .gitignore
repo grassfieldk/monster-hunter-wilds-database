@@ -1,0 +1,48 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Local caches and downloaded tools
+.cache/
+tools/mhdb-wilds-data/
+
+# Local environment and editor settings
+.env
+.env.*
+!.env.example
+*.local
+.idea/
+.vscode/
+*.code-workspace
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+coverage/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Credentials and private keys
+*.key
+*.pem
+*.pfx
+*.p12
+credentials*.json
+secrets*.json
+
+# Extracted game files
+/data/
+/extracted/
+*.pak
+*.user.*
+*.msg.*

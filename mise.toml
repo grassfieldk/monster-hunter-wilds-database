@@ -1,0 +1,19 @@
+[tools]
+node = "24.19.0"
+rust = "1.89.0"
+
+[tasks.setup]
+description = "依存パッケージをインストール"
+run = "npm install"
+
+[tasks.dev]
+description = "開発サーバーを起動"
+run = "npm run dev"
+
+[tasks.build]
+description = "公開用ファイルを生成"
+run = "npm run build"
+
+[tasks.data]
+description = "ゲームファイルからデータを抽出して反映"
+run = "powershell -ExecutionPolicy Bypass -File scripts/extract-game-data.ps1"
