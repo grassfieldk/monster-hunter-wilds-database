@@ -14,3 +14,13 @@ a {
 .responsive-table {
   min-width: 680px;
 }
+
+@media (max-width: 47.99em) {
+  .responsive-table {
+    min-width: 640px;
+  }
+
+  .page-stack {
+    gap: var(--mantine-spacing-md);
+  }
+}

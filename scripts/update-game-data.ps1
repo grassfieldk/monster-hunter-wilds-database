@@ -1,6 +1,7 @@
 param(
   [Parameter(Mandatory = $true)]
-  [string]$MergedDataDirectory
+  [string]$MergedDataDirectory,
+  [string]$SourceRevision
 )
 
 $ErrorActionPreference = 'Stop'
@@ -9,7 +10,12 @@ $builder = Join-Path $PSScriptRoot 'internal\build-site-data.mjs'
 
 Push-Location $projectDirectory
 try {
-  node $builder $MergedDataDirectory
+  if ($SourceRevision) {
+    node $builder $MergedDataDirectory $SourceRevision
+  }
+  else {
+    node $builder $MergedDataDirectory
+  }
 }
 finally {
   Pop-Location

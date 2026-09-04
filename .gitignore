@@ -4,7 +4,6 @@ dist/
 
 # Local caches and downloaded tools
 .cache/
-tools/mhdb-wilds-data/
 
 # Local environment and editor settings
 .env

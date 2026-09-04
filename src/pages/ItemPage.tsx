@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { label } from '../labels';
 import { text, useDatabase } from '../data';
 import { NotFoundPage } from './NotFoundPage';
+import { FormattedText } from '../components/FormattedText';
 
 export function ItemPage() {
   const { id } = useParams();
@@ -18,19 +19,19 @@ export function ItemPage() {
   const uses = itemUses[String(item.game_id)] ?? [];
 
   return (
-    <Stack gap="lg">
+    <Stack className="page-stack" gap="md">
       <div>
         <Group gap="sm">
-          <Title order={1}>{text(item.names)}</Title>
-          <Badge variant="light" size="lg">RARE {item.rarity}</Badge>
+          <Title order={1} size="h2">{text(item.names)}</Title>
+          <Badge variant="light">RARE {item.rarity}</Badge>
         </Group>
         <Text c="dimmed" mt={4}>{label(item.kind)}</Text>
-        <Text mt="sm" style={{ whiteSpace: 'pre-line' }}>{text(item.descriptions)}</Text>
+        <FormattedText mt="sm" style={{ whiteSpace: 'pre-line' }}>{text(item.descriptions)}</FormattedText>
       </div>
 
       <SimpleGrid cols={{ base: 1, md: 2 }}>
-        <Paper withBorder p="lg">
-          <Title order={2} size="h3" mb="md">基本情報</Title>
+        <Paper withBorder p={{ base: 'sm', sm: 'lg' }}>
+          <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }}>基本情報</Title>
           <Table>
             <Table.Tbody>
               <Table.Tr><Table.Th>所持上限</Table.Th><Table.Td>{item.max_count}</Table.Td></Table.Tr>
@@ -39,8 +40,8 @@ export function ItemPage() {
             </Table.Tbody>
           </Table>
         </Paper>
-        <Paper withBorder p="lg">
-          <Title order={2} size="h3" mb="md">調合</Title>
+        <Paper withBorder p={{ base: 'sm', sm: 'lg' }}>
+          <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }}>調合</Title>
           {item.recipes.length ? (
             <Stack>
               {item.recipes.map((recipe, index) => (
@@ -62,8 +63,8 @@ export function ItemPage() {
         </Paper>
       </SimpleGrid>
 
-      <Paper withBorder p={{ base: 'md', sm: 'lg' }}>
-        <Title order={2} size="h3" mb="md">入手方法</Title>
+      <Paper withBorder p={{ base: 'sm', sm: 'lg' }}>
+        <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }}>入手方法</Title>
         {monsterSources.length ? (
           <Table.ScrollContainer minWidth={640}>
             <Table>
@@ -84,8 +85,8 @@ export function ItemPage() {
         ) : <Text c="dimmed">大型モンスターからの入手情報はありません</Text>}
       </Paper>
 
-      <Paper withBorder p={{ base: 'md', sm: 'lg' }}>
-        <Title order={2} size="h3" mb="md">使い道</Title>
+      <Paper withBorder p={{ base: 'sm', sm: 'lg' }}>
+        <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }}>使い道</Title>
         {uses.length ? (
           <Table.ScrollContainer minWidth={560}>
             <Table>

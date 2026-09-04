@@ -1,13 +1,15 @@
-import { Anchor, Badge, Group, Paper, SimpleGrid, Stack, Table, Text, Title } from '@mantine/core';
+import { Anchor, Badge, Button, Divider, Group, Modal, Paper, SimpleGrid, Stack, Table, Text, Title } from '@mantine/core';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { text, useDatabase } from '../data';
 import { label } from '../labels';
 import { NotFoundPage } from './NotFoundPage';
+import { FormattedText } from '../components/FormattedText';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Paper withBorder p={{ base: 'md', sm: 'lg' }}>
-      <Title order={2} size="h3" mb="md">{title}</Title>
+    <Paper withBorder p={{ base: 'sm', sm: 'lg' }}>
+      <Title order={2} size="h4" mb={{ base: 'xs', sm: 'sm' }}>{title}</Title>
       {children}
     </Paper>
   );
@@ -16,6 +18,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function MonsterPage() {
   const { id } = useParams();
   const { monsterById, itemById, lookups } = useDatabase();
+  const [detailType, setDetailType] = useState<'features' | 'tips' | null>(null);
   const monster = monsterById.get(Number(id));
   if (!monster) return <NotFoundPage />;
 
@@ -29,59 +32,68 @@ export function MonsterPage() {
   };
 
   return (
-    <Stack gap="lg">
+    <Stack className="page-stack" gap="md">
       <div>
         <Group gap="sm">
-          <Title order={1}>{text(monster.names)}</Title>
-          <Badge variant="light" size="lg">{label(monster.species)}</Badge>
+          <Title order={1} size="h2">{text(monster.names)}</Title>
+          <Badge variant="light">{label(monster.species)}</Badge>
         </Group>
-        <Text mt="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.descriptions)}</Text>
+        <FormattedText size="sm" mt="xs" style={{ whiteSpace: 'pre-line' }}>{text(monster.descriptions)}</FormattedText>
       </div>
 
-      <SimpleGrid cols={{ base: 1, md: 2 }}>
+      <SimpleGrid visibleFrom="sm" cols={{ sm: 2 }}>
         <Section title="特徴">
-          <Text style={{ whiteSpace: 'pre-line' }}>{text(monster.features)}</Text>
+          <FormattedText size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.features)}</FormattedText>
         </Section>
         <Section title="攻略の要点">
-          <Text style={{ whiteSpace: 'pre-line' }}>{text(monster.tips)}</Text>
+          <FormattedText size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.tips)}</FormattedText>
         </Section>
       </SimpleGrid>
 
-      <SimpleGrid cols={{ base: 1, md: 2 }}>
-        <Section title="基本情報">
-          <Table>
-            <Table.Tbody>
-              <Table.Tr><Table.Th>基礎体力</Table.Th><Table.Td>{monster.base_health.toLocaleString('ja-JP')}</Table.Td></Table.Tr>
-              <Table.Tr><Table.Th>基準サイズ</Table.Th><Table.Td>{monster.size.base?.toFixed(2) ?? '不明'}</Table.Td></Table.Tr>
-              <Table.Tr><Table.Th>最小金冠</Table.Th><Table.Td>{monster.size.mini?.toFixed(2) ?? '不明'}</Table.Td></Table.Tr>
-              <Table.Tr><Table.Th>最大金冠</Table.Th><Table.Td>{monster.size.gold?.toFixed(2) ?? '不明'}</Table.Td></Table.Tr>
-              <Table.Tr><Table.Th>出現場所</Table.Th><Table.Td>{monster.locations.map(stageName).join('、') || '不明'}</Table.Td></Table.Tr>
-            </Table.Tbody>
-          </Table>
-        </Section>
-        <Section title="弱点と耐性">
-          <Stack gap="sm">
-            <div>
-              <Text fw={500} mb={6}>有効</Text>
-              <Group gap="xs">
-                {monster.weaknesses.map((weakness, index) => {
-                  const name = weakness.element ?? weakness.status ?? weakness.effect;
-                  return <Badge key={`${name}-${index}`} variant="light">{label(name)} {weakness.level ? '★'.repeat(weakness.level) : ''}</Badge>;
-                })}
-              </Group>
-            </div>
-            <div>
-              <Text fw={500} mb={6}>無効</Text>
-              <Group gap="xs">
-                {monster.resistances.map((resistance, index) => {
-                  const name = resistance.element ?? resistance.status ?? resistance.effect;
-                  return <Badge key={`${name}-${index}`} color="gray" variant="light">{label(name)}</Badge>;
-                })}
-              </Group>
-            </div>
-          </Stack>
-        </Section>
+      <Section title="基本情報">
+        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing={{ base: 'xs', sm: 'sm' }}>
+          <div><Text size="xs" c="dimmed">基礎体力</Text><Text size="sm" fw={500}>{monster.base_health.toLocaleString('ja-JP')}</Text></div>
+          <div><Text size="xs" c="dimmed">基準サイズ</Text><Text size="sm" fw={500}>{monster.size.base?.toFixed(2) ?? '不明'}</Text></div>
+          <div><Text size="xs" c="dimmed">最小金冠</Text><Text size="sm" fw={500}>{monster.size.mini?.toFixed(2) ?? '不明'}</Text></div>
+          <div><Text size="xs" c="dimmed">最大金冠</Text><Text size="sm" fw={500}>{monster.size.gold?.toFixed(2) ?? '不明'}</Text></div>
+        </SimpleGrid>
+        <Divider my={{ base: 'sm', sm: 'md' }} />
+        <Stack gap="xs">
+          <Group gap="xs" align="flex-start" wrap="nowrap">
+            <Text size="sm" fw={500} w={64} flex="0 0 auto">出現場所</Text>
+            <Text size="sm">{monster.locations.map(stageName).join('、') || '不明'}</Text>
+          </Group>
+          <Group gap="xs" align="flex-start" wrap="nowrap">
+            <Text size="sm" fw={500} w={64} flex="0 0 auto">弱点</Text>
+            <Group gap={4}>{monster.weaknesses.length ? monster.weaknesses.map((weakness, index) => {
+              const name = weakness.element ?? weakness.status ?? weakness.effect;
+              return <Badge key={`${name}-${index}`} size="sm" variant="light">{label(name)} {weakness.level ? '★'.repeat(weakness.level) : ''}</Badge>;
+            }) : <Text size="sm">不明</Text>}</Group>
+          </Group>
+          <Group gap="xs" align="flex-start" wrap="nowrap">
+            <Text size="sm" fw={500} w={64} flex="0 0 auto">耐性</Text>
+            <Group gap={4}>{monster.resistances.length ? monster.resistances.map((resistance, index) => {
+              const name = resistance.element ?? resistance.status ?? resistance.effect;
+              return <Badge key={`${name}-${index}`} size="sm" color="gray" variant="light">{label(name)}</Badge>;
+            }) : <Text size="sm">不明</Text>}</Group>
+          </Group>
+        </Stack>
+      </Section>
+
+      <SimpleGrid hiddenFrom="sm" cols={2} spacing="xs">
+        <Button variant="light" size="sm" onClick={() => setDetailType('features')}>特徴</Button>
+        <Button variant="light" size="sm" onClick={() => setDetailType('tips')}>攻略の要点</Button>
       </SimpleGrid>
+      <Modal
+        opened={detailType !== null}
+        onClose={() => setDetailType(null)}
+        title={detailType === 'features' ? '特徴' : '攻略の要点'}
+        centered
+      >
+        <FormattedText size="sm" style={{ whiteSpace: 'pre-line' }}>
+          {detailType === 'features' ? text(monster.features) : text(monster.tips)}
+        </FormattedText>
+      </Modal>
 
       <Section title="入手できるアイテム">
         <Table.ScrollContainer minWidth={700}>

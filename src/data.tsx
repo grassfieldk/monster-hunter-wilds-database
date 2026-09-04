@@ -62,5 +62,11 @@ export function useDatabase() {
 }
 
 export function text(value?: Record<string, string>) {
-  return value?.ja || value?.en || '名称不明';
+  const selected = value?.ja || value?.en || '名称不明';
+  const japanese = Boolean(value?.ja);
+  return selected.replace(/\r?\n/g, (_, offset: number, source: string) => {
+    const previous = source[offset - 1];
+    if (japanese) return previous === '。' ? '\n' : '';
+    return previous === '.' ? '\n' : ' ';
+  });
 }

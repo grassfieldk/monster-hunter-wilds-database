@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
 const mergedDirectory = path.resolve(process.argv[2] ?? 'tools/mhdb-wilds-data/output/merged');
+const requestedSourceRevision = process.argv[3];
 const outputDirectory = path.resolve('public/data');
 
 async function load(relativePath) {
@@ -80,10 +81,12 @@ for (const { category, entries } of weapons) {
   }
 }
 
-let sourceRevision = 'unknown';
-try {
-  sourceRevision = execFileSync('git', ['-C', path.dirname(path.dirname(mergedDirectory)), 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-} catch {}
+let sourceRevision = requestedSourceRevision || 'unknown';
+if (!requestedSourceRevision) {
+  try {
+    sourceRevision = execFileSync('git', ['-C', path.dirname(path.dirname(mergedDirectory)), 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  } catch {}
+}
 
 await mkdir(outputDirectory, { recursive: true });
 const source = {

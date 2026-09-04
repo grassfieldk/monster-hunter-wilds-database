@@ -3,6 +3,7 @@ import { IconSearch } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { text, useDatabase } from '../data';
+import { FormattedText } from './FormattedText';
 
 type Result = {
   id: number;
@@ -11,7 +12,7 @@ type Result = {
   description: string;
 };
 
-export function SearchBox({ large = false }: { large?: boolean }) {
+export function SearchBox({ large = false, onNavigate }: { large?: boolean; onNavigate?: () => void }) {
   const { items, monsters } = useDatabase();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -41,6 +42,7 @@ export function SearchBox({ large = false }: { large?: boolean }) {
   const open = (result: Result) => {
     setQuery('');
     navigate(`/${result.kind}/${result.id}`);
+    onNavigate?.();
   };
 
   return (
@@ -65,7 +67,7 @@ export function SearchBox({ large = false }: { large?: boolean }) {
                   <Group justify="space-between" wrap="nowrap">
                     <div>
                       <Text fw={500}>{result.name}</Text>
-                      <Text size="xs" c="dimmed" lineClamp={1}>{result.description}</Text>
+                      <FormattedText size="xs" c="dimmed" lineClamp={1}>{result.description}</FormattedText>
                     </div>
                     <Badge variant="light">{result.kind === 'monsters' ? 'モンスター' : 'アイテム'}</Badge>
                   </Group>
