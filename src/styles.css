@@ -149,7 +149,7 @@ a {
 
 @media (max-width: 47.99em) {
   .main-with-section-tabs {
-    padding-bottom: calc(var(--app-shell-footer-offset, 0rem) + var(--app-shell-padding) + 30px) !important;
+    padding-bottom: calc(var(--app-shell-footer-offset, 0rem) + var(--app-shell-padding) + 36px) !important;
   }
 
   .responsive-table {
