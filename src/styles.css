@@ -24,13 +24,28 @@ a {
   line-height: 1.55;
 }
 
+.monster-epithet {
+  font-size: 0.8em;
+}
+
+.monster-epithet rt {
+  font-size: 0.5em;
+  line-height: 1;
+}
+
+.section-title {
+  padding-bottom: var(--mantine-spacing-xs);
+  border-bottom: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-default-border);
+}
+
+.numeric-cell {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
 @media (max-width: 47.99em) {
   .responsive-table {
     min-width: 640px;
-  }
-
-  .page-stack {
-    gap: var(--mantine-spacing-md);
   }
 
   .long-description {
