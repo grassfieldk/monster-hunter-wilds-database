@@ -89,6 +89,16 @@ a {
   filter: drop-shadow(0 -2px 4px rgb(0 0 0 / 24%));
 }
 
+.mobile-search-panel {
+  position: fixed;
+  right: 0;
+  bottom: var(--app-shell-footer-height);
+  left: 0;
+  z-index: 200;
+  padding: 4px;
+  background: var(--mantine-color-dark-6);
+}
+
 .mobile-footer-nav {
   position: relative;
   z-index: 1;
@@ -109,6 +119,21 @@ a {
 
 .mobile-footer-nav .footer-history-button:hover,
 .mobile-footer-nav .footer-history-button:active {
+  background-color: transparent;
+}
+
+.mobile-footer-nav .footer-search-button {
+  flex: 0 0 40px;
+  color: var(--mantine-color-white);
+  border-radius: 0;
+}
+
+.mobile-footer-nav .footer-search-button[data-active="true"] {
+  color: var(--mantine-color-blue-2);
+}
+
+.mobile-footer-nav .footer-search-button:hover,
+.mobile-footer-nav .footer-search-button:active {
   background-color: transparent;
 }
 

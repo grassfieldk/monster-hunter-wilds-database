@@ -10,32 +10,71 @@ type Result = {
   kind: 'monsters' | 'items';
   name: string;
   description: string;
+  searchAliases: string[];
 };
 
-export function SearchBox({ large = false, onNavigate }: { large?: boolean; onNavigate?: () => void }) {
+function normalizeSearch(value: string) {
+  return value
+    .normalize('NFKC')
+    .replace(/[\u30a1-\u30f6]/g, (character) => String.fromCharCode(character.charCodeAt(0) - 0x60))
+    .toLocaleLowerCase('ja');
+}
+
+function matchesSearch(query: string, candidate: string) {
+  if (candidate.includes(query)) return true;
+  let queryIndex = 0;
+  for (const character of candidate) {
+    if (character === query[queryIndex]) queryIndex += 1;
+    if (queryIndex === query.length) return true;
+  }
+  return false;
+}
+
+function itemSearchAliases(itemName: string, monsterNames: string[]) {
+  const aliases = [itemName];
+  const separatorIndex = itemName.indexOf('の');
+  const suffix = separatorIndex >= 0 ? itemName.slice(separatorIndex) : itemName;
+  for (const monsterName of monsterNames) {
+    aliases.push(monsterName, `${monsterName}${suffix}`);
+  }
+  return aliases;
+}
+
+export function SearchBox({ large = false, onNavigate, resultsPlacement = 'bottom' }: { large?: boolean; onNavigate?: () => void; resultsPlacement?: 'top' | 'bottom' }) {
   const { items, monsters } = useDatabase();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
-  const normalized = query.trim().toLocaleLowerCase('ja');
+  const normalized = normalizeSearch(query.trim());
 
   const results = useMemo<Result[]>(() => {
     if (!normalized) return [];
+    const itemMonsterNames = new Map<number, string[]>();
+    for (const monster of monsters) {
+      const monsterName = text(monster.names);
+      for (const reward of monster.rewards) {
+        const names = itemMonsterNames.get(reward.item_id) ?? [];
+        if (!names.includes(monsterName)) names.push(monsterName);
+        itemMonsterNames.set(reward.item_id, names);
+      }
+    }
     return [
       ...monsters.map((monster) => ({
         id: monster.game_id,
         kind: 'monsters' as const,
         name: text(monster.names),
         description: text(monster.descriptions),
+        searchAliases: [text(monster.names)],
       })),
       ...items.map((item) => ({
         id: item.game_id,
         kind: 'items' as const,
         name: text(item.names),
         description: text(item.descriptions),
+        searchAliases: itemSearchAliases(text(item.names), itemMonsterNames.get(item.game_id) ?? []),
       })),
     ]
-      .filter((entry) => entry.name.toLocaleLowerCase('ja').includes(normalized))
-      .sort((a, b) => Number(!a.name.startsWith(query)) - Number(!b.name.startsWith(query)))
+      .filter((entry) => entry.searchAliases.some((alias) => matchesSearch(normalized, normalizeSearch(alias))))
+      .sort((a, b) => Number(!a.searchAliases.some((alias) => normalizeSearch(alias).startsWith(normalized))) - Number(!b.searchAliases.some((alias) => normalizeSearch(alias).startsWith(normalized))))
       .slice(0, 12);
   }, [items, monsters, normalized, query]);
 
@@ -59,7 +98,20 @@ export function SearchBox({ large = false, onNavigate }: { large?: boolean; onNa
         }}
       />
       {normalized && (
-        <Paper withBorder shadow="sm" pos="absolute" top="100%" left={0} right={0} mt={4} p={4} style={{ zIndex: 20 }}>
+        <Paper
+          withBorder
+          shadow="sm"
+          pos="absolute"
+          left={0}
+          right={0}
+          p={4}
+          style={{
+            zIndex: 20,
+            ...(resultsPlacement === 'top'
+              ? { bottom: '100%', marginBottom: 4 }
+              : { top: '100%', marginTop: 4 }),
+          }}
+        >
           {results.length ? (
             <Stack gap={0}>
               {results.map((result) => (

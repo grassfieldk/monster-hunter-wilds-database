@@ -1,5 +1,6 @@
 import { ActionIcon, Anchor, AppShell, Badge, Box, Button, Container, Group, Text } from '@mantine/core';
-import { IconArrowLeft, IconArrowUp } from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
+import { IconArrowLeft, IconArrowUp, IconSearch } from '@tabler/icons-react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { SearchBox } from './components/SearchBox';
 import { SectionTabs } from './components/SectionTabs';
@@ -62,6 +63,7 @@ function MobileHeaderContent() {
 
 export function App() {
   const { pathname } = useLocation();
+  const [searchOpened, { open: openSearch, close: closeSearch }] = useDisclosure(false);
   const monstersActive = pathname.startsWith('/monsters');
   const itemsActive = pathname.startsWith('/items');
   const parentMatch = pathname.match(/^\/(monsters|items)\/[^/]+$/u);
@@ -103,6 +105,9 @@ export function App() {
             <ActionIcon component={Link} to={parentPath} variant="subtle" size="lg" h="100%" w={40} aria-label="一つ上へ" title="一つ上へ" className="footer-history-button" disabled={parentPath === pathname}>
               <IconArrowUp size={18} />
             </ActionIcon>
+            <ActionIcon variant="subtle" size="lg" h="100%" w={40} aria-label="検索" title="検索" className="footer-search-button" data-active={searchOpened || undefined} onClick={searchOpened ? closeSearch : openSearch}>
+              <IconSearch size={18} />
+            </ActionIcon>
             <Button component={Link} to="/monsters" variant="subtle" size="sm" h="100%" data-active={monstersActive || undefined} className="footer-main-button">
               モンスター
             </Button>
@@ -111,6 +116,11 @@ export function App() {
             </Button>
           </Group>
         </AppShell.Footer>
+        {searchOpened && (
+          <Box hiddenFrom="sm" className="mobile-search-panel">
+            <SearchBox onNavigate={closeSearch} resultsPlacement="top" />
+          </Box>
+        )}
         <AppShell.Main className="main-with-section-tabs">
           <Container size="lg" px={{ base: 0, sm: 'md' }}>
             <Routes>
