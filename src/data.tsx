@@ -72,3 +72,9 @@ export function text(value?: Record<string, string>) {
     return previous === '.' ? '\n' : ' ';
   });
 }
+
+export function monsterEpithet(monster: Monster) {
+  const candidate = text(monster.features).match(/≪([^≫]+)≫/u)?.[1];
+  if (!candidate || candidate === text(monster.names) || !/[\u3400-\u9fff]/u.test(candidate)) return undefined;
+  return candidate;
+}

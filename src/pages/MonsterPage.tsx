@@ -1,7 +1,7 @@
 import { Anchor, Badge, Box, Divider, Group, SimpleGrid, Stack, Table, Tabs, Text, Title } from '@mantine/core';
 import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { text, useDatabase } from '../data';
+import { monsterEpithet, text, useDatabase } from '../data';
 import { label } from '../labels';
 import { NotFoundPage } from './NotFoundPage';
 import { FormattedText } from '../components/FormattedText';
@@ -27,7 +27,7 @@ export function MonsterPage() {
   if (!monster) return <NotFoundPage />;
 
   const monsterName = text(monster.names);
-  const epithet = text(monster.features).match(/≪([^≫]+)≫/u)?.[1];
+  const epithet = monsterEpithet(monster);
   const epithetReading = epithet?.match(/^(.+?)（(.+?)）$/u);
   const featureText = text(monster.features).replace(/≪([^≫]+)≫/gu, '$1');
   const availableRewardRanks = new Set(monster.rewards.map((reward) => reward.rank));

@@ -48,7 +48,11 @@ export function SectionTabs() {
       <Tabs key={`${pathname}${search}${hash}`} defaultValue={defaultValue} variant="default" inverted>
         <Tabs.List grow>
           {tabs.map((tab) => (
-            <Tabs.Tab key={tab.target} value={tab.target} component={Link} to={tab.to ?? `#${tab.target}`}>
+            <Tabs.Tab
+              key={tab.target}
+              value={tab.target}
+              renderRoot={(props) => <Link {...props} to={tab.to ?? `#${tab.target}`} />}
+            >
               {tab.label}
             </Tabs.Tab>
           ))}

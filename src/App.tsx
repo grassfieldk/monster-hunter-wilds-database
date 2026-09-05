@@ -4,7 +4,7 @@ import { IconArrowLeft, IconArrowRight, IconArrowUp, IconSearch } from '@tabler/
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { SearchBox } from './components/SearchBox';
 import { SectionTabs } from './components/SectionTabs';
-import { DatabaseProvider, text, useDatabase } from './data';
+import { DatabaseProvider, monsterEpithet, text, useDatabase } from './data';
 import { label } from './labels';
 import { HomePage } from './pages/HomePage';
 import { ItemPage } from './pages/ItemPage';
@@ -27,7 +27,7 @@ function MobileHeaderContent() {
     const monster = monsterById.get(Number(monsterMatch[1]));
     if (monster) {
       const monsterName = text(monster.names);
-      const epithet = text(monster.features).match(/≪([^≫]+)≫/u)?.[1];
+      const epithet = monsterEpithet(monster);
       const epithetReading = epithet?.match(/^(.+?)（(.+?)）$/u);
       return (
         <Group w="100%" gap="xs" justify="space-between" wrap="nowrap">
