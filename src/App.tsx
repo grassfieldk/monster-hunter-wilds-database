@@ -1,6 +1,6 @@
 import { ActionIcon, Anchor, AppShell, Badge, Box, Button, Container, Group, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconArrowLeft, IconArrowUp, IconSearch } from '@tabler/icons-react';
+import { IconArrowLeft, IconArrowRight, IconArrowUp, IconSearch } from '@tabler/icons-react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { SearchBox } from './components/SearchBox';
 import { SectionTabs } from './components/SectionTabs';
@@ -98,16 +98,21 @@ export function App() {
         </AppShell.Header>
         <AppShell.Footer hiddenFrom="sm" p={0} className="mobile-footer">
           <SectionTabs />
-          <Group gap={2} h="100%" align="stretch" className="mobile-footer-nav">
-            <ActionIcon variant="subtle" size="lg" h="100%" w={40} aria-label="戻る" title="戻る" className="footer-history-button" onClick={() => window.history.back()}>
-              <IconArrowLeft size={18} />
-            </ActionIcon>
-            <ActionIcon component={Link} to={parentPath} variant="subtle" size="lg" h="100%" w={40} aria-label="一つ上へ" title="一つ上へ" className="footer-history-button" disabled={parentPath === pathname}>
-              <IconArrowUp size={18} />
-            </ActionIcon>
-            <ActionIcon variant="subtle" size="lg" h="100%" w={40} aria-label="検索" title="検索" className="footer-search-button" data-active={searchOpened || undefined} onClick={searchOpened ? closeSearch : openSearch}>
-              <IconSearch size={18} />
-            </ActionIcon>
+          <Group gap={0} h="100%" align="stretch" className="mobile-footer-nav">
+            <Group gap={0} h="100%" px={8} wrap="nowrap" className="footer-icon-group">
+              <ActionIcon variant="subtle" size="lg" h="100%" w={36} aria-label="戻る" title="戻る" className="footer-history-button" onClick={() => window.history.back()}>
+                <IconArrowLeft size={18} />
+              </ActionIcon>
+              <ActionIcon variant="subtle" size="lg" h="100%" w={36} aria-label="進む" title="進む" className="footer-history-button" onClick={() => window.history.forward()}>
+                <IconArrowRight size={18} />
+              </ActionIcon>
+              <ActionIcon component={Link} to={parentPath} variant="subtle" size="lg" h="100%" w={36} aria-label="一つ上へ" title="一つ上へ" className="footer-history-button" disabled={parentPath === pathname}>
+                <IconArrowUp size={18} />
+              </ActionIcon>
+              <ActionIcon variant="subtle" size="lg" h="100%" w={36} aria-label="検索" title="検索" className="footer-search-button" data-active={searchOpened || undefined} onClick={searchOpened ? closeSearch : openSearch}>
+                <IconSearch size={18} />
+              </ActionIcon>
+            </Group>
             <Button component={Link} to="/monsters" variant="subtle" size="sm" h="100%" data-active={monstersActive || undefined} className="footer-main-button">
               モンスター
             </Button>
