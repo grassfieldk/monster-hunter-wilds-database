@@ -1,5 +1,14 @@
 export type LocalizedText = Record<string, string>;
 
+export type ItemSource = {
+  location: string;
+  method: string;
+  rank?: string;
+  amount?: number;
+  chance?: number;
+  condition?: string;
+};
+
 export type ItemRecipe = {
   amount: number;
   inputs: number[];

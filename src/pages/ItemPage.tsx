@@ -7,7 +7,7 @@ import { FormattedText } from '../components/FormattedText';
 
 export function ItemPage() {
   const { id } = useParams();
-  const { itemById, monsters, itemUses } = useDatabase();
+  const { itemById, monsters, itemUses, itemSources } = useDatabase();
   const item = itemById.get(Number(id));
   if (!item) return <NotFoundPage />;
 
@@ -17,6 +17,8 @@ export function ItemPage() {
       .map((reward, index) => ({ monster, reward, index })),
   );
   const uses = itemUses[String(item.game_id)] ?? [];
+  const acquisitionSources = itemSources[String(item.game_id)] ?? [];
+  const hasAcquisitionSource = acquisitionSources.length > 0 || item.recipes.length > 0 || monsterSources.length > 0;
 
   return (
     <Stack className="page-stack" gap="lg">
@@ -33,10 +35,19 @@ export function ItemPage() {
         <section>
           <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }} className="section-title">基本情報</Title>
           <Table>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th className="numeric-cell">所持上限</Table.Th>
+                <Table.Th className="numeric-cell">購入価格</Table.Th>
+                <Table.Th className="numeric-cell">売却価格</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
             <Table.Tbody>
-              <Table.Tr><Table.Th>所持上限</Table.Th><Table.Td className="numeric-cell">{item.max_count}</Table.Td></Table.Tr>
-              <Table.Tr><Table.Th>購入価格</Table.Th><Table.Td className="numeric-cell">{item.buy_price ? `${item.buy_price.toLocaleString('ja-JP')} z` : '購入不可'}</Table.Td></Table.Tr>
-              <Table.Tr><Table.Th>売却価格</Table.Th><Table.Td className="numeric-cell">{item.sell_price.toLocaleString('ja-JP')} z</Table.Td></Table.Tr>
+              <Table.Tr>
+                <Table.Td className="numeric-cell">{item.max_count}</Table.Td>
+                <Table.Td className="numeric-cell">{item.buy_price ? `${item.buy_price.toLocaleString('ja-JP')} z` : '購入不可'}</Table.Td>
+                <Table.Td className="numeric-cell">{item.sell_price.toLocaleString('ja-JP')} z</Table.Td>
+              </Table.Tr>
             </Table.Tbody>
           </Table>
         </section>
@@ -65,11 +76,32 @@ export function ItemPage() {
 
       <section>
         <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }} className="section-title">入手方法</Title>
-        {monsterSources.length ? (
+        {hasAcquisitionSource ? (
           <Table.ScrollContainer minWidth={640}>
             <Table>
-              <Table.Thead><Table.Tr><Table.Th>モンスター</Table.Th><Table.Th>ランク</Table.Th><Table.Th>方法</Table.Th><Table.Th className="numeric-cell">個数</Table.Th><Table.Th className="numeric-cell">確率</Table.Th></Table.Tr></Table.Thead>
+              <Table.Thead><Table.Tr><Table.Th>入手先</Table.Th><Table.Th>ランク</Table.Th><Table.Th>方法</Table.Th><Table.Th className="numeric-cell">個数</Table.Th><Table.Th className="numeric-cell">確率</Table.Th></Table.Tr></Table.Thead>
               <Table.Tbody>
+                {acquisitionSources.map((source, index) => (
+                  <Table.Tr key={`source-${index}`}>
+                    <Table.Td>{source.location}</Table.Td>
+                    <Table.Td>{source.rank ?? '-'}</Table.Td>
+                    <Table.Td>
+                      {source.method}
+                      {source.condition && <Text size="sm" c="dimmed">{source.condition}</Text>}
+                    </Table.Td>
+                    <Table.Td className="numeric-cell">{source.amount ?? '-'}</Table.Td>
+                    <Table.Td className="numeric-cell">{source.chance === undefined ? '-' : `${source.chance}%`}</Table.Td>
+                  </Table.Tr>
+                ))}
+                {item.recipes.map((recipe, index) => (
+                  <Table.Tr key={`recipe-${index}`}>
+                    <Table.Td>調合</Table.Td>
+                    <Table.Td>-</Table.Td>
+                    <Table.Td>{recipe.inputs.map((inputId) => itemById.get(inputId)?.names.ja ?? `ID ${inputId}`).join(' + ')}</Table.Td>
+                    <Table.Td className="numeric-cell">{recipe.amount}</Table.Td>
+                    <Table.Td className="numeric-cell">-</Table.Td>
+                  </Table.Tr>
+                ))}
                 {monsterSources.map(({ monster, reward, index }) => (
                   <Table.Tr key={`${monster.game_id}-${reward.kind}-${index}`}>
                     <Table.Td><Anchor component={Link} to={`/monsters/${monster.game_id}`}>{text(monster.names)}</Anchor></Table.Td>
@@ -82,7 +114,7 @@ export function ItemPage() {
               </Table.Tbody>
             </Table>
           </Table.ScrollContainer>
-        ) : <Text c="dimmed">大型モンスターからの入手情報はありません</Text>}
+        ) : <Text c="dimmed">入手先は未掲載です</Text>}
       </section>
 
       <section>

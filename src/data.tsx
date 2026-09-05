@@ -1,12 +1,13 @@
 import { Center, Loader } from '@mantine/core';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Item, ItemUse, Lookups, Monster, SourceInfo } from './types';
+import type { Item, ItemSource, ItemUse, Lookups, Monster, SourceInfo } from './types';
 
 type Database = {
   items: Item[];
   monsters: Monster[];
   lookups: Lookups;
   itemUses: Record<string, ItemUse[]>;
+  itemSources: Record<string, ItemSource[]>;
   source: SourceInfo;
   itemById: Map<number, Item>;
   monsterById: Map<number, Monster>;
@@ -30,8 +31,9 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       loadJson<Lookups>('/data/lookups.json'),
       loadJson<Record<string, ItemUse[]>>('/data/item-uses.json'),
       loadJson<SourceInfo>('/data/source.json'),
-    ]).then(([items, monsters, lookups, itemUses, source]) => {
-      setData({ items, monsters, lookups, itemUses, source });
+      loadJson<Record<string, ItemSource[]>>('/data/item-sources.json'),
+    ]).then(([items, monsters, lookups, itemUses, source, itemSources]) => {
+      setData({ items, monsters, lookups, itemUses, source, itemSources });
     });
   }, []);
 

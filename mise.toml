@@ -16,3 +16,11 @@ run = "npm run build"
 [tasks.data]
 description = "統合 JSON を取得してデータを反映"
 run = "powershell -ExecutionPolicy Bypass -File scripts/download-game-data.ps1"
+
+[tasks.clean]
+description = "作業用の生成物を削除"
+run = "npm run clean"
+
+[tasks.extract]
+description = "ゲームからアイテムの入手先を抽出"
+run = "node scripts/extract-item-sources.mjs"

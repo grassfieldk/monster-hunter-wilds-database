@@ -1,4 +1,4 @@
 # Repository instructions
 
 - Do not create Git commits unless the user explicitly requests a commit
-- Before staging or committing files, check for personal information, credentials, secrets, and local absolute paths
+- 作業中に個人情報、認証情報、秘密情報、ローカルの絶対パスを成果物へ埋め込まない
