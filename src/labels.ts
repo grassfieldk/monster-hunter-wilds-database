@@ -40,6 +40,11 @@ export const labels: Record<string, string> = {
   ammo: '弾・ビン',
   account: '精算アイテム',
   special: '重要アイテム',
+  'bowgun-ammo': 'ボウガン弾',
+  'bow-coating': '弓ビン',
+  point: '精算アイテム',
+  tool: '道具',
+  mystery: 'その他',
 };
 
 export function label(value?: string) {

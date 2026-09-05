@@ -1,6 +1,6 @@
-import { ActionIcon, Anchor, Badge, Divider, Group, Modal, SimpleGrid, Stack, Table, Tabs, Text, Title } from '@mantine/core';
+import { Anchor, Badge, Box, Divider, Group, SimpleGrid, Stack, Table, Tabs, Text, Title } from '@mantine/core';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { text, useDatabase } from '../data';
 import { label } from '../labels';
 import { NotFoundPage } from './NotFoundPage';
@@ -9,9 +9,9 @@ import { FormattedText } from '../components/FormattedText';
 const rewardRanks = ['low', 'high', 'master'] as const;
 type RewardRank = (typeof rewardRanks)[number];
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
   return (
-    <section>
+    <section id={id}>
       <Title order={2} size="h4" mb="sm" className="section-title">{title}</Title>
       {children}
     </section>
@@ -20,8 +20,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export function MonsterPage() {
   const { id } = useParams();
+  const { hash } = useLocation();
   const { monsterById, itemById, lookups } = useDatabase();
-  const [infoOpened, setInfoOpened] = useState(false);
   const [selectedRewardRank, setSelectedRewardRank] = useState<RewardRank | null>(null);
   const monster = monsterById.get(Number(id));
   if (!monster) return <NotFoundPage />;
@@ -29,10 +29,14 @@ export function MonsterPage() {
   const monsterName = text(monster.names);
   const epithet = text(monster.features).match(/≪([^≫]+)≫/u)?.[1];
   const epithetReading = epithet?.match(/^(.+?)（(.+?)）$/u);
+  const featureText = text(monster.features).replace(/≪([^≫]+)≫/gu, '$1');
   const availableRewardRanks = new Set(monster.rewards.map((reward) => reward.rank));
   const activeRewardRank = selectedRewardRank && availableRewardRanks.has(selectedRewardRank)
     ? selectedRewardRank
     : rewardRanks.find((rank) => availableRewardRanks.has(rank)) ?? rewardRanks[0];
+  const activeSection = ['monster-basic', 'monster-rewards', 'monster-hitzones'].includes(hash.slice(1))
+    ? hash.slice(1)
+    : 'monster-basic';
 
   const stageName = (stageId: number) => {
     const stage = lookups.stages.find((entry) => entry.game_id === stageId);
@@ -45,7 +49,7 @@ export function MonsterPage() {
 
   return (
     <Stack className="page-stack" gap="lg">
-      <div>
+      <Box visibleFrom="sm">
         <Group gap="sm" justify="space-between" wrap="nowrap">
           <Group gap="sm" wrap="wrap">
             <Title order={1} size="h3">
@@ -64,13 +68,25 @@ export function MonsterPage() {
             </Title>
             <Badge variant="light">{label(monster.species)}</Badge>
           </Group>
-          <ActionIcon variant="light" size="sm" aria-label="説明を表示" onClick={() => setInfoOpened(true)}>
-            ?
-          </ActionIcon>
         </Group>
-      </div>
+      </Box>
 
-      <Section title="基本情報">
+      {activeSection === 'monster-basic' && <Section id="monster-basic" title="基本情報">
+        <Stack gap="sm" mb="md">
+          <div>
+            <Text size="sm" fw={500} c="dimmed" mb={4}>説明</Text>
+            <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.descriptions)}</FormattedText>
+          </div>
+          <div>
+            <Text size="sm" fw={500} c="dimmed" mb={4}>特徴</Text>
+            <Text className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{featureText}</Text>
+          </div>
+          <div>
+            <Text size="sm" fw={500} c="dimmed" mb={4}>攻略の要点</Text>
+            <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.tips)}</FormattedText>
+          </div>
+        </Stack>
+        <Divider mb={{ base: 'sm', sm: 'md' }} />
         <SimpleGrid cols={{ base: 2, sm: 4 }} spacing={{ base: 'xs', sm: 'sm' }}>
           <div><Text size="sm" c="dimmed">基礎体力</Text><Text size="sm" fw={500}>{monster.base_health.toLocaleString('ja-JP')}</Text></div>
           <div><Text size="sm" c="dimmed">基準サイズ</Text><Text size="sm" fw={500}>{monster.size.base?.toFixed(2) ?? '不明'}</Text></div>
@@ -98,31 +114,9 @@ export function MonsterPage() {
             }) : <Text size="sm">不明</Text>}</Group>
           </Group>
         </Stack>
-      </Section>
+      </Section>}
 
-      <Modal
-        opened={infoOpened}
-        onClose={() => setInfoOpened(false)}
-        title="モンスター情報"
-        centered
-      >
-        <Stack gap="md">
-          <div>
-            <Text fw={500} size="sm" mb={4}>説明</Text>
-            <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.descriptions)}</FormattedText>
-          </div>
-          <div>
-            <Text fw={500} size="sm" mb={4}>特徴</Text>
-            <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.features)}</FormattedText>
-          </div>
-          <div>
-            <Text fw={500} size="sm" mb={4}>攻略の要点</Text>
-            <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.tips)}</FormattedText>
-          </div>
-        </Stack>
-      </Modal>
-
-      <Section title="入手できるアイテム">
+      {activeSection === 'monster-rewards' && <Section id="monster-rewards" title="入手できるアイテム">
         <Tabs value={activeRewardRank} onChange={(value) => value && setSelectedRewardRank(value as RewardRank)}>
           <Tabs.List grow>
             {rewardRanks.map((rank) => (
@@ -156,9 +150,9 @@ export function MonsterPage() {
             ) : <Text size="sm" c="dimmed">このランクの入手情報はありません</Text>}
           </Tabs.Panel>
         </Tabs>
-      </Section>
+      </Section>}
 
-      <Section title="部位と肉質">
+      {activeSection === 'monster-hitzones' && <Section id="monster-hitzones" title="部位と肉質">
         <Table.ScrollContainer minWidth={576}>
           <Table layout="fixed" style={{ width: 576 }}>
             <colgroup>
@@ -180,7 +174,7 @@ export function MonsterPage() {
             </Table.Tbody>
           </Table>
         </Table.ScrollContainer>
-      </Section>
+      </Section>}
     </Stack>
   );
 }

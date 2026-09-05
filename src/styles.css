@@ -11,6 +11,11 @@ body {
   margin: 0;
 }
 
+.mobile-header-content {
+  display: flex;
+  align-items: center;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -33,6 +38,10 @@ a {
   line-height: 1;
 }
 
+.mobile-header-content .monster-epithet {
+  font-size: 1em;
+}
+
 .section-title {
   padding-bottom: var(--mantine-spacing-xs);
   border-bottom: calc(0.0625rem * var(--mantine-scale)) solid var(--mantine-color-default-border);
@@ -43,7 +52,81 @@ a {
   white-space: nowrap;
 }
 
+.section-tabs {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  left: 0;
+  z-index: 0;
+  padding: 2px 0 0;
+  background: var(--mantine-color-dark-6);
+}
+
+.section-tabs .mantine-Tabs-list::before {
+  border-color: transparent;
+}
+
+.section-tabs .mantine-Tabs-tab {
+  min-height: 28px;
+  padding: 4px 6px;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-white);
+  border-radius: 0;
+  position: relative;
+}
+
+.section-tabs .mantine-Tabs-tab:hover {
+  color: var(--mantine-color-gray-2);
+}
+
+.section-tabs .mantine-Tabs-tab[data-active] {
+  color: var(--mantine-color-blue-2);
+}
+
+.mobile-footer {
+  background: var(--mantine-color-dark-8);
+  border-top: 1px solid var(--mantine-color-dark-4);
+  filter: drop-shadow(0 -2px 4px rgb(0 0 0 / 24%));
+}
+
+.mobile-footer-nav {
+  position: relative;
+  z-index: 1;
+  background: var(--mantine-color-dark-8);
+}
+
+.mobile-footer-nav .footer-history-button {
+  flex: 0 0 40px;
+  color: var(--mantine-color-white);
+  border-radius: 0;
+}
+
+.mobile-footer-nav .footer-history-button:disabled,
+.mobile-footer-nav .footer-history-button[data-disabled] {
+  color: var(--mantine-color-gray-6);
+  background-color: transparent;
+}
+
+.mobile-footer-nav .footer-history-button:hover,
+.mobile-footer-nav .footer-history-button:active {
+  background-color: transparent;
+}
+
+.mobile-footer-nav .footer-main-button {
+  flex: 1 1 0;
+  color: var(--mantine-color-white);
+  border-radius: 0;
+}
+
+.mobile-footer-nav .footer-main-button[data-active="true"] {
+  background: var(--mantine-color-dark-6);
+}
+
 @media (max-width: 47.99em) {
+  .main-with-section-tabs {
+    padding-bottom: calc(var(--app-shell-footer-offset, 0rem) + var(--app-shell-padding) + 30px) !important;
+  }
+
   .responsive-table {
     min-width: 640px;
   }

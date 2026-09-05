@@ -1,4 +1,4 @@
-import { Anchor, Stack, Table, Text, Title } from '@mantine/core';
+import { Anchor, Stack, Table, Text } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { text, useDatabase } from '../data';
 import { label } from '../labels';
@@ -9,8 +9,6 @@ export function MonstersPage() {
 
   return (
     <Stack className="page-stack" gap="md">
-      <Title order={1} size="h3">モンスター</Title>
-      <Text size="sm" c="dimmed">大型モンスター {monsters.length} 体</Text>
       <Table striped highlightOnHover withTableBorder>
         <Table.Thead>
           <Table.Tr><Table.Th>モンスター</Table.Th><Table.Th>種族</Table.Th><Table.Th visibleFrom="sm">説明</Table.Th></Table.Tr>

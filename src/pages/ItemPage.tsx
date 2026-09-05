@@ -1,5 +1,5 @@
-import { Anchor, Badge, Group, SimpleGrid, Stack, Table, Text, Title } from '@mantine/core';
-import { Link, useParams } from 'react-router-dom';
+import { Anchor, Badge, Box, Group, Stack, Table, Text, Title } from '@mantine/core';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { label } from '../labels';
 import { text, useDatabase } from '../data';
 import { NotFoundPage } from './NotFoundPage';
@@ -7,6 +7,7 @@ import { FormattedText } from '../components/FormattedText';
 
 export function ItemPage() {
   const { id } = useParams();
+  const { hash } = useLocation();
   const { itemById, monsters, itemUses, itemSources } = useDatabase();
   const item = itemById.get(Number(id));
   if (!item) return <NotFoundPage />;
@@ -19,63 +20,47 @@ export function ItemPage() {
   const uses = itemUses[String(item.game_id)] ?? [];
   const acquisitionSources = itemSources[String(item.game_id)] ?? [];
   const hasAcquisitionSource = acquisitionSources.length > 0 || item.recipes.length > 0 || monsterSources.length > 0;
+  const activeSection = ['item-basic', 'item-sources', 'item-uses'].includes(hash.slice(1))
+    ? hash.slice(1)
+    : 'item-basic';
 
   return (
     <Stack className="page-stack" gap="lg">
-      <div>
+      <Box visibleFrom="sm">
         <Group gap="sm">
           <Title order={1} size="h3">{text(item.names)}</Title>
           <Badge variant="light">RARE {item.rarity}</Badge>
         </Group>
         <Text c="dimmed" mt={4}>{label(item.kind)}</Text>
         <FormattedText className="long-description" size="sm" mt="sm" style={{ whiteSpace: 'pre-line' }}>{text(item.descriptions)}</FormattedText>
-      </div>
+      </Box>
 
-      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-        <section>
-          <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }} className="section-title">基本情報</Title>
-          <Table>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th className="numeric-cell">所持上限</Table.Th>
-                <Table.Th className="numeric-cell">購入価格</Table.Th>
-                <Table.Th className="numeric-cell">売却価格</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              <Table.Tr>
-                <Table.Td className="numeric-cell">{item.max_count}</Table.Td>
-                <Table.Td className="numeric-cell">{item.buy_price ? `${item.buy_price.toLocaleString('ja-JP')} z` : '購入不可'}</Table.Td>
-                <Table.Td className="numeric-cell">{item.sell_price.toLocaleString('ja-JP')} z</Table.Td>
-              </Table.Tr>
-            </Table.Tbody>
-          </Table>
-        </section>
-        <section>
-          <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }} className="section-title">調合</Title>
-          {item.recipes.length ? (
-            <Stack>
-              {item.recipes.map((recipe, index) => (
-                <Group key={index} gap="xs">
-                  {recipe.inputs.map((inputId, inputIndex) => {
-                    const input = itemById.get(inputId);
-                    return (
-                      <Group key={`${inputId}-${inputIndex}`} gap="xs">
-                        {inputIndex > 0 && <Text>+</Text>}
-                        {input ? <Anchor component={Link} to={`/items/${inputId}`}>{text(input.names)}</Anchor> : <Text>ID {inputId}</Text>}
-                      </Group>
-                    );
-                  })}
-                  <Text>→ {text(item.names)} {recipe.amount} 個</Text>
-                </Group>
-              ))}
-            </Stack>
-          ) : <Text c="dimmed">調合では作成できません</Text>}
-        </section>
-      </SimpleGrid>
+      {activeSection === 'item-basic' && <section id="item-basic">
+        <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }} className="section-title">基本情報</Title>
+        <Box hiddenFrom="sm" mb="md">
+          <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(item.descriptions)}</FormattedText>
+        </Box>
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th className="numeric-cell">所持上限</Table.Th>
+              <Table.Th className="numeric-cell">購入価格</Table.Th>
+              <Table.Th className="numeric-cell">売却価格</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            <Table.Tr>
+              <Table.Td className="numeric-cell">{item.max_count}</Table.Td>
+              <Table.Td className="numeric-cell">{item.buy_price ? `${item.buy_price.toLocaleString('ja-JP')} z` : '購入不可'}</Table.Td>
+              <Table.Td className="numeric-cell">{item.sell_price.toLocaleString('ja-JP')} z</Table.Td>
+            </Table.Tr>
+          </Table.Tbody>
+        </Table>
+      </section>}
 
-      <section>
+      {activeSection === 'item-sources' && <section id="item-sources">
         <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }} className="section-title">入手方法</Title>
+        {!item.recipes.length && <Text c="dimmed" mb="sm">調合では作成できません</Text>}
         {hasAcquisitionSource ? (
           <Table.ScrollContainer minWidth={640}>
             <Table>
@@ -115,9 +100,9 @@ export function ItemPage() {
             </Table>
           </Table.ScrollContainer>
         ) : <Text c="dimmed">入手先は未掲載です</Text>}
-      </section>
+      </section>}
 
-      <section>
+      {activeSection === 'item-uses' && <section id="item-uses">
         <Title order={2} size="h3" mb={{ base: 'sm', sm: 'md' }} className="section-title">使い道</Title>
         {uses.length ? (
           <Table.ScrollContainer minWidth={560}>
@@ -133,7 +118,7 @@ export function ItemPage() {
             </Table>
           </Table.ScrollContainer>
         ) : <Text c="dimmed">調合や装備生産での用途はありません</Text>}
-      </section>
+      </section>}
     </Stack>
   );
 }
