@@ -89,39 +89,37 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
       <TextInput
         aria-label="モンスター名またはアイテム名"
         leftSection={<IconSearch size={18} />}
-        placeholder="モンスター名またはアイテム名を入力"
         size={large ? 'lg' : 'sm'}
+        classNames={{ root: 'search-input-root', input: 'search-input-field' }}
         value={query}
         onChange={(event) => setQuery(event.currentTarget.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' && results[0]) open(results[0]);
-        }}
       />
       {normalized && (
         <Paper
-          withBorder
-          shadow="sm"
+          shadow="none"
+          radius={0}
           pos="absolute"
+          className="search-results-panel"
           left={0}
           right={0}
           p={4}
           style={{
-            zIndex: 20,
+            zIndex: 0,
             ...(resultsPlacement === 'top'
-              ? { bottom: '100%', marginBottom: 4 }
-              : { top: '100%', marginTop: 4 }),
+              ? { bottom: '100%', marginBottom: 0 }
+              : { top: '100%', marginTop: 0 }),
           }}
         >
           {results.length ? (
             <Stack gap={0}>
               {results.map((result) => (
-                <UnstyledButton key={`${result.kind}-${result.id}`} p="sm" onClick={() => open(result)}>
-                  <Group justify="space-between" wrap="nowrap">
-                    <div>
-                      <Text fw={500}>{result.name}</Text>
-                      <FormattedText size="sm" c="dimmed" lineClamp={1}>{result.description}</FormattedText>
+                <UnstyledButton key={`${result.kind}-${result.id}`} w="100%" p="xs" onClick={() => open(result)}>
+                  <Group gap="xs" wrap="nowrap">
+                    <Badge w={80} variant="light" style={{ flexShrink: 0 }}>{result.kind === 'monsters' ? 'モンスター' : 'アイテム'}</Badge>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Text fw={500} lh={1.25} truncate>{result.name}</Text>
+                      <FormattedText size="sm" c="dimmed" lh={1.25} lineClamp={1}>{result.description}</FormattedText>
                     </div>
-                    <Badge variant="light">{result.kind === 'monsters' ? 'モンスター' : 'アイテム'}</Badge>
                   </Group>
                 </UnstyledButton>
               ))}
