@@ -48,7 +48,7 @@ export function SectionTabs() {
 
   return (
     <Box className="section-tabs" hiddenFrom="sm">
-      <Tabs key={`${pathname}${search}${hash}`} defaultValue={defaultValue} variant="default" inverted>
+      <Tabs key={`${pathname}${search}${hash}`} defaultValue={defaultValue} variant="pills" inverted>
         <Tabs.List grow>
           {tabs.map((tab) => (
             <Tabs.Tab

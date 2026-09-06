@@ -9,6 +9,7 @@ html::-webkit-scrollbar {
 
 body {
   margin: 0;
+  --section-tabs-height: 38px;
 }
 
 .mobile-header-content {
@@ -21,8 +22,29 @@ a {
   text-decoration: none;
 }
 
+.responsive-table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.responsive-table-container::-webkit-scrollbar {
+  display: none;
+}
+
 .responsive-table {
-  min-width: 680px;
+  width: 100%;
+  table-layout: auto;
+}
+
+.responsive-table--intrinsic {
+  width: max-content;
+  min-width: 100%;
+}
+
+.responsive-table :where(th, .numeric-cell) {
+  white-space: nowrap;
 }
 
 .long-description {
@@ -55,23 +77,39 @@ a {
 .section-tabs {
   position: absolute;
   right: 0;
-  bottom: 100%;
+  bottom: calc(100% + 1px);
   left: 0;
-  z-index: 0;
-  padding: 2px 0 0;
+  z-index: 2;
+  padding: 0;
+  background: var(--mantine-color-dark-7);
+}
+
+.section-tabs:not(.rank-tabs) {
+  padding: 4px;
+}
+
+.section-tabs.rank-tabs {
+  position: fixed;
+  bottom: 0;
+  z-index: 1;
+}
+
+.rank-tabs .mantine-Tabs-tab:disabled {
+  color: var(--mantine-color-dimmed);
+}
+
+.with-rank-tabs {
+  padding-bottom: var(--section-tabs-height);
+}
+
+.rank-tabs {
   background: var(--mantine-color-dark-6);
+  box-shadow: 0 -2px 4px rgb(0 0 0 / 24%);
 }
 
-.section-tabs .mantine-Tabs-list::before {
-  border-color: transparent;
-}
-
-.section-tabs .mantine-Tabs-tab {
-  min-height: 28px;
-  padding: 4px 6px;
+.section-tabs:not(.rank-tabs) .mantine-Tabs-tab {
   font-size: var(--mantine-font-size-sm);
   color: var(--mantine-color-white);
-  border-radius: 0;
   position: relative;
 }
 
@@ -80,13 +118,18 @@ a {
 }
 
 .section-tabs .mantine-Tabs-tab[data-active] {
-  color: var(--mantine-color-blue-2);
+  color: var(--mantine-color-white);
+}
+
+.section-tabs:not(.rank-tabs) .mantine-Tabs-tab[data-active] {
+  background: var(--mantine-color-dark-6);
 }
 
 .mobile-footer {
-  background: var(--mantine-color-dark-8);
+  background: var(--mantine-color-dark-9);
   border-top: 1px solid var(--mantine-color-dark-4);
   filter: drop-shadow(0 -2px 4px rgb(0 0 0 / 24%));
+  z-index: 3;
 }
 
 .mobile-search-panel {
@@ -96,14 +139,14 @@ a {
   left: 0;
   z-index: 200;
   padding: 0;
-  background: var(--mantine-color-dark-4);
+  background: var(--mantine-color-dark-5);
 }
 
 .search-results-panel {
-  max-height: min(60dvh, 480px);
+  height: 480px;
   overflow-y: auto;
-  background: var(--mantine-color-dark-4);
-  background: color-mix(in srgb, var(--mantine-color-dark-4) 80%, transparent);
+  background: var(--mantine-color-dark-5);
+  background: color-mix(in srgb, var(--mantine-color-dark-5) 80%, transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 -3px 8px rgb(0 0 0 / 32%);
@@ -122,7 +165,7 @@ a {
 .search-input-field {
   border: 0;
   border-radius: 0;
-  background: var(--mantine-color-dark-5);
+  background: var(--mantine-color-dark-6);
 }
 
 .search-input-root {
@@ -131,13 +174,18 @@ a {
 }
 
 .mobile-search-panel .search-input-root {
+  height: var(--section-tabs-height);
+  min-height: var(--section-tabs-height);
   box-shadow: 0 -2px 4px rgb(0 0 0 / 24%);
 }
 
+.mobile-search-panel .search-input-field {
+  height: 100%;
+  min-height: var(--section-tabs-height);
+}
+
 .mobile-footer-nav {
-  position: relative;
-  z-index: 1;
-  background: var(--mantine-color-dark-8);
+  background: var(--mantine-color-dark-9);
 }
 
 .mobile-footer-nav .footer-history-button {
@@ -179,16 +227,16 @@ a {
 }
 
 .mobile-footer-nav .footer-main-button[data-active="true"] {
-  background: var(--mantine-color-dark-6);
+  background: var(--mantine-color-dark-7);
 }
 
 @media (max-width: 47.99em) {
-  .main-with-section-tabs {
-    padding-bottom: calc(var(--app-shell-footer-offset, 0rem) + var(--app-shell-padding) + 36px) !important;
+  .section-tabs.rank-tabs {
+    bottom: calc(var(--app-shell-footer-height) + var(--section-tabs-height));
   }
 
-  .responsive-table {
-    min-width: 640px;
+  .main-with-section-tabs {
+    padding-bottom: calc(var(--app-shell-footer-offset, 0rem) + var(--app-shell-padding) + 36px) !important;
   }
 
   .long-description {

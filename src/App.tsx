@@ -110,13 +110,13 @@ export function App() {
                 <IconArrowUp size={18} />
               </ActionIcon>
               <ActionIcon variant="subtle" size="lg" h="100%" w={36} aria-label="検索" title="検索" className="footer-search-button" data-active={searchOpened || undefined} onClick={searchOpened ? closeSearch : openSearch}>
-                <IconSearch size={18} />
+                <IconSearch size={18} stroke={2.25} />
               </ActionIcon>
             </Group>
-            <Button component={Link} to="/monsters" variant="subtle" size="sm" h="100%" data-active={monstersActive || undefined} className="footer-main-button">
+            <Button component={Link} to="/monsters" variant="subtle" size="sm" h="100%" data-active={monstersActive || undefined} className="footer-main-button" onClick={closeSearch}>
               モンスター
             </Button>
-            <Button component={Link} to="/items" variant="subtle" size="sm" h="100%" data-active={itemsActive || undefined} className="footer-main-button">
+            <Button component={Link} to="/items" variant="subtle" size="sm" h="100%" data-active={itemsActive || undefined} className="footer-main-button" onClick={closeSearch}>
               アイテム
             </Button>
           </Group>
@@ -126,7 +126,7 @@ export function App() {
             <SearchBox onNavigate={closeSearch} resultsPlacement="top" />
           </Box>
         )}
-        <AppShell.Main className="main-with-section-tabs">
+        <AppShell.Main className="main-with-section-tabs" onClick={closeSearch}>
           <Container size="lg" px={{ base: 0, sm: 'md' }}>
             <Routes>
               <Route path="/" element={<HomePage />} />

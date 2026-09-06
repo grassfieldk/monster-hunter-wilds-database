@@ -94,7 +94,7 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
         value={query}
         onChange={(event) => setQuery(event.currentTarget.value)}
       />
-      {normalized && (
+      {(normalized || onNavigate) && (
         <Paper
           shadow="none"
           radius={0}
@@ -124,9 +124,11 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
                 </UnstyledButton>
               ))}
             </Stack>
-          ) : (
-            <Text p="sm" c="dimmed">該当するデータがありません</Text>
-          )}
+          ) : normalized ? (
+            <Stack h="100%" align="center" justify="center">
+              <Text c="dimmed">該当するデータがありません</Text>
+            </Stack>
+          ) : null}
         </Paper>
       )}
     </Stack>
