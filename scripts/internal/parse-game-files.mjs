@@ -1,11 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gunzipSync } from 'node:zlib';
 const root = path.resolve('.cache/direct');
-const layouts = JSON.parse(fs.readFileSync(path.join(root, 'layouts.json'), 'utf8'));
-const variants = fs.existsSync(path.join(root, 'layout-variants.json')) ? JSON.parse(fs.readFileSync(path.join(root, 'layout-variants.json'), 'utf8')) : {};
-const current = JSON.parse(fs.readFileSync(path.join(root, 'layouts-current.json'), 'utf8'));
-export function parse(b, base = b.indexOf(Buffer.from('RSZ\0')), end = b.length) {
+const bundled = path.resolve('scripts/data');
+function readDefinition(name) {
+    const archive = path.join(bundled, `${name}.gz`);
+    return JSON.parse(gunzipSync(fs.readFileSync(archive)).toString('utf8'));
+}
+const layouts = readDefinition('layouts.json');
+const variants = readDefinition('layout-variants.json');
+const current = readDefinition('layouts-current.json');
+export function parse(b, base = b.indexOf(Buffer.from('RSZ\0')), end = b.length, overrides = {}) {
     if (base < 0)
         throw Error('Missing RSZ');
     const count = b.readUInt32LE(base + 12), objects = b.readUInt32LE(base + 8), external = b.readUInt32LE(base + 16);
@@ -90,7 +96,7 @@ export function parse(b, base = b.indexOf(Buffer.from('RSZ\0')), end = b.length)
             instances.push({ $resource: ext.get(i) });
             continue;
         }
-        const id = b.readUInt32LE(info + i * 8).toString(16), crc = b.readUInt32LE(info + i * 8 + 4).toString(16), schema = variants[id + ':' + crc] ?? layouts[id];
+        const id = b.readUInt32LE(info + i * 8).toString(16), crc = b.readUInt32LE(info + i * 8 + 4).toString(16), schema = overrides[id + ':' + crc] ?? variants[id + ':' + crc] ?? (current[id]?.crc === crc ? current[id] : layouts[id]);
         if (!schema)
             throw Error(`Unknown type ${id}`);
         if (schema.crc !== crc && !(schema.name === 'app.user_data.QuestData' && crc === '7d4aa93c' && JSON.stringify(schema.fields) === JSON.stringify(current[id]?.fields)))
@@ -149,4 +155,5 @@ if (path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     }
     fs.writeFileSync(path.join(root, 'parse-report.json'), JSON.stringify(report, null, 2));
     console.log(JSON.stringify({ ok: report.ok.length, failed: report.errors.length, examples: report.errors.slice(0, 10) }, null, 2));
+    if (report.errors.length) process.exitCode = 1;
 }

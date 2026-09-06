@@ -2,11 +2,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const input = path.resolve(process.argv[2] ?? '.cache/direct');
-const output = path.resolve('public/data/item-sources.json');
-const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
-const report = read(path.join(input, 'parse-report.json'));
-const items = new Map(read('public/data/items.json').map((item) => [item.game_id, item]));
-const stages = new Map(read('public/data/lookups.json').stages.map((stage) => [stage.game_id, stage.names.ja]));
+const dataDirectory = path.resolve(process.argv[3] ?? 'public/data');
+const output = path.join(dataDirectory, 'item-sources.json');
+const report = JSON.parse(fs.readFileSync(path.join(input, 'parse-report.json'), 'utf8'));
+const sourceInputs = new Set();
+const read = (file) => {
+  const relative = path.relative(path.join(input, 'json'), path.resolve(file)).split(path.sep).join('/');
+  if (relative.startsWith('natives/')) {
+    const name = relative.replace(/\.json$/, '');
+    if (!report.ok.includes(name)) throw new Error(`Data was not parsed: ${name}`);
+    sourceInputs.add(name);
+  }
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+};
+const items = new Map(read(path.join(dataDirectory, 'items.json')).map((item) => [item.game_id, item]));
+const stages = new Map(read(path.join(dataDirectory, 'lookups.json')).stages.map((stage) => [stage.game_id, stage.names.ja]));
 const texts = read(path.join(input, 'texts.json'));
 const textsByName = new Map(Object.values(texts).map((entry) => [entry.name, entry.ja]));
 const prefix = 'natives/STM/GameDesign/';
@@ -38,7 +48,10 @@ for (const stage of stageEnums.filter((row) => /^ST10[1-5]$/.test(row._EnumName)
   const code = stage._EnumName.toLowerCase();
   const scene = load(`Stage/${code}/Layout/Loaded/Gimmick/${code}_Loaded_Gimmick.scn.21`);
   for (const graph of scene.instances.filter((row) => row?.$type === 'via.pointgraph.PointGraph')) {
-    const list = fs.readFileSync(path.join(input, 'raw', 'natives/STM', `${graph.v0_Resource}.0`));
+    const resource = graph.v0_Resource ?? graph.v0;
+    if (typeof resource !== 'string') throw new Error('PointGraph resource is missing');
+    sourceInputs.add(`natives/STM/${resource}.0`);
+    const list = fs.readFileSync(path.join(input, 'raw', 'natives/STM', `${resource}.0`));
     if (list.toString('ascii', 0, 4) !== 'PGL\0') throw new Error('Invalid point list');
     for (let i = 0; i < list.readUInt32LE(8); i++) {
       const offset = Number(list.readBigUInt64LE(24 + i * 8));
@@ -221,8 +234,9 @@ for (const source of Object.values(sources).flat()) {
   if (source.chance !== undefined && (!Number.isFinite(source.chance) || source.chance <= 0 || source.chance > 100)) throw new Error('Invalid source probability');
 }
 fs.writeFileSync(output, JSON.stringify(sources));
+fs.writeFileSync(path.join(input, 'source-inputs.json'), JSON.stringify([...sourceInputs].sort()));
 fs.writeFileSync(path.join(input, 'source-evidence.json'), JSON.stringify(evidence, null, 2));
-const monsterRewards = new Set(read('public/data/monsters.json').flatMap((monster) => monster.rewards.map((reward) => reward.item_id)));
+const monsterRewards = new Set(read(path.join(dataDirectory, 'monsters.json')).flatMap((monster) => monster.rewards.map((reward) => reward.item_id)));
 const missing = [...items.values()].filter((item) => !item.recipes.length && !monsterRewards.has(item.game_id) && !sources[item.game_id]).map((item) => ({ id: item.game_id, name: item.names.ja }));
 fs.writeFileSync(path.join(input, 'missing-sources.json'), JSON.stringify(missing, null, 2));
 console.log(`入手先を生成: ${Object.keys(sources).length} アイテム、${Object.values(sources).flat().length} 件（入手先未特定: ${missing.length} アイテム）`);

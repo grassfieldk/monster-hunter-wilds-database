@@ -8,7 +8,7 @@
 - アイテムの基本情報、採取場所、モンスター・クエスト報酬、支給品、素材採集依頼、交換、調理、錬金、調合、装備生産での使い道
 - 日本語名によるモンスターとアイテムの横断検索
 
-基本データは [mhdb-wilds-data](https://github.com/LartTyler/mhdb-wilds-data) の統合 JSON、追加の入手先はインストール済みゲームのファイルから生成します。
+掲載データはインストール済みのモンスターハンターワイルズから直接読み取り、サイト用 JSON を生成します。
 
 ## 起動
 
@@ -30,18 +30,14 @@ mise run clean
 
 ## ゲームデータの更新
 
-データを更新するときは、次のコマンドを実行します。上流リポジトリから必要な統合 JSON だけを取得し、サイト用データを生成します。
+データを更新するときは、ゲームのインストール先を指定して次のコマンドを実行します。
 
 ```powershell
-mise run data
+mise run data -- "<ゲームのインストール先>"
 ```
 
-入手先を更新するときは、ゲームのインストール先を指定します。
+ファイルの展開と読み取りはプロジェクト内のスクリプトで行います。ファイル名一覧と解析用の構造定義は `scripts/data/` に同梱しています。解析中の展開ファイルと結果は `.cache/direct/` にまとまり、`mise run clean` で削除できます。
 
-```powershell
-mise run extract -- "<ゲームのインストール先>"
-```
+必要なファイルの欠落や解析エラーがある場合は更新を停止します。すべての生成データの検証が完了すると `public/data/` に反映します。
 
-ファイルの展開と読み取りはプロジェクト内のスクリプトで行います。ファイル名一覧とデータ構造の定義をダウンロードし、ゲームから採取・報酬・販売・交換の情報を抽出します。ダウンロードした資料、展開ファイル、解析結果は `.cache/direct/` にまとまり、`mise run clean` で削除できます。
-
-形式の参照元: [ree-pak-rs](https://github.com/eigeen/ree-pak-rs)、[RE_RSZ](https://github.com/dtlnor/RE_RSZ/tree/MHWilds)、[REMSG_Converter](https://github.com/dtlnor/REMSG_Converter)
+解析形式の参考資料: [ree-pak-rs](https://github.com/eigeen/ree-pak-rs)、[RE_RSZ](https://github.com/dtlnor/RE_RSZ/tree/MHWilds)、[REMSG_Converter](https://github.com/dtlnor/REMSG_Converter)。実行時にこれらのリポジトリへ接続することはありません。

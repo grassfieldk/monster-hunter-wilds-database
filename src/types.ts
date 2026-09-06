@@ -93,6 +93,5 @@ export type Lookups = {
 export type SourceInfo = {
   generatedAt: string;
   gameFiles: string[];
-  sourceProject: string;
-  sourceRevision: string;
+  dataOrigin: string;
 };

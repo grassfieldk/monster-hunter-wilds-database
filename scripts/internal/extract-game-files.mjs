@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { inflateRawSync, zstdDecompressSync } from 'node:zlib';
+import { inflateRawSync, zstdDecompressSync, gunzipSync } from 'node:zlib';
 const root = path.resolve('.cache/direct');
 fs.mkdirSync(root, { recursive: true });
 const modulus = Buffer.from('7d0bf8c17c23fd3bd47516d23321d81071f97cd13493ba7726fcab2ceedad91c89e7297bdd8aae5039b6016d21895da5a13ea2c08c93133665ebe8df06176796062bac23ed8cb78b90adea71c440449d1c7bbac4b62dd6d24b62d626fc742007ece3599ae6afb9a8358be0e8d3cd4565b091c4951bf3231ec671cf3e352d6be300', 'hex');
@@ -32,15 +32,9 @@ function hash(s) {
     h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
     return (h ^ (h >>> 16)) >>> 0;
 }
-const listFile = path.join(root, 'files.list');
-if (!fs.existsSync(listFile)) {
-    const r = await fetch('https://raw.githubusercontent.com/LartTyler/mhdb-wilds-data/c50a1eb892f4a1ad9bb35c147801658804be2cc2/tools/ree-pak-gui/ree-pak-tools/filelist/remote/MHWs_STM_Release.list');
-    if (!r.ok)
-        throw Error(r.status);
-    fs.writeFileSync(listFile, await r.text());
-}
+const bundledList = path.resolve('scripts/data/game-file-list.txt.gz');
 const filter = new RegExp(process.argv[3] || 'GameDesign/.*(Reward|SupplyItem|Gather|Collect|GimmickBasic|GimmickText|GmID|ItemData).*\\.user\\.3$', 'i');
-const names = new Map(fs.readFileSync(listFile, 'utf8').split(/\r?\n/).filter(s => filter.test(s)).map(s => [`${hash(s.toUpperCase())}:${hash(s.toLowerCase())}`, s]));
+const names = new Map(gunzipSync(fs.readFileSync(bundledList)).toString('utf8').split(/\r?\n/).filter(s => filter.test(s)).map(s => [`${hash(s.toUpperCase())}:${hash(s.toLowerCase())}`, s]));
 const game = process.argv[2];
 const manifestPath = path.join(root, 'manifest.json');
 const records = new Map(!process.argv.includes('--fresh') && fs.existsSync(manifestPath) ? Object.entries(JSON.parse(fs.readFileSync(manifestPath, 'utf8'))) : []);
@@ -128,4 +122,6 @@ for (const archive of archives) {
     }
 }
 fs.writeFileSync(path.join(root, 'manifest.json'), JSON.stringify(Object.fromEntries(records), null, 2));
+const missing = [...names.values()].filter(name => !records.has(name));
+if (missing.length) throw Error(`必要なゲームファイルがありません: ${missing.slice(0, 5).join(', ')}`);
 console.log(`Extracted ${records.size} distinct files`);
