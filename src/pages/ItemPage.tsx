@@ -22,7 +22,7 @@ export function ItemPage() {
   const hasAcquisitionSource = acquisitionSources.length > 0 || item.recipes.length > 0 || monsterSources.length > 0;
   const activeSection = ['item-basic', 'item-sources', 'item-uses'].includes(hash.slice(1))
     ? hash.slice(1)
-    : 'item-basic';
+    : 'item-sources';
 
   return (
     <Stack className="page-stack" gap="lg">

@@ -36,7 +36,7 @@ export function MonsterPage() {
     : rewardRanks.find((rank) => availableRewardRanks.has(rank)) ?? rewardRanks[0];
   const activeSection = ['monster-basic', 'monster-rewards', 'monster-hitzones'].includes(hash.slice(1))
     ? hash.slice(1)
-    : 'monster-basic';
+    : 'monster-rewards';
 
   const stageName = (stageId: number) => {
     const stage = lookups.stages.find((entry) => entry.game_id === stageId);

@@ -41,7 +41,10 @@ export function SectionTabs() {
   const tabs = getSectionTabs(pathname, new Set(items.map((item) => item.kind)));
   if (!tabs.length) return null;
   const selected = pathname === '/items' ? new URLSearchParams(search).get('kind') : hash.slice(1);
-  const defaultValue = tabs.some((tab) => tab.target === selected) ? selected : tabs[0].target;
+  const fallback = pathname.startsWith('/monsters/') ? 'monster-rewards'
+    : pathname.startsWith('/items/') ? 'item-sources'
+      : tabs[0].target;
+  const defaultValue = tabs.some((tab) => tab.target === selected) ? selected : fallback;
 
   return (
     <Box className="section-tabs" hiddenFrom="sm">
