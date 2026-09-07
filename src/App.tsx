@@ -11,17 +11,21 @@ import { ItemPage } from './pages/ItemPage';
 import { ItemsPage } from './pages/ItemsPage';
 import { MonsterPage } from './pages/MonsterPage';
 import { MonstersPage } from './pages/MonstersPage';
+import { QuestsPage } from './pages/QuestsPage';
+import { QuestPage } from './pages/QuestPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 function MobileHeaderContent() {
   const { pathname } = useLocation();
-  const { monsterById, itemById } = useDatabase();
+  const { monsterById, itemById, questById } = useDatabase();
   const monsterMatch = pathname.match(/^\/monsters\/([^/]+)$/u);
   const itemMatch = pathname.match(/^\/items\/([^/]+)$/u);
+  const questMatch = pathname.match(/^\/quests\/([^/]+)$/u);
 
   if (pathname === '/') return <Text size="md" fw={600}>Monster Hunter Wilds DB</Text>;
   if (pathname === '/monsters') return <Text size="md" fw={600}>モンスター一覧</Text>;
   if (pathname === '/items') return <Text size="md" fw={600}>アイテム一覧</Text>;
+  if (pathname === '/quests') return <Text size="md" fw={600}>クエスト一覧</Text>;
 
   if (monsterMatch) {
     const monster = monsterById.get(Number(monsterMatch[1]));
@@ -58,6 +62,18 @@ function MobileHeaderContent() {
     }
   }
 
+  if (questMatch) {
+    const quest = questById.get(Number(questMatch[1]));
+    if (quest) {
+      return (
+        <Group gap="xs" wrap="nowrap" miw={0}>
+          <Badge size="sm" variant="light">{quest.category}</Badge>
+          <Text size="md" fw={600} truncate>{text(quest.names)}</Text>
+        </Group>
+      );
+    }
+  }
+
   return null;
 }
 
@@ -89,6 +105,7 @@ export function App() {
               <Group visibleFrom="sm" gap="lg">
                 <Anchor component={Link} to="/monsters" c="inherit">モンスター</Anchor>
                 <Anchor component={Link} to="/items" c="inherit">アイテム</Anchor>
+                <Anchor component={Link} to="/quests" c="inherit">クエスト</Anchor>
               </Group>
               <Box visibleFrom="sm" style={{ width: 'min(42vw, 360px)' }}>
                 <SearchBox />
@@ -119,6 +136,9 @@ export function App() {
             <Button component={Link} to="/items" variant="subtle" size="sm" h="100%" data-active={itemsActive || undefined} className="footer-main-button" onClick={closeSearch}>
               アイテム
             </Button>
+            <Button component={Link} to="/quests" variant="subtle" size="sm" h="100%" data-active={pathname.startsWith('/quests') || undefined} className="footer-main-button" onClick={closeSearch}>
+              クエスト
+            </Button>
           </Group>
         </AppShell.Footer>
         {searchOpened && (
@@ -134,6 +154,8 @@ export function App() {
               <Route path="/monsters/:id" element={<MonsterPage />} />
               <Route path="/items" element={<ItemsPage />} />
               <Route path="/items/:id" element={<ItemPage />} />
+              <Route path="/quests" element={<QuestsPage />} />
+              <Route path="/quests/:id" element={<QuestPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Container>

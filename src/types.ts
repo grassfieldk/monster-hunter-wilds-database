@@ -84,6 +84,31 @@ export type ItemUse = {
   amount: number;
 };
 
+export type Quest = {
+  game_id: number;
+  names: LocalizedText;
+  descriptions: LocalizedText;
+  category: QuestCategory;
+  difficulty: number;
+  locations: number[];
+  time_limit: number;
+  reward_money: number;
+  hunter_rank_points: number;
+  quest_type: number;
+  order_rank: number;
+  target_monsters: QuestTargetMonster[];
+  objective: LocalizedText;
+  clear_condition_type: number;
+};
+
+export type QuestCategory = '任務' | 'フリー' | 'イベント' | '闘技大会' | 'その他';
+
+export type QuestTargetMonster = {
+  game_id: number;
+  names: LocalizedText;
+  amount: number;
+};
+
 export type Lookups = {
   stages: NamedLookup[];
   species: NamedLookup[];

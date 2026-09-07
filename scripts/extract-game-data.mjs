@@ -21,7 +21,7 @@ run('scripts/internal/build-item-sources.mjs', [cache, site]);
 run('scripts/internal/validate-site-data.mjs', [site]);
 const publicData = path.resolve('public/data');
 fs.mkdirSync(publicData, { recursive: true });
-for (const name of ['items', 'monsters', 'lookups', 'item-uses', 'item-sources', 'source']) {
+for (const name of ['items', 'monsters', 'quests', 'lookups', 'item-uses', 'item-sources', 'source']) {
   fs.copyFileSync(path.join(site, `${name}.json`), path.join(publicData, `${name}.json`));
 }
 console.log('ゲームデータからサイト用データを生成しました');

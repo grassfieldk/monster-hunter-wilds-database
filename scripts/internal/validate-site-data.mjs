@@ -6,13 +6,15 @@ const directory = process.argv[2] ?? '.cache/direct/site';
 const read = (name) => JSON.parse(fs.readFileSync(path.join(directory, `${name}.json`), 'utf8'));
 const items = read('items');
 const monsters = read('monsters');
+const quests = read('quests');
 const lookups = read('lookups');
 const itemIds = new Set(items.map(item => item.game_id));
 const stageIds = new Set(lookups.stages.map(stage => stage.game_id));
 const partIds = new Set(lookups.partNames.map(part => part.part));
-assert(items.length > 0 && monsters.length > 0);
+assert(items.length > 0 && monsters.length > 0 && quests.length > 0);
 assert.equal(itemIds.size, items.length);
 assert.equal(new Set(monsters.map(monster => monster.game_id)).size, monsters.length);
+assert.equal(new Set(quests.map(quest => quest.game_id)).size, quests.length);
 const positive = value => assert(Number.isFinite(value) && value > 0);
 for (const item of items) {
   assert(item.names.ja && item.kind);
@@ -39,6 +41,21 @@ for (const monster of monsters) {
     assert(reward.chance <= 100);
     if (reward.part) assert(partIds.has(reward.part));
   }
+}
+for (const quest of quests) {
+  assert(quest.names.ja);
+  assert(quest.objective.ja);
+  assert(['任務', 'フリー', 'イベント', '闘技大会', 'その他'].includes(quest.category));
+  assert(Number.isFinite(quest.difficulty) && quest.difficulty >= 0);
+  assert(quest.locations.every(id => stageIds.has(id)));
+  for (const value of [quest.time_limit, quest.reward_money, quest.hunter_rank_points, quest.quest_type, quest.order_rank]) {
+    assert(Number.isFinite(value) && value >= 0);
+  }
+  for (const target of quest.target_monsters) {
+    assert(Number.isInteger(target.game_id));
+    assert(target.names.ja && Number.isFinite(target.amount) && target.amount >= 0);
+  }
+  assert(Number.isInteger(quest.clear_condition_type) && quest.clear_condition_type >= 0);
 }
 for (const name of ['item-uses', 'item-sources']) {
   for (const [id, entries] of Object.entries(read(name))) {

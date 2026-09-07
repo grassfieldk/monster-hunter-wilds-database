@@ -1,16 +1,18 @@
 import { Center, Loader } from '@mantine/core';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Item, ItemSource, ItemUse, Lookups, Monster, SourceInfo } from './types';
+import type { Item, ItemSource, ItemUse, Lookups, Monster, Quest, SourceInfo } from './types';
 
 type Database = {
   items: Item[];
   monsters: Monster[];
+  quests: Quest[];
   lookups: Lookups;
   itemUses: Record<string, ItemUse[]>;
   itemSources: Record<string, ItemSource[]>;
   source: SourceInfo;
   itemById: Map<number, Item>;
   monsterById: Map<number, Monster>;
+  questById: Map<number, Quest>;
 };
 
 const DatabaseContext = createContext<Database | null>(null);
@@ -22,18 +24,19 @@ async function loadJson<T>(path: string): Promise<T> {
 }
 
 export function DatabaseProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<Omit<Database, 'itemById' | 'monsterById'> | null>(null);
+  const [data, setData] = useState<Omit<Database, 'itemById' | 'monsterById' | 'questById'> | null>(null);
 
   useEffect(() => {
     Promise.all([
       loadJson<Item[]>('/data/items.json'),
       loadJson<Monster[]>('/data/monsters.json'),
+      loadJson<Quest[]>('/data/quests.json'),
       loadJson<Lookups>('/data/lookups.json'),
       loadJson<Record<string, ItemUse[]>>('/data/item-uses.json'),
       loadJson<SourceInfo>('/data/source.json'),
       loadJson<Record<string, ItemSource[]>>('/data/item-sources.json'),
-    ]).then(([items, monsters, lookups, itemUses, source, itemSources]) => {
-      setData({ items, monsters, lookups, itemUses, source, itemSources });
+    ]).then(([items, monsters, quests, lookups, itemUses, source, itemSources]) => {
+      setData({ items, monsters, quests, lookups, itemUses, source, itemSources });
     });
   }, []);
 
@@ -43,6 +46,7 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       ...data,
       itemById: new Map(data.items.map((item) => [item.game_id, item])),
       monsterById: new Map(data.monsters.map((monster) => [monster.game_id, monster])),
+      questById: new Map(data.quests.map((quest) => [quest.game_id, quest])),
     };
   }, [data]);
 

@@ -32,6 +32,10 @@ function getSectionTabs(pathname: string, itemKinds: Set<string>): SectionTab[] 
     ];
   }
 
+  if (/^\/quests\/[^/]+$/u.test(pathname)) {
+    return [{ label: '基本情報', target: 'quest-basic' }];
+  }
+
   return [];
 }
 
@@ -43,6 +47,7 @@ export function SectionTabs() {
   const selected = pathname === '/items' ? new URLSearchParams(search).get('kind') : hash.slice(1);
   const fallback = pathname.startsWith('/monsters/') ? 'monster-rewards'
     : pathname.startsWith('/items/') ? 'item-sources'
+      : pathname.startsWith('/quests/') ? 'quest-basic'
       : tabs[0].target;
   const defaultValue = tabs.some((tab) => tab.target === selected) ? selected : fallback;
 

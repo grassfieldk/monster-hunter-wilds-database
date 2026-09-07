@@ -33,7 +33,8 @@ function resolve(value, depth = 0) {
   return value.replace(/<REF ([^>]+)>/g, (_, name) => {
     if (!byName.has(name)) throw Error(`テキスト参照がありません: ${name}`);
     return resolve(byName.get(name), depth + 1);
-  }).replace(/<EMID ([^>]+)>/g, (_, name) => resolve(byName.get(`EnemyText_NAME_${name}`), depth + 1))
+  }).replace(/<EMIDJP ([^>]+)>/g, (_, name) => resolve(byName.get(`EnemyText_JP_NAME_${name}`), depth + 1))
+    .replace(/<EMID ([^>]+)>/g, (_, name) => resolve(byName.get(`EnemyText_NAME_${name}`), depth + 1))
     .replace(/<\/?(?:COLOR|SIZE|FONT)(?: [^>]+)?>/g, '');
 }
 const localized = (guid) => ({ ja: resolve(texts[guid]?.ja) });
@@ -65,7 +66,8 @@ for (const row of rows(load('Common/Item/ItemRecipe'), 'app.user_data.cItemRecip
 const stageEnums = load('Stage/Common/EnumMaker/Stage').instances.filter((row) => row?._EnumName);
 const stageTextKeys = {
   ST101: '0000_0000', ST102: '0000_0001', ST103: '0000_0002', ST104: '0000_0003', ST105: '0000_0004',
-  ST201: '0000_0005', ST202: '0001_0003', ST203: '0001_0004',
+  ST201: '0000_0005', ST202: '0001_0003', ST203: '0001_0004', ST204: '0001_0005',
+  ST401: '9999_0000', ST402: '9999_0001', ST403: '9999_0003', ST404: '9999_0004',
 };
 const stages = stageEnums.filter((row) => stageTextKeys[row._EnumName]).map((row) => ({
   game_id: row._FixedID, names: { ja: resolve(byName.get(`RefEnvironment_${stageTextKeys[row._EnumName]}`)) },
@@ -154,6 +156,68 @@ for (const boss of rows(bossData, 'app.user_data.EnemyReportBossData.cData')) {
     weaknesses, resistances, parts, rewards,
   });
 }
+const questFiles = [...parsed].filter((file) => /\/Mission\/[^/]+\/_Quest\/[^/]+_QuestData\.user\.3$/u.test(file));
+const quests = [];
+const stageIds = new Set(stages.map((stage) => stage.game_id));
+const objectiveVerbs = { 1: '狩猟', 2: '討伐', 3: '捕獲', 5: '撃退', 6: '討伐' };
+const questCategory = (file) => {
+  const prefix = file.match(/\/Mission\/Mission(\d{3})\d{3}\//u)?.[1];
+  if (!prefix) return 'その他';
+  if (['001', '002', '003', '004', '005', '006', '007', '008', '009', '010', '011', '700', '720', '730', '740'].includes(prefix)) return '任務';
+  if (['101', '102', '103', '104', '105', '106', '107', '109', '199'].includes(prefix)) return 'フリー';
+  if (['204', '205'].includes(prefix)) return '闘技大会';
+  if (prefix === '400') return 'イベント';
+  return 'その他';
+};
+for (const file of questFiles) {
+  inputs.add(file);
+  const data = read(path.join(cache, 'json', `${file}.json`));
+  for (const row of rows(data, 'app.user_data.QuestData')) {
+    const missionId = scalar(data, row._MissionId);
+    const message = ref(data, row._QuestMsg);
+    const title = message ? resolve(texts[message._TitleMsg]?.ja) : '';
+    if (!missionId || !title || title === '---') continue;
+    const stage = scalar(data, row._Stage);
+    const orderCondition = ref(data, row._OrderCondition);
+    const detail = message ? resolve(texts[message._DetailMsg]?.ja) : '';
+    const clearCondition = ref(data, row._ClearCondition);
+    const clearConditionMessage = message ? ref(data, message._ClearConditionMsg) : undefined;
+    const manualObjective = clearConditionMessage && !clearConditionMessage._IsAuto
+      ? resolve(texts[clearConditionMessage._MsgID]?.ja)
+      : '';
+    const targetMonsters = (clearCondition?._TargetInfoArray ?? []).flatMap((targetRef) => {
+      const target = ref(data, targetRef);
+      const monster = enemyData.get(target?._TargetIDValue);
+      if (!monster) throw Error(`クエスト対象の参照がありません: ${missionId}/${target?._TargetIDValue}`);
+      const nameGuid = target._LegendaryID === 1 ? monster._EnemyLegendaryName
+        : target._LegendaryID === 2 ? monster._EnemyLegendaryKingName : monster._EnemyName;
+      return [{ game_id: monster._enemyId, names: localized(texts[nameGuid]?.ja ? nameGuid : monster._EnemyName), amount: target._TargetValue }];
+    });
+    const verb = objectiveVerbs[clearCondition?._TargetType];
+    if (!manualObjective && !verb) throw Error(`未対応のクエスト目的: ${missionId}/${clearCondition?._TargetType}`);
+    const objective = manualObjective || targetMonsters.map((target) => {
+      const count = clearCondition._TargetType !== 5 && target.amount > 0 ? ` ${target.amount} 体` : '';
+      return `${target.names.ja}${count}の${verb}`;
+    }).join('、');
+    quests.push({
+      game_id: missionId,
+      names: { ja: title },
+      descriptions: { ja: detail },
+      category: questCategory(file),
+      difficulty: row._QuestLv,
+      locations: stage && stageIds.has(stage) ? [stage] : [],
+      time_limit: row._TimeLimit,
+      reward_money: row._RemMoney,
+      hunter_rank_points: row._HRPoint,
+      quest_type: row._QuestType,
+      order_rank: orderCondition?._OrderHR ?? 0,
+      target_monsters: targetMonsters,
+      objective: { ja: objective },
+      clear_condition_type: clearCondition?._TargetType ?? 0,
+    });
+  }
+}
+if (new Set(quests.map((quest) => quest.game_id)).size !== quests.length) throw Error('クエスト ID が重複しています');
 const armorData = load('Common/Equip/ArmorData');
 const armorByKey = new Map(rows(armorData, 'app.user_data.ArmorData.cData').map((row) => [`${scalar(armorData, row._Series)}:${scalar(armorData, row._PartsType)}`, row]));
 for (const row of rows(load('Common/Equip/ArmorRecipeData'), 'app.user_data.ArmorRecipeData.cData')) {
@@ -184,8 +248,8 @@ for (const [code, category] of Object.entries(weapons)) {
 for (const item of items) if (!item.kind || !item.names.ja || item.rarity < 1 || item.rarity > 18) throw Error(`アイテムデータが不正です: ${item.game_id}`);
 for (const monster of monsters) if (!monster.names.ja || !monster.species || !monster.parts.length) throw Error(`モンスターデータが不正です: ${monster.game_id}`);
 fs.mkdirSync(output, { recursive: true });
-for (const [file, data] of Object.entries({ items, monsters, lookups: { stages, species, partNames }, 'item-uses': itemUses })) fs.writeFileSync(path.join(output, `${file}.json`), JSON.stringify(data));
+for (const [file, data] of Object.entries({ items, monsters, quests, lookups: { stages, species, partNames }, 'item-uses': itemUses })) fs.writeFileSync(path.join(output, `${file}.json`), JSON.stringify(data));
 const gameFiles = [...inputs].sort();
 fs.writeFileSync(path.join(cache, 'direct-inputs.json'), JSON.stringify(gameFiles, null, 2));
 fs.writeFileSync(path.join(output, 'source.json'), JSON.stringify({ generatedAt: new Date().toISOString(), dataOrigin: 'Monster Hunter Wilds ゲームデータ', gameFiles }));
-console.log(`直接抽出: ${items.length} アイテム、${monsters.length} モンスター、${items.reduce((sum, item) => sum + item.recipes.length, 0)} 調合、${Object.values(itemUses).flat().length} 用途`);
+console.log(`直接抽出: ${items.length} アイテム、${monsters.length} モンスター、${quests.length} クエスト、${items.reduce((sum, item) => sum + item.recipes.length, 0)} 調合、${Object.values(itemUses).flat().length} 用途`);
