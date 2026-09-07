@@ -29,7 +29,7 @@ export function MonsterPage() {
   const availableRewardRanks = new Set(monster.rewards.map((reward) => reward.rank));
   const activeRewardRank = selectedRewardRank && availableRewardRanks.has(selectedRewardRank)
     ? selectedRewardRank
-    : rewardRanks.find((rank) => availableRewardRanks.has(rank)) ?? rewardRanks[0];
+    : [...rewardRanks].reverse().find((rank) => availableRewardRanks.has(rank)) ?? rewardRanks[0];
   const activeSection = ['monster-basic', 'monster-rewards', 'monster-hitzones'].includes(hash.slice(1))
     ? hash.slice(1)
     : defaultDetailSections.monster;
