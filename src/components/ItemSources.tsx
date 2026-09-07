@@ -5,7 +5,7 @@ import { text, useDatabase } from '../data';
 import { label } from '../labels';
 import type { Item, ItemSource } from '../types';
 
-type SourceRow = ItemSource & { monsterId?: number; part?: string; material?: string };
+type SourceRow = ItemSource & { monsterId?: number; questId?: number; part?: string; material?: string };
 
 const sourceNames: Record<string, string> = {
   '標的報酬': 'ターゲット報酬',
@@ -39,7 +39,8 @@ function points(source: ItemSource) {
 }
 
 export function ItemSources({ item }: { item: Item }) {
-  const { itemSources, itemById, monsters, lookups } = useDatabase();
+  const { itemSources, itemById, monsters, quests, lookups } = useDatabase();
+  const questIdByName = useMemo(() => new Map(quests.map((quest) => [text(quest.names), quest.game_id])), [quests]);
   const supportedMethods = useMemo(() => {
     const methods = new Set<string>();
     const categoryItems = new Set<number>();
@@ -70,7 +71,8 @@ export function ItemSources({ item }: { item: Item }) {
     const material = source.method.startsWith('もちもの交換: ') || source.method.endsWith('と交換')
       ? source.method.replace(/^もちもの交換: /u, '').replace(/と交換$/u, '')
       : group === '焚き火焼き' ? source.method.replace(/を焼く$/u, '') : undefined;
-    add(group, { ...source, material, method: material && group === '交換・おすそわけ' ? 'もちもの交換' : source.method });
+    const questId = ['クエスト報酬', 'ミッション報酬'].includes(source.method) ? questIdByName.get(source.location) : undefined;
+    add(group, { ...source, material, questId, method: material && group === '交換・おすそわけ' ? 'もちもの交換' : source.method });
   }
   for (const monster of monsters) {
     for (const reward of monster.rewards.filter((entry) => entry.item_id === item.game_id)) {
@@ -116,7 +118,9 @@ export function ItemSources({ item }: { item: Item }) {
         : group === '報酬' || group === '交換・おすそわけ' ? '入手先'
         : rows.some((row) => row.monsterId !== undefined) || group === 'モンスター報酬' ? 'モンスター' : '入手先';
       const location = (row: SourceRow) => <>
-        {row.monsterId !== undefined ? <Anchor component={Link} to={`/monsters/${row.monsterId}`}>{row.location}</Anchor> : row.location}
+        {row.monsterId !== undefined ? <Anchor component={Link} to={`/monsters/${row.monsterId}`}>{row.location}</Anchor>
+          : row.questId !== undefined ? <Anchor component={Link} to={`/quests/${row.questId}`}>{row.location}</Anchor>
+            : row.location}
         {points(row) && <Text component="span" size="sm" c="dimmed">（{points(row)}pt）</Text>}
       </>;
       const columns: { title: string; numeric?: boolean; render: (row: SourceRow) => ReactNode }[] = [

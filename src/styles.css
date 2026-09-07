@@ -74,6 +74,15 @@ a {
   white-space: nowrap;
 }
 
+.hitzone-table {
+  width: max-content;
+  min-width: 0;
+}
+
+.hitzone-table :where(th, td) {
+  padding-inline: 4px;
+}
+
 .section-tabs {
   position: absolute;
   right: 0;
@@ -231,6 +240,10 @@ a {
 }
 
 @media (max-width: 47.99em) {
+  .hitzone-table {
+    min-width: 100%;
+  }
+
   .section-tabs.rank-tabs {
     bottom: calc(var(--app-shell-footer-height) + var(--section-tabs-height));
   }

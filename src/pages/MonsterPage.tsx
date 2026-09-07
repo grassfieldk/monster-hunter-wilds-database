@@ -1,6 +1,8 @@
-import { Anchor, Badge, Box, Divider, Group, SimpleGrid, Stack, Table, Tabs, Text, Title } from '@mantine/core';
-import { Fragment, useState } from 'react';
+import { ActionIcon, Anchor, Badge, Box, Divider, Group, Modal, SimpleGrid, Stack, Table, Tabs, Text, Title } from '@mantine/core';
+import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import { useDisclosure } from '@mantine/hooks';
+import { IconHelpCircle } from '@tabler/icons-react';
 import { monsterEpithet, text, useDatabase } from '../data';
 import { label } from '../labels';
 import { NotFoundPage } from './NotFoundPage';
@@ -8,12 +10,14 @@ import { FormattedText } from '../components/FormattedText';
 
 const rewardRanks = ['low', 'high', 'master'] as const;
 type RewardRank = (typeof rewardRanks)[number];
+const hitzoneKinds = ['slash', 'blunt', 'pierce', 'fire', 'water', 'thunder', 'ice', 'dragon'] as const;
 
 export function MonsterPage() {
   const { id } = useParams();
   const { hash } = useLocation();
   const { monsterById, itemById, lookups } = useDatabase();
   const [selectedRewardRank, setSelectedRewardRank] = useState<RewardRank | null>(null);
+  const [helpOpened, { open: openHelp, close: closeHelp }] = useDisclosure(false);
   const monster = monsterById.get(Number(id));
   if (!monster) return <NotFoundPage />;
 
@@ -40,27 +44,39 @@ export function MonsterPage() {
 
   return (
     <Stack className="page-stack" gap="lg">
-      <Box visibleFrom="sm">
-        <Group gap="sm" justify="space-between" wrap="nowrap">
+      <Group justify="space-between" align="flex-start" wrap="nowrap">
+        <Box visibleFrom="sm">
           <Group gap="sm" wrap="wrap">
-            <Title order={1} size="h3">
-              {monsterName}
-              {epithet && (
-                <>
-                  {' '}
-                  {epithetReading ? (
-                    <ruby className="monster-epithet">
-                      {epithetReading[1]}
-                      <rt>{epithetReading[2]}</rt>
-                    </ruby>
-                  ) : <span className="monster-epithet">{epithet}</span>}
-                </>
-              )}
-            </Title>
-            <Badge variant="light">{label(monster.species)}</Badge>
+              <Title order={1} size="h3">
+                {monsterName}
+                {epithet && (
+                  <>
+                    {' '}
+                    {epithetReading ? (
+                      <ruby className="monster-epithet">
+                        {epithetReading[1]}
+                        <rt>{epithetReading[2]}</rt>
+                      </ruby>
+                    ) : <span className="monster-epithet">{epithet}</span>}
+                  </>
+                )}
+              </Title>
+              <Badge variant="light">{label(monster.species)}</Badge>
           </Group>
-        </Group>
-      </Box>
+        </Box>
+        <ActionIcon variant="subtle" aria-label="部位・肉質の見方" title="部位・肉質の見方" onClick={openHelp}>
+          <IconHelpCircle size={18} />
+        </ActionIcon>
+      </Group>
+
+      <Modal opened={helpOpened} onClose={closeHelp} title="部位・肉質の見方">
+        <Stack gap="xs">
+          <Text size="sm"><Text component="span" fw={500}>耐久値</Text>: 数値が大きいほど、その部位をひるませるために必要なダメージが多くなります</Text>
+          <Text size="sm"><Text component="span" fw={500}>斬・打・弾</Text>: 斬撃・打撃・弾による物理ダメージの通りやすさです</Text>
+          <Text size="sm"><Text component="span" fw={500}>火・水・雷・氷・龍</Text>: 各属性ダメージの通りやすさです</Text>
+          <Text size="sm" c="dimmed">肉質の数値は大きいほどダメージが通り、0 はその種類のダメージが通りません</Text>
+        </Stack>
+      </Modal>
 
       {activeSection === 'monster-basic' && <section id="monster-basic">
         <Stack gap="sm" mb="md">
@@ -142,24 +158,23 @@ export function MonsterPage() {
 
       {activeSection === 'monster-hitzones' && <section id="monster-hitzones">
         <Box className="responsive-table-container">
-          <Table className="responsive-table responsive-table--intrinsic">
+          <Table className="responsive-table responsive-table--intrinsic hitzone-table">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>部位</Table.Th>
+                <Table.Th className="numeric-cell">耐久値</Table.Th>
+                {hitzoneKinds.map((kind) => <Table.Th key={kind} className="numeric-cell">{label(kind)}</Table.Th>)}
+              </Table.Tr>
+            </Table.Thead>
             <Table.Tbody>
               {monster.parts.map((part, index) => (
-                <Fragment key={`${part.part}-${index}`}>
-                  <Table.Tr style={{ borderBottom: 'none' }}>
-                    <Table.Td colSpan={8} style={{ paddingBottom: 2 }}>
-                      <Group justify="space-between" gap="sm" wrap="nowrap">
-                        <Text size="sm">{partName(part.part)}</Text>
-                        <Text size="sm" className="numeric-cell"><Text component="span" c="dimmed" inherit>耐久値 </Text>{part.base_health ?? '不明'}</Text>
-                      </Group>
-                    </Table.Td>
-                  </Table.Tr>
-                  <Table.Tr>
-                    {['slash', 'blunt', 'pierce', 'fire', 'water', 'thunder', 'ice', 'dragon'].map((kind) => (
-                      <Table.Td key={kind} className="numeric-cell" style={{ paddingTop: 2 }}><Text component="span" c="dimmed" inherit>{label(kind)} </Text>{Math.round((part.multipliers[kind] ?? 0) * 100)}</Table.Td>
-                    ))}
-                  </Table.Tr>
-                </Fragment>
+                <Table.Tr key={`${part.part}-${index}`}>
+                  <Table.Td><Text size="sm" fw={500}>{partName(part.part)}</Text></Table.Td>
+                  <Table.Td className="numeric-cell">{part.base_health ?? '不明'}</Table.Td>
+                  {hitzoneKinds.map((kind) => (
+                    <Table.Td key={kind} className="numeric-cell">{Math.round((part.multipliers[kind] ?? 0) * 100)}</Table.Td>
+                  ))}
+                </Table.Tr>
               ))}
             </Table.Tbody>
           </Table>
