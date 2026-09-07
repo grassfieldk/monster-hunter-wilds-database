@@ -2,6 +2,7 @@ import { Box, Tabs } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
 import { useDatabase } from '../data';
 import { itemCategoryKinds, itemCategoryLabels } from '../itemCategories';
+import { defaultDetailSections } from '../sections';
 
 type SectionTab = {
   label: string;
@@ -45,15 +46,15 @@ export function SectionTabs() {
   const tabs = getSectionTabs(pathname, new Set(items.map((item) => item.kind)));
   if (!tabs.length) return null;
   const selected = pathname === '/items' ? new URLSearchParams(search).get('kind') : hash.slice(1);
-  const fallback = pathname.startsWith('/monsters/') ? 'monster-rewards'
-    : pathname.startsWith('/items/') ? 'item-sources'
-      : pathname.startsWith('/quests/') ? 'quest-basic'
+  const fallback = pathname.startsWith('/monsters/') ? defaultDetailSections.monster
+    : pathname.startsWith('/items/') ? defaultDetailSections.item
+      : pathname.startsWith('/quests/') ? defaultDetailSections.quest
       : tabs[0].target;
   const defaultValue = tabs.some((tab) => tab.target === selected) ? selected : fallback;
 
   return (
     <Box className="section-tabs" hiddenFrom="sm">
-      <Tabs key={`${pathname}${search}${hash}`} defaultValue={defaultValue} variant="pills" inverted>
+      <Tabs value={defaultValue} variant="pills" inverted>
         <Tabs.List grow>
           {tabs.map((tab) => (
             <Tabs.Tab

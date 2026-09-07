@@ -1,6 +1,7 @@
 import { Badge, Box, Group, Stack, Table, Text, Title } from '@mantine/core';
 import { useLocation, useParams } from 'react-router-dom';
 import { label } from '../labels';
+import { defaultDetailSections } from '../sections';
 import { text, useDatabase } from '../data';
 import { NotFoundPage } from './NotFoundPage';
 import { FormattedText } from '../components/FormattedText';
@@ -17,7 +18,7 @@ export function ItemPage() {
   const uses = itemUses[String(item.game_id)] ?? [];
   const activeSection = ['item-basic', 'item-sources', 'item-uses'].includes(hash.slice(1))
     ? hash.slice(1)
-    : 'item-sources';
+    : defaultDetailSections.item;
 
   return (
     <Stack className="page-stack" gap="lg">

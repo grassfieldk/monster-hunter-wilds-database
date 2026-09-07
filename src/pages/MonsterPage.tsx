@@ -5,6 +5,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { IconHelpCircle } from '@tabler/icons-react';
 import { monsterEpithet, text, useDatabase } from '../data';
 import { label } from '../labels';
+import { defaultDetailSections } from '../sections';
 import { NotFoundPage } from './NotFoundPage';
 import { FormattedText } from '../components/FormattedText';
 
@@ -31,7 +32,7 @@ export function MonsterPage() {
     : rewardRanks.find((rank) => availableRewardRanks.has(rank)) ?? rewardRanks[0];
   const activeSection = ['monster-basic', 'monster-rewards', 'monster-hitzones'].includes(hash.slice(1))
     ? hash.slice(1)
-    : 'monster-basic';
+    : defaultDetailSections.monster;
 
   const stageName = (stageId: number) => {
     const stage = lookups.stages.find((entry) => entry.game_id === stageId);
