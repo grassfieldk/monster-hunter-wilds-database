@@ -64,19 +64,23 @@ export function MonsterPage() {
               <Badge variant="light">{label(monster.species)}</Badge>
           </Group>
         </Box>
-        <ActionIcon variant="subtle" aria-label="部位・肉質の見方" title="部位・肉質の見方" onClick={openHelp}>
-          <IconHelpCircle size={18} />
-        </ActionIcon>
+        {activeSection === 'monster-hitzones' && (
+          <ActionIcon variant="subtle" aria-label="部位・肉質の見方" title="部位・肉質の見方" onClick={openHelp}>
+            <IconHelpCircle size={18} />
+          </ActionIcon>
+        )}
       </Group>
 
-      <Modal opened={helpOpened} onClose={closeHelp} title="部位・肉質の見方">
-        <Stack gap="xs">
-          <Text size="sm"><Text component="span" fw={500}>耐久値</Text>: 数値が大きいほど、その部位をひるませるために必要なダメージが多くなります</Text>
-          <Text size="sm"><Text component="span" fw={500}>斬・打・弾</Text>: 斬撃・打撃・弾による物理ダメージの通りやすさです</Text>
-          <Text size="sm"><Text component="span" fw={500}>火・水・雷・氷・龍</Text>: 各属性ダメージの通りやすさです</Text>
-          <Text size="sm" c="dimmed">肉質の数値は大きいほどダメージが通り、0 はその種類のダメージが通りません</Text>
-        </Stack>
-      </Modal>
+      {activeSection === 'monster-hitzones' && (
+        <Modal opened={helpOpened} onClose={closeHelp} title="部位・肉質の見方">
+          <Stack gap="xs">
+            <Text size="sm"><Text component="span" fw={500}>耐久値</Text>: 数値が大きいほど、その部位をひるませるために必要なダメージが多くなります</Text>
+            <Text size="sm"><Text component="span" fw={500}>斬・打・弾</Text>: 斬撃・打撃・弾による物理ダメージの通りやすさです</Text>
+            <Text size="sm"><Text component="span" fw={500}>火・水・雷・氷・龍</Text>: 各属性ダメージの通りやすさです</Text>
+            <Text size="sm" c="dimmed">肉質の数値は大きいほどダメージが通り、0 はその種類のダメージが通りません</Text>
+          </Stack>
+        </Modal>
+      )}
 
       {activeSection === 'monster-basic' && <section id="monster-basic">
         <Stack>
