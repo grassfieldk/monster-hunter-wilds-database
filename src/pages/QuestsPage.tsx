@@ -28,16 +28,16 @@ export function QuestsPage() {
           <Table.Thead>
             <Table.Tr>
               <Table.Th>難度</Table.Th>
-              <Table.Th>クエスト</Table.Th>
-              <Table.Th>受注条件</Table.Th>
-              <Table.Th className="numeric-cell">HRP</Table.Th>
-              <Table.Th className="numeric-cell">報酬金</Table.Th>
+              <Table.Th className="numeric-cell">HR</Table.Th>
+              <Table.Th>クエスト名</Table.Th>
+              <Table.Th className="numeric-cell">報酬</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {visibleQuests.map((quest) => (
               <Table.Tr key={quest.game_id}>
-                <Table.Td>{quest.difficulty}</Table.Td>
+                <Table.Td className="centered-cell">{quest.difficulty}</Table.Td>
+                <Table.Td className="numeric-cell centered-cell">{quest.order_rank > 0 ? quest.order_rank.toLocaleString('ja-JP') : 'なし'}</Table.Td>
                 <Table.Td>
                   <Box>
                     <Anchor component={Link} to={`/quests/${quest.game_id}`} fw={500} display="block">{text(quest.names)}</Anchor>
@@ -46,9 +46,9 @@ export function QuestsPage() {
                     </Text>
                   </Box>
                 </Table.Td>
-                <Table.Td>{quest.order_rank > 0 ? `HR ${quest.order_rank}` : 'なし'}</Table.Td>
-                <Table.Td className="numeric-cell">{quest.hunter_rank_points.toLocaleString('ja-JP')}</Table.Td>
-                <Table.Td className="numeric-cell">{quest.reward_money.toLocaleString('ja-JP')} z</Table.Td>
+                <Table.Td className="numeric-cell">
+                  {quest.hunter_rank_points.toLocaleString('ja-JP')}HRP / {quest.reward_money.toLocaleString('ja-JP')}z
+                </Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>

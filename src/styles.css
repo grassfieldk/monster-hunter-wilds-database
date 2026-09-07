@@ -74,6 +74,10 @@ a {
   white-space: nowrap;
 }
 
+.centered-cell {
+  text-align: center !important;
+}
+
 .hitzone-table {
   width: max-content;
   min-width: 0;
