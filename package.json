@@ -9,6 +9,7 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "clean": "node scripts/clean-generated.mjs"
+    ,"import:official-events": "node scripts/import-official-event-quests.mjs"
   },
   "dependencies": {
     "@mantine/core": "^8.3.2",

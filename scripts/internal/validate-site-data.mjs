@@ -46,16 +46,16 @@ for (const quest of quests) {
   assert(quest.names.ja);
   assert(quest.objective.ja);
   assert(['任務', 'フリー', 'イベント', '闘技大会', 'その他'].includes(quest.category));
-  assert(Number.isFinite(quest.difficulty) && quest.difficulty >= 0);
+  assert(quest.difficulty === null || (Number.isFinite(quest.difficulty) && quest.difficulty >= 0));
   assert(quest.locations.every(id => stageIds.has(id)));
   for (const value of [quest.time_limit, quest.reward_money, quest.hunter_rank_points, quest.quest_type, quest.order_rank]) {
-    assert(Number.isFinite(value) && value >= 0);
+    assert(value === null || (Number.isFinite(value) && value >= 0));
   }
   for (const target of quest.target_monsters) {
     assert(Number.isInteger(target.game_id));
     assert(target.names.ja && Number.isFinite(target.amount) && target.amount >= 0);
   }
-  assert(Number.isInteger(quest.clear_condition_type) && quest.clear_condition_type >= 0);
+  assert(quest.clear_condition_type === null || (Number.isInteger(quest.clear_condition_type) && quest.clear_condition_type >= 0));
 }
 for (const name of ['item-uses', 'item-sources']) {
   for (const [id, entries] of Object.entries(read(name))) {

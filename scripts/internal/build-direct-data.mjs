@@ -166,7 +166,7 @@ const questCategory = (file) => {
   if (['001', '002', '003', '004', '005', '006', '007', '008', '009', '010', '011', '700', '720', '730', '740'].includes(prefix)) return '任務';
   if (['101', '102', '103', '104', '105', '106', '107', '109', '199'].includes(prefix)) return 'フリー';
   if (['204', '205'].includes(prefix)) return '闘技大会';
-  if (prefix === '400') return 'イベント';
+  if (prefix === '400') return 'その他';
   return 'その他';
 };
 for (const file of questFiles) {

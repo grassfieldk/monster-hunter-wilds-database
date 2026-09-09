@@ -36,11 +36,11 @@ export function QuestPage() {
         <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(quest.descriptions)}</FormattedText>
         <Divider my={{ base: 'sm', sm: 'md' }} />
         <SimpleGrid cols={{ base: 2, sm: 4 }} spacing={{ base: 'xs', sm: 'sm' }}>
-          <div><Text size="sm" c="dimmed">受注条件</Text><Text size="sm" fw={500}>{quest.order_rank > 0 ? `HR ${quest.order_rank}` : 'なし'}</Text></div>
-          <div><Text size="sm" c="dimmed">フィールド</Text><Text size="sm" fw={500}>{quest.locations.map(stageName).join('、') || '不明'}</Text></div>
-          <div><Text size="sm" c="dimmed">制限時間</Text><Text size="sm" fw={500}>{quest.time_limit} 分</Text></div>
-          <div><Text size="sm" c="dimmed">報酬金</Text><Text size="sm" fw={500}>{quest.reward_money.toLocaleString('ja-JP')} z</Text></div>
-          <div><Text size="sm" c="dimmed">HR ポイント</Text><Text size="sm" fw={500}>{quest.hunter_rank_points}</Text></div>
+          <div><Text size="sm" c="dimmed">受注条件</Text><Text size="sm" fw={500}>{quest.order_rank === null ? '不明' : quest.order_rank > 0 ? `HR ${quest.order_rank}` : 'なし'}</Text></div>
+          <div><Text size="sm" c="dimmed">フィールド</Text><Text size="sm" fw={500}>{quest.locations.map(stageName).join('、') || quest.location_names?.join('、') || '不明'}</Text></div>
+          <div><Text size="sm" c="dimmed">制限時間</Text><Text size="sm" fw={500}>{quest.time_limit === null ? '不明' : `${quest.time_limit} 分`}</Text></div>
+          <div><Text size="sm" c="dimmed">報酬金</Text><Text size="sm" fw={500}>{quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')} z`}</Text></div>
+          <div><Text size="sm" c="dimmed">HR ポイント</Text><Text size="sm" fw={500}>{quest.hunter_rank_points === null ? '不明' : quest.hunter_rank_points}</Text></div>
         </SimpleGrid>
       </section>
     </Stack>

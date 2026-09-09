@@ -17,6 +17,10 @@ run = "npm run build"
 description = "ゲームデータからサイト用データを生成"
 run = "node scripts/extract-game-data.mjs"
 
+[tasks.official-events]
+description = "公式イベントクエストを追加"
+run = "node scripts/import-official-event-quests.mjs"
+
 [tasks.clean]
 description = "作業用の生成物を削除"
 run = "npm run clean"

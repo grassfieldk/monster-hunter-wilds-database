@@ -89,16 +89,25 @@ export type Quest = {
   names: LocalizedText;
   descriptions: LocalizedText;
   category: QuestCategory;
-  difficulty: number;
+  difficulty: number | null;
   locations: number[];
-  time_limit: number;
-  reward_money: number;
-  hunter_rank_points: number;
-  quest_type: number;
-  order_rank: number;
+  location_names?: string[];
+  time_limit: number | null;
+  reward_money: number | null;
+  hunter_rank_points: number | null;
+  quest_type: number | null;
+  order_rank: number | null;
   target_monsters: QuestTargetMonster[];
   objective: LocalizedText;
-  clear_condition_type: number;
+  clear_condition_type: number | null;
+  source?: QuestSource;
+};
+
+export type QuestSource = {
+  type: 'official-event-page';
+  url: string;
+  fetched_at: string;
+  key: string;
 };
 
 export type QuestCategory = '任務' | 'フリー' | 'イベント' | '闘技大会' | 'その他';
@@ -119,4 +128,5 @@ export type SourceInfo = {
   generatedAt: string;
   gameFiles: string[];
   dataOrigin: string;
+  additionalSources?: { type: string; url: string; fetchedAt: string; count: number }[];
 };

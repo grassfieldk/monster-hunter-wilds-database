@@ -6,7 +6,7 @@ import { formatQuestObjective } from '../formatters';
 
 export function QuestsPage() {
   const { quests } = useDatabase();
-  const sorted = [...quests].sort((a, b) => a.difficulty - b.difficulty || text(a.names).localeCompare(text(b.names), 'ja'));
+  const sorted = [...quests].sort((a, b) => (a.difficulty ?? Number.MAX_SAFE_INTEGER) - (b.difficulty ?? Number.MAX_SAFE_INTEGER) || text(a.names).localeCompare(text(b.names), 'ja'));
   const categoryOrder = ['任務', 'フリー', 'イベント', '闘技大会', 'その他'] as const;
   const availableCategories = new Set(sorted.map((quest) => quest.category));
   const questCategories = categoryOrder.filter((category) => availableCategories.has(category));
@@ -36,8 +36,8 @@ export function QuestsPage() {
           <Table.Tbody>
             {visibleQuests.map((quest) => (
               <Table.Tr key={quest.game_id}>
-                <Table.Td className="centered-cell">{quest.difficulty}</Table.Td>
-                <Table.Td className="numeric-cell centered-cell">{quest.order_rank > 0 ? quest.order_rank.toLocaleString('ja-JP') : 'なし'}</Table.Td>
+                <Table.Td className="centered-cell">{quest.difficulty ?? '不明'}</Table.Td>
+                <Table.Td className="numeric-cell centered-cell">{quest.order_rank !== null && quest.order_rank > 0 ? quest.order_rank.toLocaleString('ja-JP') : quest.order_rank === null ? '不明' : 'なし'}</Table.Td>
                 <Table.Td>
                   <Box>
                     <Anchor component={Link} to={`/quests/${quest.game_id}`} fw={500} display="block">{text(quest.names)}</Anchor>
@@ -47,7 +47,7 @@ export function QuestsPage() {
                   </Box>
                 </Table.Td>
                 <Table.Td className="numeric-cell">
-                  {quest.hunter_rank_points.toLocaleString('ja-JP')}HRP / {quest.reward_money.toLocaleString('ja-JP')}z
+                  {quest.hunter_rank_points === null ? '不明' : `${quest.hunter_rank_points.toLocaleString('ja-JP')}HRP`} / {quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')}z`}
                 </Table.Td>
               </Table.Tr>
             ))}
