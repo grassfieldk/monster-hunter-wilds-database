@@ -2,10 +2,10 @@ import { Anchor, Box, Stack, Table, Tabs, Text } from '@mantine/core';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { text, useDatabase } from '../data';
-import { formatQuestObjective } from '../formatters';
+import { QuestObjective } from '../components/QuestObjective';
 
 export function QuestsPage() {
-  const { quests } = useDatabase();
+  const { quests, monsterById } = useDatabase();
   const sorted = quests.filter((quest) => quest.category !== '調査').sort((a, b) => (a.difficulty ?? Number.MAX_SAFE_INTEGER) - (b.difficulty ?? Number.MAX_SAFE_INTEGER) || text(a.names).localeCompare(text(b.names), 'ja'));
   const categoryOrder = ['任務', 'フリー', 'イベント', '闘技大会', 'その他'] as const;
   const availableCategories = new Set(sorted.map((quest) => quest.category));
@@ -42,7 +42,7 @@ export function QuestsPage() {
                   <Box>
                     <Anchor component={Link} to={`/quests/${quest.game_id}`} fw={500} display="block">{text(quest.names)}</Anchor>
                     <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-line' }}>
-                      {formatQuestObjective(quest.objective).replace(/、/gu, '\n')}
+                      <QuestObjective quest={quest} monsters={monsterById} breakOnComma />
                     </Text>
                   </Box>
                 </Table.Td>

@@ -1,13 +1,13 @@
 import { Badge, Box, Divider, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { useParams } from 'react-router-dom';
 import { text, useDatabase } from '../data';
-import { formatQuestObjective } from '../formatters';
 import { NotFoundPage } from './NotFoundPage';
 import { FormattedText } from '../components/FormattedText';
+import { QuestObjective } from '../components/QuestObjective';
 
 export function QuestPage() {
   const { id } = useParams();
-  const { questById, lookups } = useDatabase();
+  const { questById, lookups, monsterById } = useDatabase();
   const quest = questById.get(Number(id));
   if (!quest) return <NotFoundPage />;
 
@@ -29,9 +29,9 @@ export function QuestPage() {
       <section id="quest-basic">
         <Box mb="sm">
           <Text size="sm" c="dimmed">目的</Text>
-          <FormattedText size="sm" style={{ whiteSpace: 'pre-line' }}>
-                {quest.objective?.ja ? formatQuestObjective(quest.objective) : '目的の情報はありません'}
-          </FormattedText>
+          <Text size="sm" style={{ whiteSpace: 'pre-line' }}>
+            <QuestObjective quest={quest} monsters={monsterById} />
+          </Text>
         </Box>
         <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(quest.descriptions)}</FormattedText>
         <Divider my={{ base: 'sm', sm: 'md' }} />
