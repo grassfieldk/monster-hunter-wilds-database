@@ -110,7 +110,7 @@ export type QuestSource = {
   key: string;
 };
 
-export type QuestCategory = '任務' | 'フリー' | 'イベント' | '闘技大会' | 'その他';
+export type QuestCategory = '任務' | 'フリー' | 'イベント' | '闘技大会' | '調査' | 'その他';
 
 export type QuestTargetMonster = {
   game_id: number;

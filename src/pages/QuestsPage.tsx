@@ -6,7 +6,7 @@ import { formatQuestObjective } from '../formatters';
 
 export function QuestsPage() {
   const { quests } = useDatabase();
-  const sorted = [...quests].sort((a, b) => (a.difficulty ?? Number.MAX_SAFE_INTEGER) - (b.difficulty ?? Number.MAX_SAFE_INTEGER) || text(a.names).localeCompare(text(b.names), 'ja'));
+  const sorted = quests.filter((quest) => quest.category !== '調査').sort((a, b) => (a.difficulty ?? Number.MAX_SAFE_INTEGER) - (b.difficulty ?? Number.MAX_SAFE_INTEGER) || text(a.names).localeCompare(text(b.names), 'ja'));
   const categoryOrder = ['任務', 'フリー', 'イベント', '闘技大会', 'その他'] as const;
   const availableCategories = new Set(sorted.map((quest) => quest.category));
   const questCategories = categoryOrder.filter((category) => availableCategories.has(category));
