@@ -4,12 +4,17 @@ import { text, useDatabase } from '../data';
 import { NotFoundPage } from './NotFoundPage';
 import { FormattedText } from '../components/FormattedText';
 import { QuestObjective } from '../components/QuestObjective';
+import { QuestRewards } from '../components/QuestRewards';
+import { defaultDetailSections } from '../sections';
+import { useLocation } from 'react-router-dom';
 
 export function QuestPage() {
   const { id } = useParams();
+  const { hash } = useLocation();
   const { questById, lookups, monsterById } = useDatabase();
   const quest = questById.get(Number(id));
   if (!quest) return <NotFoundPage />;
+  const activeSection = ['quest-basic', 'quest-rewards'].includes(hash.slice(1)) ? hash.slice(1) : defaultDetailSections.quest;
 
   const stageName = (stageId: number) => {
     const stage = lookups.stages.find((entry) => entry.game_id === stageId);
@@ -26,7 +31,7 @@ export function QuestPage() {
         </Group>
       </Box>
 
-      <section id="quest-basic">
+      {activeSection === 'quest-basic' && <section id="quest-basic">
         <Box mb="sm">
           <Text size="sm" c="dimmed">目的</Text>
           <Text size="sm" style={{ whiteSpace: 'pre-line' }}>
@@ -42,7 +47,10 @@ export function QuestPage() {
           <div><Text size="sm" c="dimmed">報酬金</Text><Text size="sm" fw={500}>{quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')} z`}</Text></div>
           <div><Text size="sm" c="dimmed">HR ポイント</Text><Text size="sm" fw={500}>{quest.hunter_rank_points === null ? '不明' : quest.hunter_rank_points}</Text></div>
         </SimpleGrid>
-      </section>
+      </section>}
+      {activeSection === 'quest-rewards' && <section id="quest-rewards">
+        <QuestRewards quest={quest} />
+      </section>}
     </Stack>
   );
 }

@@ -34,7 +34,10 @@ function getSectionTabs(pathname: string, itemKinds: Set<string>): SectionTab[] 
   }
 
   if (/^\/quests\/[^/]+$/u.test(pathname)) {
-    return [{ label: '基本情報', target: 'quest-basic' }];
+    return [
+      { label: '基本情報', target: 'quest-basic' },
+      { label: '報酬アイテム', target: 'quest-rewards' },
+    ];
   }
 
   return [];
