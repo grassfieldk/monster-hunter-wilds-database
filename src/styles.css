@@ -101,6 +101,15 @@ a {
   background: var(--mantine-color-dark-7);
 }
 
+.desktop-section-tabs {
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+.desktop-section-tabs .section-tabs {
+  position: static;
+  padding: 4px;
+}
+
 .section-tabs:not(.rank-tabs) {
   padding: 4px;
 }

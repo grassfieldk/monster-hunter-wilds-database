@@ -56,7 +56,7 @@ export function SectionTabs() {
   const defaultValue = tabs.some((tab) => tab.target === selected) ? selected : fallback;
 
   return (
-    <Box className="section-tabs" hiddenFrom="sm">
+    <Box className="section-tabs">
       <Tabs value={defaultValue} variant="pills" inverted>
         <Tabs.List grow>
           {tabs.map((tab) => (

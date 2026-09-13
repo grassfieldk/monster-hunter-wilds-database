@@ -148,6 +148,9 @@ export function App() {
         )}
         <AppShell.Main className="main-with-section-tabs" onClick={closeSearch}>
           <Container size="lg" px={{ base: 0, sm: 'md' }}>
+            <Box visibleFrom="sm" className="desktop-section-tabs">
+              <SectionTabs />
+            </Box>
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/monsters" element={<MonstersPage />} />
