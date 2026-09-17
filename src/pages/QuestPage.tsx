@@ -1,20 +1,26 @@
 import { Badge, Box, Divider, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import { text, useDatabase } from '../data';
 import { NotFoundPage } from './NotFoundPage';
 import { FormattedText } from '../components/FormattedText';
 import { QuestObjective } from '../components/QuestObjective';
 import { QuestRewards } from '../components/QuestRewards';
-import { defaultDetailSections } from '../sections';
+import { getRememberedDetailSection, rememberDetailSection } from '../sections';
 import { useLocation } from 'react-router-dom';
 
 export function QuestPage() {
   const { id } = useParams();
   const { hash } = useLocation();
   const { questById, lookups, monsterById } = useDatabase();
+  const section = hash.slice(1);
+  const sections = ['quest-basic', 'quest-rewards'];
+  useEffect(() => {
+    if (sections.includes(section)) rememberDetailSection('quest', section);
+  }, [section]);
   const quest = questById.get(Number(id));
   if (!quest) return <NotFoundPage />;
-  const activeSection = ['quest-basic', 'quest-rewards'].includes(hash.slice(1)) ? hash.slice(1) : defaultDetailSections.quest;
+  const activeSection = sections.includes(section) ? section : getRememberedDetailSection('quest');
 
   const stageName = (stageId: number) => {
     const stage = lookups.stages.find((entry) => entry.game_id === stageId);

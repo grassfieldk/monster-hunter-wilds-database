@@ -7,7 +7,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 
 const theme = createTheme({
-  scale: 0.875,
   components: {
     Anchor: Anchor.extend({
       defaultProps: { inherit: true },

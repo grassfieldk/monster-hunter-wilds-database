@@ -74,6 +74,20 @@ a {
   white-space: nowrap;
 }
 
+.weapon-type-select {
+  font-size: 14px !important;
+  border: 0 !important;
+  text-align: center;
+  text-align-last: center;
+  width: max-content;
+  min-width: 12rem;
+}
+
+.weapon-type-select-root {
+  width: max-content;
+  margin-inline: auto;
+}
+
 .centered-cell {
   text-align: center !important;
 }
@@ -154,7 +168,7 @@ a {
 .mobile-footer {
   background: var(--mantine-color-dark-9);
   border-top: 1px solid var(--mantine-color-dark-4);
-  filter: drop-shadow(0 -2px 4px rgb(0 0 0 / 24%));
+  filter: drop-shadow(0 -1px 2px rgb(0 0 0 / 18%));
   z-index: 3;
 }
 
@@ -257,6 +271,20 @@ a {
 }
 
 @media (max-width: 47.99em) {
+  :root {
+    --mantine-font-size-xs: 0.6875rem;
+    --mantine-font-size-sm: 0.75rem;
+    --mantine-font-size-md: 0.875rem;
+    --mantine-font-size-lg: 1rem;
+    --mantine-font-size-xl: 1.125rem;
+    --mantine-h1-font-size: 1.875rem;
+    --mantine-h2-font-size: 1.5rem;
+    --mantine-h3-font-size: 1.25rem;
+    --mantine-h4-font-size: 1.125rem;
+    --mantine-h5-font-size: 1rem;
+    --mantine-h6-font-size: 0.875rem;
+  }
+
   .hitzone-table {
     min-width: 100%;
   }

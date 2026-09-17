@@ -2,7 +2,7 @@ import { Box, Tabs } from '@mantine/core';
 import { Link, useLocation } from 'react-router-dom';
 import { useDatabase } from '../data';
 import { itemCategoryKinds, itemCategoryLabels } from '../itemCategories';
-import { defaultDetailSections } from '../sections';
+import { getRememberedDetailSection } from '../sections';
 
 type SectionTab = {
   label: string;
@@ -58,9 +58,9 @@ export function SectionTabs() {
   const tabs = getSectionTabs(pathname, new Set(items.map((item) => item.kind)));
   if (!tabs.length) return null;
   const selected = pathname === '/items' || pathname === '/equipment' ? new URLSearchParams(search).get('kind') : hash.slice(1);
-  const fallback = pathname.startsWith('/monsters/') ? defaultDetailSections.monster
-    : pathname.startsWith('/items/') ? defaultDetailSections.item
-      : pathname.startsWith('/quests/') ? defaultDetailSections.quest
+  const fallback = pathname.startsWith('/monsters/') ? getRememberedDetailSection('monster')
+    : pathname.startsWith('/items/') ? getRememberedDetailSection('item')
+      : pathname.startsWith('/quests/') ? getRememberedDetailSection('quest')
       : tabs[0].target;
   const defaultValue = tabs.some((tab) => tab.target === selected) ? selected : fallback;
 

@@ -1,6 +1,6 @@
-import { ActionIcon, Anchor, AppShell, Badge, Box, Button, Container, Group, Text } from '@mantine/core';
+import { ActionIcon, Anchor, AppShell, Badge, Box, Container, Group, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconArrowLeft, IconArrowRight, IconArrowUp, IconSearch } from '@tabler/icons-react';
+import { IconArrowLeft, IconArrowRight, IconArrowUp, IconClipboardList, IconPackage, IconPaw, IconSearch, IconShield } from '@tabler/icons-react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { SearchBox } from './components/SearchBox';
 import { SectionTabs } from './components/SectionTabs';
@@ -148,18 +148,18 @@ export function App() {
                 <IconSearch size={18} stroke={2.25} />
               </ActionIcon>
             </Group>
-            <Button component={Link} to="/monsters" variant="subtle" size="sm" h="100%" data-active={monstersActive || undefined} className="footer-main-button" onClick={closeSearch}>
-              モンスター
-            </Button>
-            <Button component={Link} to="/items" variant="subtle" size="sm" h="100%" data-active={itemsActive || undefined} className="footer-main-button" onClick={closeSearch}>
-              アイテム
-            </Button>
-            <Button component={Link} to="/quests" variant="subtle" size="sm" h="100%" data-active={pathname.startsWith('/quests') || undefined} className="footer-main-button" onClick={closeSearch}>
-              クエスト
-            </Button>
-            <Button component={Link} to="/equipment" variant="subtle" size="sm" h="100%" data-active={equipmentActive || undefined} className="footer-main-button" onClick={closeSearch}>
-              装備
-            </Button>
+            <ActionIcon component={Link} to="/monsters" variant="subtle" size="lg" h="100%" aria-label="モンスター" title="モンスター" data-active={monstersActive || undefined} className="footer-main-button" onClick={closeSearch}>
+              <IconPaw size={18} />
+            </ActionIcon>
+            <ActionIcon component={Link} to="/items" variant="subtle" size="lg" h="100%" aria-label="アイテム" title="アイテム" data-active={itemsActive || undefined} className="footer-main-button" onClick={closeSearch}>
+              <IconPackage size={18} />
+            </ActionIcon>
+            <ActionIcon component={Link} to="/quests" variant="subtle" size="lg" h="100%" aria-label="クエスト" title="クエスト" data-active={pathname.startsWith('/quests') || undefined} className="footer-main-button" onClick={closeSearch}>
+              <IconClipboardList size={18} />
+            </ActionIcon>
+            <ActionIcon component={Link} to="/equipment" variant="subtle" size="lg" h="100%" aria-label="装備" title="装備" data-active={equipmentActive || undefined} className="footer-main-button" onClick={closeSearch}>
+              <IconShield size={18} />
+            </ActionIcon>
           </Group>
         </AppShell.Footer>
         {searchOpened && (

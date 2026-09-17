@@ -1,5 +1,5 @@
-import { Anchor, Badge, Box, Group, SimpleGrid, Stack, Table, Text } from '@mantine/core';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Anchor, Badge, Box, Group, NativeSelect, SimpleGrid, Stack, Table, Text } from '@mantine/core';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { text, useDatabase } from '../data';
 import type { Amulet, Armor, Decoration, Weapon } from '../types';
 import { NotFoundPage } from './NotFoundPage';
@@ -15,41 +15,60 @@ const armorParts = ['頭', '胴', '腕', '腰', '脚'];
 
 function EquipmentList() {
   const { search } = useLocation();
+  const navigate = useNavigate();
   const { armor, amulets, weapons, decorations } = useDatabase();
-  const kind = new URLSearchParams(search).get('kind') ?? 'weapons';
+  const params = new URLSearchParams(search);
+  const kind = params.get('kind') ?? 'weapons';
   const active = categories.some((category) => category.key === kind) ? kind : 'weapons';
+  const weaponCategories = [...new Set(weapons.map((weapon) => weapon.category))];
+  const requestedWeaponCategory = params.get('weapon');
+  const activeWeaponCategory = weaponCategories.includes(requestedWeaponCategory ?? '')
+    ? requestedWeaponCategory!
+    : weaponCategories[0];
 
-  const rows = active === 'weapons' ? [...weapons].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'))
+  const rows = active === 'weapons' ? weapons.filter((weapon) => weapon.category === activeWeaponCategory).sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'))
     : active === 'armor' ? [...armor].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'))
       : active === 'amulets' ? [...amulets].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'))
         : [...decorations].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'));
 
   return (
-    <Stack className="page-stack" gap="md">
+    <Stack className={active === 'weapons' ? 'page-stack with-rank-tabs' : 'page-stack'} gap="md">
+      {active === 'weapons' && <Box className="section-tabs rank-tabs">
+        <NativeSelect
+          aria-label="武器種"
+          data={weaponCategories}
+          value={activeWeaponCategory ?? null}
+          size="sm"
+          classNames={{ root: 'weapon-type-select-root', input: 'weapon-type-select' }}
+          onChange={(value) => {
+            navigate(`/equipment?kind=weapons&weapon=${encodeURIComponent(value.currentTarget.value)}`);
+          }}
+        />
+      </Box>}
       <Box className="responsive-table-container">
         <Table className="responsive-table" striped highlightOnHover withTableBorder>
           <Table.Thead>
-            {active === 'weapons' && <Table.Tr><Table.Th>種別</Table.Th><Table.Th>武器</Table.Th><Table.Th>レア度</Table.Th><Table.Th className="numeric-cell">攻撃</Table.Th><Table.Th className="numeric-cell">会心</Table.Th><Table.Th className="numeric-cell">価格</Table.Th></Table.Tr>}
-            {active === 'armor' && <Table.Tr><Table.Th>部位</Table.Th><Table.Th>防具</Table.Th><Table.Th>レア度</Table.Th><Table.Th className="numeric-cell">防御</Table.Th><Table.Th className="numeric-cell">価格</Table.Th></Table.Tr>}
-            {active === 'amulets' && <Table.Tr><Table.Th>護石</Table.Th><Table.Th>レア度</Table.Th><Table.Th className="numeric-cell">価格</Table.Th></Table.Tr>}
-            {active === 'decorations' && <Table.Tr><Table.Th>装飾品</Table.Th><Table.Th>レア度</Table.Th><Table.Th className="numeric-cell">必要スロット</Table.Th><Table.Th className="numeric-cell">価格</Table.Th></Table.Tr>}
+            {active === 'weapons' && <Table.Tr><Table.Th>武器</Table.Th><Table.Th className="numeric-cell">攻撃</Table.Th><Table.Th className="numeric-cell">会心</Table.Th></Table.Tr>}
+            {active === 'armor' && <Table.Tr><Table.Th>部位</Table.Th><Table.Th>防具</Table.Th><Table.Th className="numeric-cell">防御</Table.Th></Table.Tr>}
+            {active === 'amulets' && <Table.Tr><Table.Th>護石</Table.Th></Table.Tr>}
+            {active === 'decorations' && <Table.Tr><Table.Th>装飾品</Table.Th><Table.Th className="numeric-cell">必要スロット</Table.Th></Table.Tr>}
           </Table.Thead>
           <Table.Tbody>
             {rows.map((entry) => {
               if (active === 'weapons') {
                 const weapon = entry as Weapon;
-                return <Table.Tr key={weapon.game_id}><Table.Td><Badge size="sm" variant="light">{weapon.category}</Badge></Table.Td><Table.Td><Anchor component={Link} to={`/equipment/weapons/${encodeURIComponent(weapon.game_id)}`} fw={500}>{text(weapon.names)}</Anchor></Table.Td><Table.Td>{weapon.rarity}</Table.Td><Table.Td className="numeric-cell">{weapon.attack.toLocaleString('ja-JP')}</Table.Td><Table.Td className="numeric-cell">{weapon.affinity}%</Table.Td><Table.Td className="numeric-cell">{weapon.price.toLocaleString('ja-JP')} z</Table.Td></Table.Tr>;
+                return <Table.Tr key={weapon.game_id}><Table.Td><Anchor component={Link} to={`/equipment/weapons/${encodeURIComponent(weapon.game_id)}`} fw={500}>{text(weapon.names)}</Anchor></Table.Td><Table.Td className="numeric-cell">{weapon.attack.toLocaleString('ja-JP')}</Table.Td><Table.Td className="numeric-cell">{weapon.affinity}%</Table.Td></Table.Tr>;
               }
               if (active === 'armor') {
                 const item = entry as Armor;
-                return <Table.Tr key={item.game_id}><Table.Td>{armorParts[item.part] ?? `部位 ${item.part}`}</Table.Td><Table.Td><Anchor component={Link} to={`/equipment/armor/${encodeURIComponent(item.game_id)}`} fw={500}>{text(item.names)}</Anchor></Table.Td><Table.Td>{item.rarity ?? '不明'}</Table.Td><Table.Td className="numeric-cell">{item.defense.toLocaleString('ja-JP')}</Table.Td><Table.Td className="numeric-cell">{item.price === null ? '不明' : `${item.price.toLocaleString('ja-JP')} z`}</Table.Td></Table.Tr>;
+                return <Table.Tr key={item.game_id}><Table.Td>{armorParts[item.part] ?? `部位 ${item.part}`}</Table.Td><Table.Td><Anchor component={Link} to={`/equipment/armor/${encodeURIComponent(item.game_id)}`} fw={500}>{text(item.names)}</Anchor></Table.Td><Table.Td className="numeric-cell">{item.defense.toLocaleString('ja-JP')}</Table.Td></Table.Tr>;
               }
               if (active === 'amulets') {
                 const item = entry as Amulet;
-                return <Table.Tr key={item.game_id}><Table.Td><Anchor component={Link} to={`/equipment/amulets/${encodeURIComponent(item.game_id)}`} fw={500}>{text(item.names)}</Anchor></Table.Td><Table.Td>{item.rarity}</Table.Td><Table.Td className="numeric-cell">{item.price.toLocaleString('ja-JP')} z</Table.Td></Table.Tr>;
+                return <Table.Tr key={item.game_id}><Table.Td><Anchor component={Link} to={`/equipment/amulets/${encodeURIComponent(item.game_id)}`} fw={500}>{text(item.names)}</Anchor></Table.Td></Table.Tr>;
               }
               const item = entry as Decoration;
-              return <Table.Tr key={item.game_id}><Table.Td><Anchor component={Link} to={`/equipment/decorations/${encodeURIComponent(String(item.game_id))}`} fw={500}>{text(item.names)}</Anchor></Table.Td><Table.Td>{item.rarity}</Table.Td><Table.Td className="numeric-cell">{item.required_slot}</Table.Td><Table.Td className="numeric-cell">{item.price.toLocaleString('ja-JP')} z</Table.Td></Table.Tr>;
+              return <Table.Tr key={item.game_id}><Table.Td><Anchor component={Link} to={`/equipment/decorations/${encodeURIComponent(String(item.game_id))}`} fw={500}>{text(item.names)}</Anchor></Table.Td><Table.Td className="numeric-cell">{item.required_slot}</Table.Td></Table.Tr>;
             })}
           </Table.Tbody>
         </Table>
