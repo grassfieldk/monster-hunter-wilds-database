@@ -19,6 +19,7 @@ export const labels: Record<string, string> = {
   'carve-rotten-severed': '剥取: 変質切断',
   'wound-destroyed': '傷口破壊',
   'broken-part': '破壊',
+  'monster-reward': 'モンスター報酬',
   fire: '火',
   water: '水',
   thunder: '雷',

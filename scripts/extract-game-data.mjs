@@ -21,7 +21,7 @@ run('scripts/internal/build-item-sources.mjs', [cache, site]);
 run('scripts/internal/validate-site-data.mjs', [site]);
 const publicData = path.resolve('public/data');
 fs.mkdirSync(publicData, { recursive: true });
-for (const name of ['items', 'monsters', 'quests', 'lookups', 'item-uses', 'item-sources', 'source']) {
+for (const name of ['items', 'monsters', 'quests', 'lookups', 'item-uses', 'item-sources', 'source', 'armor', 'armor-series', 'armor-upgrades', 'armor-upgrade-recipes', 'armor-recipes', 'amulets', 'amulet-recipes', 'weapons', 'weapon-recipes', 'weapon-trees', 'decorations', 'decoration-probabilities', 'skills', 'skill-levels', 'kinsects', 'kinsect-recipes']) {
   fs.copyFileSync(path.join(site, `${name}.json`), path.join(publicData, `${name}.json`));
 }
 console.log('ゲームデータからサイト用データを生成しました');

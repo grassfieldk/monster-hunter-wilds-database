@@ -13,19 +13,22 @@ import { MonsterPage } from './pages/MonsterPage';
 import { MonstersPage } from './pages/MonstersPage';
 import { QuestsPage } from './pages/QuestsPage';
 import { QuestPage } from './pages/QuestPage';
+import { EquipmentPage } from './pages/EquipmentPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 function MobileHeaderContent() {
   const { pathname } = useLocation();
-  const { monsterById, itemById, questById } = useDatabase();
+  const { monsterById, itemById, questById, armor, amulets, weapons, decorations } = useDatabase();
   const monsterMatch = pathname.match(/^\/monsters\/([^/]+)$/u);
   const itemMatch = pathname.match(/^\/items\/([^/]+)$/u);
   const questMatch = pathname.match(/^\/quests\/([^/]+)$/u);
+  const equipmentMatch = pathname.match(/^\/equipment\/([^/]+)\/([^/]+)$/u);
 
   if (pathname === '/') return <Text size="md" fw={600}>Monster Hunter Wilds DB</Text>;
   if (pathname === '/monsters') return <Text size="md" fw={600}>モンスター一覧</Text>;
   if (pathname === '/items') return <Text size="md" fw={600}>アイテム一覧</Text>;
   if (pathname === '/quests') return <Text size="md" fw={600}>クエスト一覧</Text>;
+  if (pathname === '/equipment') return <Text size="md" fw={600}>装備一覧</Text>;
 
   if (monsterMatch) {
     const monster = monsterById.get(Number(monsterMatch[1]));
@@ -74,6 +77,19 @@ function MobileHeaderContent() {
     }
   }
 
+  if (equipmentMatch) {
+    const [, kind, encodedId] = equipmentMatch;
+    const equipmentId = decodeURIComponent(encodedId);
+    const equipment = kind === 'weapons' ? weapons.find((entry) => entry.game_id === equipmentId)
+      : kind === 'armor' ? armor.find((entry) => entry.game_id === equipmentId)
+        : kind === 'amulets' ? amulets.find((entry) => entry.game_id === equipmentId)
+          : decorations.find((entry) => String(entry.game_id) === equipmentId);
+    if (equipment) {
+      const category = kind === 'weapons' ? (equipment as typeof weapons[number]).category : kind === 'armor' ? '防具' : kind === 'amulets' ? '護石' : '装飾品';
+      return <Group w="100%" gap="xs" wrap="nowrap"><Badge size="sm" variant="light">{category}</Badge><Text size="md" fw={600} truncate>{text(equipment.names)}</Text></Group>;
+    }
+  }
+
   return null;
 }
 
@@ -82,7 +98,8 @@ export function App() {
   const [searchOpened, { open: openSearch, close: closeSearch }] = useDisclosure(false);
   const monstersActive = pathname.startsWith('/monsters');
   const itemsActive = pathname.startsWith('/items');
-  const parentMatch = pathname.match(/^\/(monsters|items)\/[^/]+$/u);
+  const equipmentActive = pathname.startsWith('/equipment');
+  const parentMatch = pathname.match(/^\/(monsters|items|equipment)\/[^/]+$/u);
   const parentPath = parentMatch ? `/${parentMatch[1]}` : '/';
 
   return (
@@ -106,6 +123,7 @@ export function App() {
                 <Anchor component={Link} to="/monsters" c="inherit">モンスター</Anchor>
                 <Anchor component={Link} to="/items" c="inherit">アイテム</Anchor>
                 <Anchor component={Link} to="/quests" c="inherit">クエスト</Anchor>
+                <Anchor component={Link} to="/equipment" c="inherit">装備</Anchor>
               </Group>
               <Box visibleFrom="sm" style={{ width: 'min(42vw, 360px)' }}>
                 <SearchBox />
@@ -139,6 +157,9 @@ export function App() {
             <Button component={Link} to="/quests" variant="subtle" size="sm" h="100%" data-active={pathname.startsWith('/quests') || undefined} className="footer-main-button" onClick={closeSearch}>
               クエスト
             </Button>
+            <Button component={Link} to="/equipment" variant="subtle" size="sm" h="100%" data-active={equipmentActive || undefined} className="footer-main-button" onClick={closeSearch}>
+              装備
+            </Button>
           </Group>
         </AppShell.Footer>
         {searchOpened && (
@@ -159,6 +180,8 @@ export function App() {
               <Route path="/items/:id" element={<ItemPage />} />
               <Route path="/quests" element={<QuestsPage />} />
               <Route path="/quests/:id" element={<QuestPage />} />
+              <Route path="/equipment" element={<EquipmentPage />} />
+              <Route path="/equipment/:kind/:id" element={<EquipmentPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Container>

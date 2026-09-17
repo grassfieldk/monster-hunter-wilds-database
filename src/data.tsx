@@ -1,6 +1,6 @@
 import { Center, Loader } from '@mantine/core';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Item, ItemSource, ItemUse, Lookups, Monster, Quest, SourceInfo } from './types';
+import type { Amulet, Armor, Decoration, Item, ItemSource, ItemUse, Lookups, Monster, Quest, Skill, SourceInfo, Weapon } from './types';
 
 type Database = {
   items: Item[];
@@ -9,6 +9,11 @@ type Database = {
   lookups: Lookups;
   itemUses: Record<string, ItemUse[]>;
   itemSources: Record<string, ItemSource[]>;
+  armor: Armor[];
+  amulets: Amulet[];
+  weapons: Weapon[];
+  decorations: Decoration[];
+  skills: Skill[];
   source: SourceInfo;
   itemById: Map<number, Item>;
   monsterById: Map<number, Monster>;
@@ -35,8 +40,13 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       loadJson<Record<string, ItemUse[]>>('/data/item-uses.json'),
       loadJson<SourceInfo>('/data/source.json'),
       loadJson<Record<string, ItemSource[]>>('/data/item-sources.json'),
-    ]).then(([items, monsters, quests, lookups, itemUses, source, itemSources]) => {
-      setData({ items, monsters, quests, lookups, itemUses, source, itemSources });
+      loadJson<Armor[]>('/data/armor.json'),
+      loadJson<Amulet[]>('/data/amulets.json'),
+      loadJson<Weapon[]>('/data/weapons.json'),
+      loadJson<Decoration[]>('/data/decorations.json'),
+      loadJson<Skill[]>('/data/skills.json'),
+    ]).then(([items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills]) => {
+      setData({ items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills });
     });
   }, []);
 

@@ -41,6 +41,7 @@ function points(source: ItemSource) {
 export function ItemSources({ item }: { item: Item }) {
   const { itemSources, itemById, monsters, quests, lookups } = useDatabase();
   const questIdByName = useMemo(() => new Map(quests.map((quest) => [text(quest.names), quest.game_id])), [quests]);
+  const monsterIdByName = useMemo(() => new Map(monsters.map((monster) => [text(monster.names), monster.game_id])), [monsters]);
   const supportedMethods = useMemo(() => {
     const methods = new Set<string>();
     const categoryItems = new Set<number>();
@@ -72,7 +73,8 @@ export function ItemSources({ item }: { item: Item }) {
       ? source.method.replace(/^もちもの交換: /u, '').replace(/と交換$/u, '')
       : group === '焚き火焼き' ? source.method.replace(/を焼く$/u, '') : undefined;
     const questId = ['クエスト報酬', 'ミッション報酬'].includes(source.method) ? questIdByName.get(source.location) : undefined;
-    add(group, { ...source, material, questId, method: material && group === '交換・おすそわけ' ? 'もちもの交換' : source.method });
+    const monsterId = source.method === 'モンスター報酬' ? monsterIdByName.get(source.location) : undefined;
+    add(group, { ...source, material, questId, monsterId, method: material && group === '交換・おすそわけ' ? 'もちもの交換' : source.method });
   }
   for (const monster of monsters) {
     for (const reward of monster.rewards.filter((entry) => entry.item_id === item.game_id)) {

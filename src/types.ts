@@ -27,6 +27,75 @@ export type Item = {
   out_box: boolean;
 };
 
+export type EquipmentSkill = { skill_id: number; level: number };
+
+export type Armor = {
+  game_id: string;
+  series_id: number;
+  part: number;
+  names: LocalizedText;
+  descriptions: LocalizedText;
+  rarity: number | null;
+  price: number | null;
+  defense: number;
+  resistances: number[];
+  slots: number[];
+  skills: EquipmentSkill[];
+};
+
+export type Amulet = {
+  game_id: string;
+  amulet_type: number;
+  level: number;
+  names: LocalizedText;
+  descriptions: LocalizedText;
+  rarity: number;
+  price: number;
+  skills: EquipmentSkill[];
+};
+
+export type Weapon = {
+  game_id: string;
+  weapon_type: string;
+  category: string;
+  names: LocalizedText;
+  descriptions: LocalizedText;
+  rarity: number;
+  price: number;
+  attack: number;
+  defense: number;
+  affinity: number;
+  attribute: number;
+  attribute_value: number;
+  sub_attribute: number;
+  sub_attribute_value: number;
+  slots: number[];
+  sharpness: number[];
+  handicraft: number[];
+  skills: EquipmentSkill[];
+  details: Record<string, unknown>;
+};
+
+export type Decoration = {
+  game_id: number;
+  names: LocalizedText;
+  descriptions: LocalizedText;
+  type: number;
+  rarity: number;
+  price: number;
+  required_slot: number;
+  skills: EquipmentSkill[];
+};
+
+export type Skill = {
+  game_id: number;
+  names: LocalizedText;
+  descriptions: LocalizedText;
+  type: number;
+  category: number;
+  icon: number;
+};
+
 export type MonsterWeakness = {
   kind: 'element' | 'status' | 'effect';
   element?: string;
@@ -60,8 +129,8 @@ export type Monster = {
   features: LocalizedText;
   tips: LocalizedText;
   variants: unknown[];
-  size: Record<string, number>;
-  base_health: number;
+  size: Record<string, number | null>;
+  base_health: number | null;
   locations: number[];
   weaknesses: MonsterWeakness[];
   resistances: MonsterWeakness[];
