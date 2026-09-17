@@ -29,6 +29,32 @@ export type Item = {
 
 export type EquipmentSkill = { skill_id: number; level: number };
 
+export type EquipmentMaterial = { item_id: number; amount: number };
+
+export type EquipmentRecipe = {
+  materials: EquipmentMaterial[];
+  key_item_id: number;
+  key_enemy_id: number;
+  key_story_no: number;
+  hunter_rank: number;
+  time_rank?: number;
+  previous_id?: number;
+  weapon_id?: string;
+  armor_id?: string;
+  amulet_id?: string;
+  kinsect_id?: string;
+};
+
+export type WeaponTree = { weapon_type: string; parent_id: string; child_id: string };
+
+export type ArmorSeries = { game_id: number; names: LocalizedText; rarity: number; price: number; one_set: boolean };
+
+export type ArmorUpgrade = { rarity: number; story_no: number; max_level: number; defense_increment: number; points: number; price: number; special: boolean };
+
+export type ArmorUpgradeRecipe = { series_id: number; materials: EquipmentMaterial[] };
+
+export type DecorationProbability = { accessory_id: number; probabilities: number[] };
+
 export type Armor = {
   game_id: string;
   series_id: number;

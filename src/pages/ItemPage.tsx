@@ -30,7 +30,7 @@ export function ItemPage() {
     }
     if (use.category === '防具生産') {
       const target = armor.find((entry) => text(entry.names) === use.name);
-      return target ? `/equipment/armor/${encodeURIComponent(target.game_id)}` : undefined;
+      return target ? `/equipment/armor/${encodeURIComponent(String(target.series_id))}` : undefined;
     }
     if (use.category === '護石生産') {
       const target = amulets.find((entry) => text(entry.names) === use.name);

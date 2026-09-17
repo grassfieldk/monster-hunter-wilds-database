@@ -2,6 +2,7 @@ import { ActionIcon, Anchor, AppShell, Badge, Box, Container, Group, Text } from
 import { useDisclosure } from '@mantine/hooks';
 import { IconArrowLeft, IconArrowRight, IconArrowUp, IconClipboardList, IconPackage, IconPaw, IconSearch, IconShield } from '@tabler/icons-react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import { SearchBox } from './components/SearchBox';
 import { SectionTabs } from './components/SectionTabs';
 import { DatabaseProvider, monsterEpithet, text, useDatabase } from './data';
@@ -18,7 +19,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 
 function MobileHeaderContent() {
   const { pathname } = useLocation();
-  const { monsterById, itemById, questById, armor, amulets, weapons, decorations } = useDatabase();
+  const { monsterById, itemById, questById, armor, armorSeries, amulets, weapons, decorations } = useDatabase();
   const monsterMatch = pathname.match(/^\/monsters\/([^/]+)$/u);
   const itemMatch = pathname.match(/^\/items\/([^/]+)$/u);
   const questMatch = pathname.match(/^\/quests\/([^/]+)$/u);
@@ -81,7 +82,7 @@ function MobileHeaderContent() {
     const [, kind, encodedId] = equipmentMatch;
     const equipmentId = decodeURIComponent(encodedId);
     const equipment = kind === 'weapons' ? weapons.find((entry) => entry.game_id === equipmentId)
-      : kind === 'armor' ? armor.find((entry) => entry.game_id === equipmentId)
+      : kind === 'armor' ? armorSeries.find((entry) => entry.game_id === Number(equipmentId)) ?? armorSeries.find((entry) => entry.game_id === armor.find((item) => item.game_id === equipmentId)?.series_id)
         : kind === 'amulets' ? amulets.find((entry) => entry.game_id === equipmentId)
           : decorations.find((entry) => String(entry.game_id) === equipmentId);
     if (equipment) {
@@ -94,13 +95,22 @@ function MobileHeaderContent() {
 }
 
 export function App() {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const [searchOpened, { open: openSearch, close: closeSearch }] = useDisclosure(false);
+  const scrollPositions = useRef(new Map<string, number>());
   const monstersActive = pathname.startsWith('/monsters');
   const itemsActive = pathname.startsWith('/items');
   const equipmentActive = pathname.startsWith('/equipment');
   const parentMatch = pathname.match(/^\/(monsters|items|equipment)\/[^/]+$/u);
   const parentPath = parentMatch ? `/${parentMatch[1]}` : '/';
+
+  const scrollKey = `${pathname}${search}${hash}`;
+  useEffect(() => {
+    window.scrollTo({ top: scrollPositions.current.get(scrollKey) ?? 0, left: 0, behavior: 'auto' });
+    return () => {
+      scrollPositions.current.set(scrollKey, window.scrollY);
+    };
+  }, [scrollKey]);
 
   return (
     <DatabaseProvider>

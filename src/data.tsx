@@ -1,6 +1,6 @@
 import { Center, Loader } from '@mantine/core';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Amulet, Armor, Decoration, Item, ItemSource, ItemUse, Lookups, Monster, Quest, Skill, SourceInfo, Weapon } from './types';
+import type { Amulet, Armor, ArmorSeries, ArmorUpgrade, ArmorUpgradeRecipe, Decoration, DecorationProbability, EquipmentRecipe, Item, ItemSource, ItemUse, Lookups, Monster, Quest, Skill, SourceInfo, Weapon, WeaponTree } from './types';
 
 type Database = {
   items: Item[];
@@ -14,6 +14,15 @@ type Database = {
   weapons: Weapon[];
   decorations: Decoration[];
   skills: Skill[];
+  armorSeries: ArmorSeries[];
+  armorUpgrades: ArmorUpgrade[];
+  armorUpgradeRecipes: ArmorUpgradeRecipe[];
+  armorRecipes: EquipmentRecipe[];
+  amuletRecipes: EquipmentRecipe[];
+  weaponRecipes: EquipmentRecipe[];
+  weaponTrees: WeaponTree[];
+  decorationProbabilities: DecorationProbability[];
+  kinsectRecipes: EquipmentRecipe[];
   source: SourceInfo;
   itemById: Map<number, Item>;
   monsterById: Map<number, Monster>;
@@ -45,8 +54,17 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       loadJson<Weapon[]>('/data/weapons.json'),
       loadJson<Decoration[]>('/data/decorations.json'),
       loadJson<Skill[]>('/data/skills.json'),
-    ]).then(([items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills]) => {
-      setData({ items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills });
+      loadJson<ArmorSeries[]>('/data/armor-series.json'),
+      loadJson<ArmorUpgrade[]>('/data/armor-upgrades.json'),
+      loadJson<ArmorUpgradeRecipe[]>('/data/armor-upgrade-recipes.json'),
+      loadJson<EquipmentRecipe[]>('/data/armor-recipes.json'),
+      loadJson<EquipmentRecipe[]>('/data/amulet-recipes.json'),
+      loadJson<EquipmentRecipe[]>('/data/weapon-recipes.json'),
+      loadJson<WeaponTree[]>('/data/weapon-trees.json'),
+      loadJson<DecorationProbability[]>('/data/decoration-probabilities.json'),
+      loadJson<EquipmentRecipe[]>('/data/kinsect-recipes.json'),
+    ]).then(([items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes]) => {
+      setData({ items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes });
     });
   }, []);
 

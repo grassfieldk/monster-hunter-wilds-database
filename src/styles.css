@@ -88,6 +88,11 @@ a {
   margin-inline: auto;
 }
 
+.equipment-tree-label {
+  font-size: var(--mantine-font-size-sm) !important;
+  line-height: 1.7;
+}
+
 .centered-cell {
   text-align: center !important;
 }
