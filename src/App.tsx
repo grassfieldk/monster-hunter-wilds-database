@@ -15,14 +15,16 @@ import { MonstersPage } from './pages/MonstersPage';
 import { QuestsPage } from './pages/QuestsPage';
 import { QuestPage } from './pages/QuestPage';
 import { EquipmentPage } from './pages/EquipmentPage';
+import { SkillPage } from './pages/SkillPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 function MobileHeaderContent() {
   const { pathname } = useLocation();
-  const { monsterById, itemById, questById, armor, armorSeries, amulets, weapons, decorations } = useDatabase();
+  const { monsterById, itemById, questById, skillById, armor, armorSeries, amulets, weapons, decorations } = useDatabase();
   const monsterMatch = pathname.match(/^\/monsters\/([^/]+)$/u);
   const itemMatch = pathname.match(/^\/items\/([^/]+)$/u);
   const questMatch = pathname.match(/^\/quests\/([^/]+)$/u);
+  const skillMatch = pathname.match(/^\/skills\/([^/]+)$/u);
   const equipmentMatch = pathname.match(/^\/equipment\/([^/]+)\/([^/]+)$/u);
 
   if (pathname === '/') return <Text size="md" fw={600}>Monster Hunter Wilds DB</Text>;
@@ -75,6 +77,13 @@ function MobileHeaderContent() {
           <Text size="md" fw={600} truncate>{text(quest.names)}</Text>
         </Group>
       );
+    }
+  }
+
+  if (skillMatch) {
+    const skill = skillById.get(Number(skillMatch[1]));
+    if (skill) {
+      return <Group w="100%" gap="xs" wrap="nowrap"><Badge size="sm" variant="light">スキル</Badge><Text size="md" fw={600} truncate>{text(skill.names)}</Text></Group>;
     }
   }
 
@@ -184,6 +193,7 @@ export function App() {
               <Route path="/items/:id" element={<ItemPage />} />
               <Route path="/quests" element={<QuestsPage />} />
               <Route path="/quests/:id" element={<QuestPage />} />
+              <Route path="/skills/:id" element={<SkillPage />} />
               <Route path="/equipment" element={<EquipmentPage />} />
               <Route path="/equipment/:kind/:id" element={<EquipmentPage />} />
               <Route path="*" element={<NotFoundPage />} />

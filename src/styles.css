@@ -312,4 +312,10 @@ a {
   select {
     font-size: 16px !important;
   }
+
+  .mobile-search-panel .search-results-options {
+    display: flex;
+    flex-direction: column-reverse;
+    min-height: 100%;
+  }
 }

@@ -6,8 +6,10 @@ import { text, useDatabase } from '../data';
 import { FormattedText } from './FormattedText';
 
 type Result = {
-  id: number;
-  kind: 'monsters' | 'items';
+  id: string;
+  kind: 'monsters' | 'items' | 'equipment' | 'skills';
+  label: string;
+  path: string;
   name: string;
   description: string;
   searchAliases: string[];
@@ -45,7 +47,7 @@ function itemSearchAliases(itemName: string, monsterNames: string[]) {
 }
 
 export function SearchBox({ large = false, onNavigate, resultsPlacement = 'bottom' }: { large?: boolean; onNavigate?: () => void; resultsPlacement?: 'top' | 'bottom' }) {
-  const { items, monsters } = useDatabase();
+  const { items, monsters, weapons, armor, amulets, decorations, skills } = useDatabase();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const normalized = normalizeSearch(query.trim());
@@ -66,24 +68,73 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
     }
     return [
       ...monsters.map((monster) => ({
-        id: monster.game_id,
+        id: String(monster.game_id),
         kind: 'monsters' as const,
+        label: 'モンスター',
+        path: `/monsters/${monster.game_id}`,
         name: text(monster.names),
         description: text(monster.descriptions),
         searchAliases: [text(monster.names)],
       })),
       ...items.map((item) => ({
-        id: item.game_id,
+        id: String(item.game_id),
         kind: 'items' as const,
+        label: 'アイテム',
+        path: `/items/${item.game_id}`,
         name: text(item.names),
         description: text(item.descriptions),
         searchAliases: itemSearchAliases(text(item.names), itemMonsterNames.get(item.game_id) ?? []),
+      })),
+      ...weapons.map((weapon) => ({
+        id: weapon.game_id,
+        kind: 'equipment' as const,
+        label: weapon.category,
+        path: `/equipment/weapons/${encodeURIComponent(weapon.game_id)}`,
+        name: text(weapon.names),
+        description: text(weapon.descriptions),
+        searchAliases: [text(weapon.names)],
+      })),
+      ...armor.map((item) => ({
+        id: item.game_id,
+        kind: 'equipment' as const,
+        label: '防具',
+        path: `/equipment/armor/${encodeURIComponent(item.game_id)}`,
+        name: text(item.names),
+        description: text(item.descriptions),
+        searchAliases: [text(item.names)],
+      })),
+      ...amulets.map((item) => ({
+        id: item.game_id,
+        kind: 'equipment' as const,
+        label: '護石',
+        path: `/equipment/amulets/${encodeURIComponent(item.game_id)}`,
+        name: text(item.names),
+        description: text(item.descriptions),
+        searchAliases: [text(item.names)],
+      })),
+      ...decorations.map((item) => ({
+        id: String(item.game_id),
+        kind: 'equipment' as const,
+        label: '装飾品',
+        path: `/equipment/decorations/${encodeURIComponent(String(item.game_id))}`,
+        name: text(item.names),
+        description: text(item.descriptions),
+        searchAliases: [text(item.names)],
+      })),
+      ...skills.map((skill) => ({
+        id: String(skill.game_id),
+        kind: 'skills' as const,
+        label: 'スキル',
+        path: `/skills/${skill.game_id}`,
+        name: text(skill.names),
+        description: text(skill.descriptions),
+        searchAliases: [text(skill.names)],
       })),
     ].map((entry) => ({
       ...entry,
       normalizedAliases: entry.searchAliases.map(normalizeSearch),
     }));
-  }, [items, monsters]);
+  }, [armor, amulets, decorations, items, monsters, skills, weapons]);
 
   const results = useMemo<Result[]>(() => {
     if (!normalized) return [];
@@ -96,7 +147,7 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
   const open = (result: Result) => {
     setQuery('');
     combobox.closeDropdown();
-    navigate(`/${result.kind}/${result.id}`);
+    navigate(result.path);
     onNavigate?.();
   };
 
@@ -107,7 +158,7 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
   return (
     <Stack gap={4} pos="relative">
       <Combobox store={combobox} position={resultsPlacement} offset={0} withinPortal={false} onOptionSubmit={(value) => {
-        const result = results.find((entry) => `${entry.kind}-${entry.id}` === value);
+        const result = results.find((entry) => entry.path === value);
         if (result) open(result);
       }}>
         <Combobox.Target>
@@ -148,11 +199,11 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
             className="search-results-panel"
             p={4}
           >
-            <Combobox.Options>
+            <Combobox.Options className="search-results-options">
               {results.length ? results.map((result) => (
-                <Combobox.Option key={`${result.kind}-${result.id}`} value={`${result.kind}-${result.id}`}>
+                <Combobox.Option key={result.path} value={result.path}>
                   <Group gap="xs" wrap="nowrap">
-                    <Badge w={80} variant="light" style={{ flexShrink: 0 }}>{result.kind === 'monsters' ? 'モンスター' : 'アイテム'}</Badge>
+                    <Badge w={80} variant="light" style={{ flexShrink: 0 }}>{result.label}</Badge>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Text fw={500} lh={1.25} truncate>{result.name}</Text>
                       <FormattedText size="sm" c="dimmed" lh={1.25} lineClamp={1}>{result.description}</FormattedText>
