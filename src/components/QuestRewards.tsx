@@ -1,4 +1,5 @@
 import { Anchor, Box, Table, Text } from '@mantine/core';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { text, useDatabase } from '../data';
 import type { ItemSource, Quest } from '../types';
@@ -11,14 +12,16 @@ const methodOrder = ['クエスト報酬', 'ミッション報酬', '追加報�
 export function QuestRewards({ quest }: { quest: Quest }) {
   const { itemSources, itemById } = useDatabase();
   const questName = text(quest.names);
-  const rows: RewardRow[] = [];
-  for (const [itemId, sources] of Object.entries(itemSources)) {
-    for (const source of sources) {
-      if (source.location !== questName || !rewardMethods.has(source.method)) continue;
-      rows.push({ ...source, itemId: Number(itemId), method: source.method });
+  const rows = useMemo(() => {
+    const result: RewardRow[] = [];
+    for (const [itemId, sources] of Object.entries(itemSources)) {
+      for (const source of sources) {
+        if (source.location !== questName || !rewardMethods.has(source.method)) continue;
+        result.push({ ...source, itemId: Number(itemId), method: source.method });
+      }
     }
-  }
-  rows.sort((a, b) => methodOrder.indexOf(a.method) - methodOrder.indexOf(b.method) || text(itemById.get(a.itemId)?.names).localeCompare(text(itemById.get(b.itemId)?.names), 'ja'));
+    return result.sort((a, b) => methodOrder.indexOf(a.method) - methodOrder.indexOf(b.method) || text(itemById.get(a.itemId)?.names).localeCompare(text(itemById.get(b.itemId)?.names), 'ja'));
+  }, [itemById, itemSources, questName]);
 
   if (!rows.length) return <Text size="sm" c="dimmed">報酬アイテムはありません</Text>;
 

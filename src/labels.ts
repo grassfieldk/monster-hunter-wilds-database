@@ -48,7 +48,23 @@ export const labels: Record<string, string> = {
   mystery: 'その他',
 };
 
+const weaponAttributeLabels: Record<number, string> = {
+  1: '火',
+  2: '水',
+  3: '氷',
+  4: '雷',
+  5: '龍',
+  6: '毒',
+  7: '麻痺',
+  8: '睡眠',
+  9: '爆破',
+};
+
 export function label(value?: string) {
-  if (!value) return '不明';
+  if (!value || /^\?+$/u.test(value)) return '不明';
   return labels[value] ?? value;
+}
+
+export function weaponAttributeLabel(value: number) {
+  return weaponAttributeLabels[value] ?? '属性値';
 }

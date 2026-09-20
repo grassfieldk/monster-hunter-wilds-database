@@ -1,8 +1,7 @@
 import { Anchor, Badge, Box, Group, Stack, Table, Text, Title } from '@mantine/core';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { useEffect } from 'react';
 import { label } from '../labels';
-import { getRememberedDetailSection, rememberDetailSection } from '../sections';
+import { detailSections, useDetailSection } from '../sections';
 import { text, useDatabase } from '../data';
 import { NotFoundPage } from './NotFoundPage';
 import { FormattedText } from '../components/FormattedText';
@@ -14,10 +13,8 @@ export function ItemPage() {
   const { hash } = useLocation();
   const { itemById, itemUses, armor, amulets, weapons, monsters } = useDatabase();
   const section = hash.slice(1);
-  const sections = ['item-basic', 'item-sources', 'item-uses'];
-  useEffect(() => {
-    if (sections.includes(section)) rememberDetailSection('item', section);
-  }, [section]);
+  const sections = detailSections.item;
+  const activeSection = useDetailSection('item', section, sections);
   const item = itemById.get(Number(id));
   if (!item) return <NotFoundPage />;
 
@@ -43,8 +40,6 @@ export function ItemPage() {
     }
     return undefined;
   };
-  const activeSection = sections.includes(section) ? section : getRememberedDetailSection('item');
-
   return (
     <Stack className="page-stack" gap="lg">
       <Box visibleFrom="sm">

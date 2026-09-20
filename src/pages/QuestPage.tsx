@@ -1,12 +1,12 @@
 import { Badge, Box, Divider, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { useEffect } from 'react';
 import { text, useDatabase } from '../data';
 import { NotFoundPage } from './NotFoundPage';
 import { FormattedText } from '../components/FormattedText';
-import { QuestObjective } from '../components/QuestObjective';
+import { createMonsterNameMap, QuestObjective } from '../components/QuestObjective';
 import { QuestRewards } from '../components/QuestRewards';
-import { getRememberedDetailSection, rememberDetailSection } from '../sections';
+import { detailSections, useDetailSection } from '../sections';
 import { useLocation } from 'react-router-dom';
 
 export function QuestPage() {
@@ -14,13 +14,11 @@ export function QuestPage() {
   const { hash } = useLocation();
   const { questById, lookups, monsterById } = useDatabase();
   const section = hash.slice(1);
-  const sections = ['quest-basic', 'quest-rewards'];
-  useEffect(() => {
-    if (sections.includes(section)) rememberDetailSection('quest', section);
-  }, [section]);
+  const sections = detailSections.quest;
+  const activeSection = useDetailSection('quest', section, sections);
+  const monsterNames = useMemo(() => createMonsterNameMap(monsterById.values()), [monsterById]);
   const quest = questById.get(Number(id));
   if (!quest) return <NotFoundPage />;
-  const activeSection = sections.includes(section) ? section : getRememberedDetailSection('quest');
 
   const stageName = (stageId: number) => {
     const stage = lookups.stages.find((entry) => entry.game_id === stageId);
@@ -33,7 +31,7 @@ export function QuestPage() {
         <Group gap="sm">
           <Badge variant="light">{quest.category}</Badge>
           <Title order={1} size="h3">{text(quest.names)}</Title>
-          <Badge variant="light">難度 {quest.difficulty}</Badge>
+          <Badge variant="light">難度 {quest.difficulty ?? '不明'}</Badge>
         </Group>
       </Box>
 
@@ -41,7 +39,7 @@ export function QuestPage() {
         <Box mb="sm">
           <Text size="sm" c="dimmed">目的</Text>
           <Text size="sm" style={{ whiteSpace: 'pre-line' }}>
-            <QuestObjective quest={quest} monsters={monsterById} />
+            <QuestObjective quest={quest} monsters={monsterById} monsterNames={monsterNames} />
           </Text>
         </Box>
         <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(quest.descriptions)}</FormattedText>
@@ -51,7 +49,7 @@ export function QuestPage() {
           <div><Text size="sm" c="dimmed">フィールド</Text><Text size="sm" fw={500}>{quest.locations.map(stageName).join('、') || quest.location_names?.join('、') || '不明'}</Text></div>
           <div><Text size="sm" c="dimmed">制限時間</Text><Text size="sm" fw={500}>{quest.time_limit === null ? '不明' : `${quest.time_limit} 分`}</Text></div>
           <div><Text size="sm" c="dimmed">報酬金</Text><Text size="sm" fw={500}>{quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')} z`}</Text></div>
-          <div><Text size="sm" c="dimmed">HR ポイント</Text><Text size="sm" fw={500}>{quest.hunter_rank_points === null ? '不明' : quest.hunter_rank_points}</Text></div>
+          <div><Text size="sm" c="dimmed">HR ポイント</Text><Text size="sm" fw={500}>{quest.hunter_rank_points === null ? '不明' : quest.hunter_rank_points.toLocaleString('ja-JP')}</Text></div>
         </SimpleGrid>
       </section>}
       {activeSection === 'quest-rewards' && <section id="quest-rewards">

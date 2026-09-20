@@ -1,22 +1,30 @@
 import { Anchor, Box, Stack, Table, Tabs, Text } from '@mantine/core';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { text, useDatabase } from '../data';
-import { QuestObjective } from '../components/QuestObjective';
+import { createMonsterNameMap, QuestObjective } from '../components/QuestObjective';
 
 export function QuestsPage() {
   const { quests, monsterById } = useDatabase();
-  const sorted = quests.filter((quest) => quest.category !== '調査').sort((a, b) => (a.difficulty ?? Number.MAX_SAFE_INTEGER) - (b.difficulty ?? Number.MAX_SAFE_INTEGER) || text(a.names).localeCompare(text(b.names), 'ja'));
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sorted = useMemo(() => quests.filter((quest) => quest.category !== '調査').sort((a, b) => (a.difficulty ?? Number.MAX_SAFE_INTEGER) - (b.difficulty ?? Number.MAX_SAFE_INTEGER) || text(a.names).localeCompare(text(b.names), 'ja')), [quests]);
   const categoryOrder = ['任務', 'フリー', 'イベント', '闘技大会', 'その他'] as const;
   const availableCategories = new Set(sorted.map((quest) => quest.category));
   const questCategories = categoryOrder.filter((category) => availableCategories.has(category));
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const activeCategory = selectedCategory ?? questCategories[0] ?? null;
-  const visibleQuests = activeCategory === null ? sorted : sorted.filter((quest) => quest.category === activeCategory);
+  const requestedCategory = searchParams.get('category');
+  const activeCategory = questCategories.find((category) => category === requestedCategory) ?? questCategories[0] ?? null;
+  const visibleQuests = useMemo(() => activeCategory === null ? sorted : sorted.filter((quest) => quest.category === activeCategory), [activeCategory, sorted]);
+  const monsterNames = useMemo(() => createMonsterNameMap(monsterById.values()), [monsterById]);
+  const setCategory = (value: string | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set('category', value);
+    else next.delete('category');
+    setSearchParams(next);
+  };
 
   return (
     <Stack className="page-stack" gap="md">
-      <Tabs value={activeCategory} onChange={setSelectedCategory}>
+      <Tabs key={activeCategory ?? 'empty'} value={activeCategory} onChange={setCategory}>
         <Tabs.List>
           {questCategories.map((category) => (
             <Tabs.Tab key={category} value={category}>{category}</Tabs.Tab>
@@ -42,7 +50,7 @@ export function QuestsPage() {
                   <Box>
                     <Anchor component={Link} to={`/quests/${quest.game_id}`} fw={500} display="block">{text(quest.names)}</Anchor>
                     <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-line' }}>
-                      <QuestObjective quest={quest} monsters={monsterById} breakOnComma />
+                      <QuestObjective quest={quest} monsters={monsterById} monsterNames={monsterNames} breakOnComma />
                     </Text>
                   </Box>
                 </Table.Td>

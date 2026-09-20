@@ -8,17 +8,22 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
 
-export function QuestObjective({ quest, monsters, breakOnComma = false }: { quest: Quest; monsters: Map<number, Monster>; breakOnComma?: boolean }) {
-  const objective = formatQuestObjective(quest.objective);
-  if (!objective) return '目的の情報はありません';
-
+export function createMonsterNameMap(monsters: Iterable<Monster>) {
   const names = new Map<string, number>();
-  for (const monster of monsters.values()) {
+  for (const monster of monsters) {
     const name = text(monster.names);
     if (name === '名称不明') continue;
     names.set(name, monster.game_id);
     names.set(formatQuestObjective(monster.names), monster.game_id);
   }
+  return names;
+}
+
+export function QuestObjective({ quest, monsters, monsterNames, breakOnComma = false }: { quest: Quest; monsters: Map<number, Monster>; monsterNames?: Map<string, number>; breakOnComma?: boolean }) {
+  const objective = formatQuestObjective(quest.objective);
+  if (!objective) return '目的の情報はありません';
+
+  const names = new Map(monsterNames ?? createMonsterNameMap(monsters.values()));
   for (const target of quest.target_monsters) {
     if (!monsters.has(target.game_id)) continue;
     const name = text(target.names);

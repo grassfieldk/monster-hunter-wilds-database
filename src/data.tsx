@@ -1,4 +1,4 @@
-import { Center, Loader } from '@mantine/core';
+import { Center, Loader, Stack, Text } from '@mantine/core';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Amulet, Armor, ArmorSeries, ArmorUpgrade, ArmorUpgradeRecipe, Decoration, DecorationProbability, EquipmentRecipe, Item, ItemSource, ItemUse, Lookups, Monster, Quest, Skill, SourceInfo, Weapon, WeaponTree } from './types';
 
@@ -27,45 +27,57 @@ type Database = {
   itemById: Map<number, Item>;
   monsterById: Map<number, Monster>;
   questById: Map<number, Quest>;
+  skillById: Map<number, Skill>;
 };
 
 const DatabaseContext = createContext<Database | null>(null);
 
-async function loadJson<T>(path: string): Promise<T> {
-  const response = await fetch(path);
+async function loadJson<T>(path: string, signal: AbortSignal): Promise<T> {
+  const response = await fetch(path, { signal });
   if (!response.ok) throw new Error(`${path} を読み込めませんでした`);
   return response.json() as Promise<T>;
 }
 
 export function DatabaseProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<Omit<Database, 'itemById' | 'monsterById' | 'questById'> | null>(null);
+  const [data, setData] = useState<Omit<Database, 'itemById' | 'monsterById' | 'questById' | 'skillById'> | null>(null);
+  const [loadError, setLoadError] = useState<Error | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
     Promise.all([
-      loadJson<Item[]>('/data/items.json'),
-      loadJson<Monster[]>('/data/monsters.json'),
-      loadJson<Quest[]>('/data/quests.json'),
-      loadJson<Lookups>('/data/lookups.json'),
-      loadJson<Record<string, ItemUse[]>>('/data/item-uses.json'),
-      loadJson<SourceInfo>('/data/source.json'),
-      loadJson<Record<string, ItemSource[]>>('/data/item-sources.json'),
-      loadJson<Armor[]>('/data/armor.json'),
-      loadJson<Amulet[]>('/data/amulets.json'),
-      loadJson<Weapon[]>('/data/weapons.json'),
-      loadJson<Decoration[]>('/data/decorations.json'),
-      loadJson<Skill[]>('/data/skills.json'),
-      loadJson<ArmorSeries[]>('/data/armor-series.json'),
-      loadJson<ArmorUpgrade[]>('/data/armor-upgrades.json'),
-      loadJson<ArmorUpgradeRecipe[]>('/data/armor-upgrade-recipes.json'),
-      loadJson<EquipmentRecipe[]>('/data/armor-recipes.json'),
-      loadJson<EquipmentRecipe[]>('/data/amulet-recipes.json'),
-      loadJson<EquipmentRecipe[]>('/data/weapon-recipes.json'),
-      loadJson<WeaponTree[]>('/data/weapon-trees.json'),
-      loadJson<DecorationProbability[]>('/data/decoration-probabilities.json'),
-      loadJson<EquipmentRecipe[]>('/data/kinsect-recipes.json'),
+      loadJson<Item[]>('/data/items.json', controller.signal),
+      loadJson<Monster[]>('/data/monsters.json', controller.signal),
+      loadJson<Quest[]>('/data/quests.json', controller.signal),
+      loadJson<Lookups>('/data/lookups.json', controller.signal),
+      loadJson<Record<string, ItemUse[]>>('/data/item-uses.json', controller.signal),
+      loadJson<SourceInfo>('/data/source.json', controller.signal),
+      loadJson<Record<string, ItemSource[]>>('/data/item-sources.json', controller.signal),
+      loadJson<Armor[]>('/data/armor.json', controller.signal),
+      loadJson<Amulet[]>('/data/amulets.json', controller.signal),
+      loadJson<Weapon[]>('/data/weapons.json', controller.signal),
+      loadJson<Decoration[]>('/data/decorations.json', controller.signal),
+      loadJson<Skill[]>('/data/skills.json', controller.signal),
+      loadJson<ArmorSeries[]>('/data/armor-series.json', controller.signal),
+      loadJson<ArmorUpgrade[]>('/data/armor-upgrades.json', controller.signal),
+      loadJson<ArmorUpgradeRecipe[]>('/data/armor-upgrade-recipes.json', controller.signal),
+      loadJson<EquipmentRecipe[]>('/data/armor-recipes.json', controller.signal),
+      loadJson<EquipmentRecipe[]>('/data/amulet-recipes.json', controller.signal),
+      loadJson<EquipmentRecipe[]>('/data/weapon-recipes.json', controller.signal),
+      loadJson<WeaponTree[]>('/data/weapon-trees.json', controller.signal),
+      loadJson<DecorationProbability[]>('/data/decoration-probabilities.json', controller.signal),
+      loadJson<EquipmentRecipe[]>('/data/kinsect-recipes.json', controller.signal),
     ]).then(([items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes]) => {
-      setData({ items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes });
+      if (!cancelled) setData({ items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes });
+    }).catch((error: unknown) => {
+      if (!cancelled && !(error instanceof DOMException && error.name === 'AbortError')) {
+        setLoadError(error instanceof Error ? error : new Error('データの読み込みに失敗しました'));
+      }
     });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   const database = useMemo<Database | null>(() => {
@@ -75,8 +87,13 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       itemById: new Map(data.items.map((item) => [item.game_id, item])),
       monsterById: new Map(data.monsters.map((monster) => [monster.game_id, monster])),
       questById: new Map(data.quests.map((quest) => [quest.game_id, quest])),
+      skillById: new Map(data.skills.map((skill) => [skill.game_id, skill])),
     };
   }, [data]);
+
+  if (loadError) {
+    return <Center mih="100dvh"><Stack align="center" gap="xs"><Text>データを読み込めませんでした</Text><Text size="sm" c="dimmed">ページを再読み込みしてください</Text></Stack></Center>;
+  }
 
   if (!database) {
     return (

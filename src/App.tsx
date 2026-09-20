@@ -1,6 +1,6 @@
 import { ActionIcon, Anchor, AppShell, Badge, Box, Container, Group, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconArrowLeft, IconArrowRight, IconArrowUp, IconClipboardList, IconPackage, IconPaw, IconSearch, IconShield } from '@tabler/icons-react';
+import { IconArrowLeft, IconArrowRight, IconClipboardList, IconPackage, IconPaw, IconSearch, IconShield } from '@tabler/icons-react';
 import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import { SearchBox } from './components/SearchBox';
@@ -101,9 +101,6 @@ export function App() {
   const monstersActive = pathname.startsWith('/monsters');
   const itemsActive = pathname.startsWith('/items');
   const equipmentActive = pathname.startsWith('/equipment');
-  const parentMatch = pathname.match(/^\/(monsters|items|equipment)\/[^/]+$/u);
-  const parentPath = parentMatch ? `/${parentMatch[1]}` : '/';
-
   const scrollKey = `${pathname}${search}${hash}`;
   useEffect(() => {
     window.scrollTo({ top: scrollPositions.current.get(scrollKey) ?? 0, left: 0, behavior: 'auto' });
@@ -150,9 +147,6 @@ export function App() {
               </ActionIcon>
               <ActionIcon variant="subtle" size="lg" h="100%" w={36} aria-label="進む" title="進む" className="footer-history-button" onClick={() => window.history.forward()}>
                 <IconArrowRight size={18} />
-              </ActionIcon>
-              <ActionIcon component={Link} to={parentPath} variant="subtle" size="lg" h="100%" w={36} aria-label="一つ上へ" title="一つ上へ" className="footer-history-button" disabled={parentPath === pathname}>
-                <IconArrowUp size={18} />
               </ActionIcon>
               <ActionIcon variant="subtle" size="lg" h="100%" w={36} aria-label="検索" title="検索" className="footer-search-button" data-active={searchOpened || undefined} onClick={searchOpened ? closeSearch : openSearch}>
                 <IconSearch size={18} stroke={2.25} />

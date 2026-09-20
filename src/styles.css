@@ -134,8 +134,7 @@ a {
 }
 
 .section-tabs.rank-tabs {
-  position: fixed;
-  bottom: 0;
+  position: static;
   z-index: 1;
 }
 
@@ -144,7 +143,7 @@ a {
 }
 
 .with-rank-tabs {
-  padding-bottom: var(--section-tabs-height);
+  padding-bottom: 0;
 }
 
 .rank-tabs {
@@ -295,6 +294,7 @@ a {
   }
 
   .section-tabs.rank-tabs {
+    position: fixed;
     bottom: calc(var(--app-shell-footer-height) + var(--section-tabs-height));
   }
 

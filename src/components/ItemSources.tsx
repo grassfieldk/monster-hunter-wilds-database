@@ -40,9 +40,9 @@ function points(source: ItemSource) {
 
 export function ItemSources({ item }: { item: Item }) {
   const { itemSources, itemById, monsters, quests, lookups } = useDatabase();
-  const questIdByName = useMemo(() => new Map(quests.map((quest) => [text(quest.names), quest.game_id])), [quests]);
-  const monsterIdByName = useMemo(() => new Map(monsters.map((monster) => [text(monster.names), monster.game_id])), [monsters]);
-  const supportedMethods = useMemo(() => {
+  const { supportedMethods, groups } = useMemo(() => {
+    const questIdByName = new Map(quests.map((quest) => [text(quest.names), quest.game_id]));
+    const monsterIdByName = new Map(monsters.map((monster) => [text(monster.names), monster.game_id]));
     const methods = new Set<string>();
     const categoryItems = new Set<number>();
     for (const candidate of itemById.values()) {
@@ -58,37 +58,47 @@ export function ItemSources({ item }: { item: Item }) {
         if (categoryItems.has(reward.item_id)) methods.add(sourceGroup(label(reward.kind)));
       }
     }
-    return methods;
-  }, [item.kind, itemById, itemSources, monsters]);
-  const orderedMethods = [...sourceOrder, ...[...supportedMethods].filter((method) => method !== '調合' && !sourceOrder.includes(method))];
-  const groups = new Map<string, SourceRow[]>(orderedMethods.filter((method) => supportedMethods.has(method)).map((method) => [method, []]));
-  const add = (group: string, row: SourceRow) => {
-    const rows = groups.get(group) ?? [];
-    rows.push(row);
-    groups.set(group, rows);
-  };
-  for (const source of itemSources[String(item.game_id)] ?? []) {
-    const group = sourceGroup(source.method);
-    const material = source.method.startsWith('もちもの交換: ') || source.method.endsWith('と交換')
-      ? source.method.replace(/^もちもの交換: /u, '').replace(/と交換$/u, '')
-      : group === '焚き火焼き' ? source.method.replace(/を焼く$/u, '') : undefined;
-    const questId = ['クエスト報酬', 'ミッション報酬'].includes(source.method) ? questIdByName.get(source.location) : undefined;
-    const monsterId = source.method === 'モンスター報酬' ? monsterIdByName.get(source.location) : undefined;
-    add(group, { ...source, material, questId, monsterId, method: material && group === '交換・おすそわけ' ? 'もちもの交換' : source.method });
-  }
-  for (const monster of monsters) {
-    for (const reward of monster.rewards.filter((entry) => entry.item_id === item.game_id)) {
-      const part = reward.part && lookups.partNames.find((entry) => entry.part === reward.part);
-      add(sourceGroup(label(reward.kind)), {
-        location: text(monster.names), monsterId: monster.game_id,
-        method: label(reward.kind), rank: label(reward.rank),
-        amount: reward.amount, chance: reward.chance,
-        part: reward.part ? (part ? text(part.names) : label(reward.part)) : undefined,
-      });
+    const sourceRows = new Map<string, SourceRow[]>();
+    const add = (group: string, row: SourceRow) => {
+      const rows = sourceRows.get(group) ?? [];
+      rows.push(row);
+      sourceRows.set(group, rows);
+    };
+    for (const source of itemSources[String(item.game_id)] ?? []) {
+      const group = sourceGroup(source.method);
+      const material = source.method.startsWith('もちもの交換: ') || source.method.endsWith('と交換')
+        ? source.method.replace(/^もちもの交換: /u, '').replace(/と交換$/u, '')
+        : group === '焚き火焼き' ? source.method.replace(/を焼く$/u, '') : undefined;
+      const questId = ['クエスト報酬', 'ミッション報酬'].includes(source.method) ? questIdByName.get(source.location) : undefined;
+      const monsterId = source.method === 'モンスター報酬' ? monsterIdByName.get(source.location) : undefined;
+      add(group, { ...source, material, questId, monsterId, method: material && group === '交換・おすそわけ' ? 'もちもの交換' : source.method });
     }
-  }
-  const rewardOrder = ['モンスター報酬', 'クエスト報酬', 'ミッション報酬', '標的報酬', '追加報酬'];
-  groups.get('報酬')?.sort((a, b) => rewardOrder.indexOf(a.method) - rewardOrder.indexOf(b.method));
+    for (const monster of monsters) {
+      for (const reward of monster.rewards) {
+        if (reward.item_id !== item.game_id) continue;
+        const part = reward.part && lookups.partNames.find((entry) => entry.part === reward.part);
+        add(sourceGroup(label(reward.kind)), {
+          location: text(monster.names), monsterId: monster.game_id,
+          method: label(reward.kind), rank: label(reward.rank),
+          amount: reward.amount, chance: reward.chance,
+          part: reward.part ? (part ? text(part.names) : label(reward.part)) : undefined,
+        });
+      }
+    }
+    const orderedMethods = [...sourceOrder, ...[...methods].filter((method) => method !== '調合' && !sourceOrder.includes(method))];
+    const groups = new Map<string, SourceRow[]>(orderedMethods.filter((method) => methods.has(method)).map((method) => [method, sourceRows.get(method) ?? []]));
+    const rewardOrder = ['モンスター報酬', 'クエスト報酬', 'ミッション報酬', '標的報酬', '追加報酬'];
+    groups.get('報酬')?.sort((a, b) => rewardOrder.indexOf(a.method) - rewardOrder.indexOf(b.method));
+    return { supportedMethods: methods, groups };
+  }, [item, itemById, itemSources, lookups, monsters, quests]);
+  const itemByName = useMemo(() => {
+    const map = new Map<string, Item>();
+    for (const candidate of itemById.values()) {
+      const name = text(candidate.names);
+      if (!map.has(name)) map.set(name, candidate);
+    }
+    return map;
+  }, [itemById]);
   const itemLink = (id: number) => {
     const material = itemById.get(id);
     return material ? <Anchor component={Link} to={`/items/${id}`}>{text(material.names)}</Anchor> : `ID ${id}`;
@@ -96,7 +106,7 @@ export function ItemSources({ item }: { item: Item }) {
   const materialLink = (value: string) => {
     const match = value.match(/^(.*?) (\d+) 個$/u);
     const name = match?.[1] ?? value;
-    const material = [...itemById.values()].find((entry) => text(entry.names) === name);
+    const material = itemByName.get(name);
     return <>{material ? itemLink(material.game_id) : name}{match && ` x${match[2]}`}</>;
   };
 

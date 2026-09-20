@@ -1,11 +1,11 @@
 import { Anchor, Badge, Box, Button, Divider, Group, Modal, SimpleGrid, Stack, Table, Tabs, Text, Title } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
 import { IconHelpCircle } from '@tabler/icons-react';
 import { monsterEpithet, text, useDatabase } from '../data';
 import { label } from '../labels';
-import { getRememberedDetailSection, rememberDetailSection } from '../sections';
+import { detailSections, useDetailSection } from '../sections';
 import { NotFoundPage } from './NotFoundPage';
 import { FormattedText } from '../components/FormattedText';
 
@@ -20,10 +20,8 @@ export function MonsterPage() {
   const [selectedRewardRank, setSelectedRewardRank] = useState<RewardRank | null>(null);
   const [helpOpened, { open: openHelp, close: closeHelp }] = useDisclosure(false);
   const section = hash.slice(1);
-  const sections = ['monster-basic', 'monster-rewards', 'monster-hitzones'];
-  useEffect(() => {
-    if (sections.includes(section)) rememberDetailSection('monster', section);
-  }, [section]);
+  const sections = detailSections.monster;
+  const activeSection = useDetailSection('monster', section, sections);
   const monster = monsterById.get(Number(id));
   if (!monster) return <NotFoundPage />;
 
@@ -35,8 +33,6 @@ export function MonsterPage() {
   const activeRewardRank = selectedRewardRank && availableRewardRanks.has(selectedRewardRank)
     ? selectedRewardRank
     : [...rewardRanks].reverse().find((rank) => availableRewardRanks.has(rank)) ?? rewardRanks[0];
-  const activeSection = sections.includes(section) ? section : getRememberedDetailSection('monster');
-
   const stageName = (stageId: number) => {
     const stage = lookups.stages.find((entry) => entry.game_id === stageId);
     return stage ? text(stage.names) : `ID ${stageId}`;

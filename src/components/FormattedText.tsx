@@ -6,9 +6,13 @@ type FormattedTextProps = Omit<TextProps, 'children'> & {
   monsterIds?: Map<string, number>;
 };
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
 function renderMarkup(value: string, monsterIds?: Map<string, number>) {
   const monsterPattern = monsterIds?.size
-    ? new RegExp(`(${[...monsterIds.keys()].sort((a, b) => b.length - a.length).join('|')})`, 'gu')
+    ? new RegExp(`(${[...monsterIds.keys()].sort((a, b) => b.length - a.length).map(escapeRegExp).join('|')})`, 'gu')
     : undefined;
   return value.split(/(≪[^≪≫]+≫)/g).map((segment, index) => {
     if (!segment.startsWith('≪') || !segment.endsWith('≫')) {

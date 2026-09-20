@@ -1,20 +1,22 @@
 import { Anchor, Box, Stack, Table, Text } from '@mantine/core';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { monsterEpithet, text, useDatabase } from '../data';
 import { label } from '../labels';
 
 export function MonstersPage() {
   const { monsters } = useDatabase();
+  const sortedMonsters = useMemo(() => [...monsters].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja')), [monsters]);
 
   return (
     <Stack className="page-stack" gap="md">
       <Box className="responsive-table-container">
         <Table className="responsive-table" striped highlightOnHover withTableBorder>
           <Table.Thead>
-            <Table.Tr><Table.Th>種族</Table.Th><Table.Th>モンスター</Table.Th><Table.Th /></Table.Tr>
+            <Table.Tr><Table.Th>種族</Table.Th><Table.Th>モンスター</Table.Th><Table.Th>二つ名</Table.Th></Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {[...monsters].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja')).map((monster) => {
+            {sortedMonsters.map((monster) => {
               const epithet = monsterEpithet(monster);
               const epithetReading = epithet?.match(/^(.+?)（(.+?)）$/u);
 

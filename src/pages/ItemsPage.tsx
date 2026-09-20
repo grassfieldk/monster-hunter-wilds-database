@@ -1,4 +1,5 @@
 import { Anchor, Box, Stack, Table, Text } from '@mantine/core';
+import { useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { text, useDatabase } from '../data';
 import { FormattedText } from '../components/FormattedText';
@@ -8,12 +9,11 @@ export function ItemsPage() {
   const { items } = useDatabase();
   const { search } = useLocation();
   const requestedKind = new URLSearchParams(search).get('kind');
-  const availableKinds = itemCategoryKinds.filter((kind) => items.some((item) => item.kind === kind));
+  const availableKinds = useMemo(() => itemCategoryKinds.filter((kind) => items.some((item) => item.kind === kind)), [items]);
   const activeKind = availableKinds.includes(requestedKind as ItemCategoryKind)
     ? requestedKind as ItemCategoryKind
     : availableKinds[0];
-  const sorted = [...items].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'));
-  const filtered = activeKind ? sorted.filter((item) => item.kind === activeKind) : sorted;
+  const filtered = useMemo(() => [...items].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja')).filter((item) => !activeKind || item.kind === activeKind), [activeKind, items]);
 
   return (
     <Stack className="page-stack" gap="md">

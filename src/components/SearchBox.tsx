@@ -1,6 +1,6 @@
-import { Badge, Group, Paper, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
+import { Badge, Combobox, Group, Stack, Text, TextInput, useCombobox } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { text, useDatabase } from '../data';
 import { FormattedText } from './FormattedText';
@@ -11,6 +11,10 @@ type Result = {
   name: string;
   description: string;
   searchAliases: string[];
+};
+
+type SearchEntry = Result & {
+  normalizedAliases: string[];
 };
 
 function normalizeSearch(value: string) {
@@ -45,9 +49,12 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const normalized = normalizeSearch(query.trim());
+  const combobox = useCombobox({
+    onDropdownClose: () => combobox.resetSelectedOption(),
+    onDropdownOpen: () => combobox.selectFirstOption(),
+  });
 
-  const results = useMemo<Result[]>(() => {
-    if (!normalized) return [];
+  const searchableEntries = useMemo<SearchEntry[]>(() => {
     const itemMonsterNames = new Map<number, string[]>();
     for (const monster of monsters) {
       const monsterName = text(monster.names);
@@ -72,48 +79,78 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
         description: text(item.descriptions),
         searchAliases: itemSearchAliases(text(item.names), itemMonsterNames.get(item.game_id) ?? []),
       })),
-    ]
-      .filter((entry) => entry.searchAliases.some((alias) => matchesSearch(normalized, normalizeSearch(alias))))
-      .sort((a, b) => Number(!a.searchAliases.some((alias) => normalizeSearch(alias).startsWith(normalized))) - Number(!b.searchAliases.some((alias) => normalizeSearch(alias).startsWith(normalized))))
+    ].map((entry) => ({
+      ...entry,
+      normalizedAliases: entry.searchAliases.map(normalizeSearch),
+    }));
+  }, [items, monsters]);
+
+  const results = useMemo<Result[]>(() => {
+    if (!normalized) return [];
+    return searchableEntries
+      .filter((entry) => entry.normalizedAliases.some((alias) => matchesSearch(normalized, alias)))
+      .sort((a, b) => Number(!a.normalizedAliases.some((alias) => alias.startsWith(normalized))) - Number(!b.normalizedAliases.some((alias) => alias.startsWith(normalized))))
       .slice(0, 12);
-  }, [items, monsters, normalized, query]);
+  }, [normalized, searchableEntries]);
 
   const open = (result: Result) => {
     setQuery('');
+    combobox.closeDropdown();
     navigate(`/${result.kind}/${result.id}`);
     onNavigate?.();
   };
 
+  useEffect(() => {
+    if (onNavigate) combobox.openDropdown();
+  }, [combobox, onNavigate]);
+
   return (
     <Stack gap={4} pos="relative">
-      <TextInput
-        aria-label="モンスター名またはアイテム名"
-        leftSection={<IconSearch size={18} />}
-        size={large ? 'lg' : 'sm'}
-        classNames={{ root: 'search-input-root', input: 'search-input-field' }}
-        value={query}
-        onChange={(event) => setQuery(event.currentTarget.value)}
-      />
-      {(normalized || onNavigate) && (
-        <Paper
-          shadow="none"
-          radius={0}
-          pos="absolute"
-          className="search-results-panel"
-          left={0}
-          right={0}
-          p={4}
-          style={{
-            zIndex: 0,
-            ...(resultsPlacement === 'top'
-              ? { bottom: '100%', marginBottom: 0 }
-              : { top: '100%', marginTop: 0 }),
-          }}
-        >
-          {results.length ? (
-            <Stack gap={0}>
-              {results.map((result) => (
-                <UnstyledButton key={`${result.kind}-${result.id}`} w="100%" p="xs" onClick={() => open(result)}>
+      <Combobox store={combobox} position={resultsPlacement} offset={0} withinPortal={false} onOptionSubmit={(value) => {
+        const result = results.find((entry) => `${entry.kind}-${entry.id}` === value);
+        if (result) open(result);
+      }}>
+        <Combobox.Target>
+          <TextInput
+            aria-label="モンスター名またはアイテム名"
+            leftSection={<IconSearch size={18} />}
+            size={large ? 'lg' : 'sm'}
+            classNames={{ root: 'search-input-root', input: 'search-input-field' }}
+            value={query}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                if (!combobox.dropdownOpened) combobox.openDropdown('keyboard');
+                else combobox.selectNextOption();
+              } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                if (!combobox.dropdownOpened) combobox.openDropdown('keyboard');
+                else combobox.selectPreviousOption();
+              } else if (event.key === 'Enter') {
+                event.preventDefault();
+                combobox.clickSelectedOption();
+              } else if (event.key === 'Escape') {
+                event.preventDefault();
+                combobox.closeDropdown('keyboard');
+              }
+            }}
+            onFocus={() => combobox.openDropdown()}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              setQuery(value);
+              if (value.trim() || onNavigate) combobox.openDropdown();
+              else combobox.closeDropdown();
+            }}
+          />
+        </Combobox.Target>
+        {(normalized || onNavigate) && (
+          <Combobox.Dropdown
+            className="search-results-panel"
+            p={4}
+          >
+            <Combobox.Options>
+              {results.length ? results.map((result) => (
+                <Combobox.Option key={`${result.kind}-${result.id}`} value={`${result.kind}-${result.id}`}>
                   <Group gap="xs" wrap="nowrap">
                     <Badge w={80} variant="light" style={{ flexShrink: 0 }}>{result.kind === 'monsters' ? 'モンスター' : 'アイテム'}</Badge>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -121,16 +158,16 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
                       <FormattedText size="sm" c="dimmed" lh={1.25} lineClamp={1}>{result.description}</FormattedText>
                     </div>
                   </Group>
-                </UnstyledButton>
-              ))}
-            </Stack>
-          ) : normalized ? (
-            <Stack h="100%" align="center" justify="center">
-              <Text c="dimmed">該当するデータがありません</Text>
-            </Stack>
-          ) : null}
-        </Paper>
-      )}
+                </Combobox.Option>
+              )) : normalized ? (
+                <Combobox.Empty>該当するデータがありません</Combobox.Empty>
+              ) : (
+                <Combobox.Empty>名前を入力してください</Combobox.Empty>
+              )}
+            </Combobox.Options>
+          </Combobox.Dropdown>
+        )}
+      </Combobox>
     </Stack>
   );
 }
