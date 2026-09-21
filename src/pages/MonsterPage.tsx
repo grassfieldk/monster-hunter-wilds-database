@@ -28,7 +28,6 @@ export function MonsterPage() {
   const monsterName = text(monster.names);
   const epithet = monsterEpithet(monster);
   const epithetReading = epithet?.match(/^(.+?)（(.+?)）$/u);
-  const featureText = text(monster.features).replace(/≪([^≫]+)≫/gu, '$1');
   const availableRewardRanks = new Set(monster.rewards.map((reward) => reward.rank));
   const activeRewardRank = selectedRewardRank && availableRewardRanks.has(selectedRewardRank)
     ? selectedRewardRank
@@ -112,7 +111,7 @@ export function MonsterPage() {
             </div>
             <div>
               <Text size="sm" fw={500} c="dimmed" mb={4}>特徴</Text>
-              <Text className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{featureText}</Text>
+              <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(monster.features)}</FormattedText>
             </div>
             <div>
               <Text size="sm" fw={500} c="dimmed" mb={4}>攻略の要点</Text>

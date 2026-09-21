@@ -123,7 +123,10 @@ export function text(value?: Record<string, string>) {
 }
 
 export function monsterEpithet(monster: Monster) {
-  const candidate = text(monster.features).match(/≪([^≫]+)≫/u)?.[1];
-  if (!candidate || candidate === text(monster.names) || !/[\u3400-\u9fff]/u.test(candidate)) return undefined;
-  return candidate;
+  const monsterName = text(monster.names);
+  for (const source of [monster.features, monster.descriptions]) {
+    const candidate = text(source).match(/≪([^≫]+)≫/u)?.[1];
+    if (candidate && candidate !== monsterName && /[\u3400-\u9fff]/u.test(candidate)) return candidate;
+  }
+  return undefined;
 }
