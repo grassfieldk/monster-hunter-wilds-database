@@ -6,7 +6,7 @@ import { label } from '../labels';
 
 export function MonstersPage() {
   const { monsters } = useDatabase();
-  const sortedMonsters = useMemo(() => [...monsters].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja')), [monsters]);
+  const sortedMonsters = useMemo(() => [...monsters].sort((a, b) => label(a.species).localeCompare(label(b.species), 'ja') || a.game_id - b.game_id), [monsters]);
 
   return (
     <Stack className="page-stack" gap="md">

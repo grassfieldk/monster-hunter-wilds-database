@@ -264,7 +264,7 @@ const armorUpgradeRecipes = rows(armorUpgradeRecipeData, 'app.user_data.ArmorUpg
 const armor = rows(armorData, 'app.user_data.ArmorData.cData').filter((row) => texts[row._Name]?.ja).map((row) => {
   const series_id = scalar(armorData, row._Series);
   const part = scalar(armorData, row._PartsType);
-  const skills = valueList(armorData, row._Skill).map((skillId, index) => ({ skill_id: skillId, level: row._SkillLevel[index] })).filter((skill) => skill.skill_id > 0);
+  const skills = valueList(armorData, row._Skill).map((skillId, index) => ({ skill_id: skillId, level: row._SkillLevel[index] })).filter((skill) => skill.skill_id !== 0);
   return {
     game_id: `armor:${series_id}:${part}`, series_id, part, names: localized(row._Name), descriptions: localized(row._Explain),
     rarity: armorSeriesById.get(series_id)?.rarity ?? null, price: armorSeriesById.get(series_id)?.price ?? null,
@@ -285,7 +285,7 @@ for (const row of rows(armorRecipeData, 'app.user_data.ArmorRecipeData.cData')) 
 const amuletData = load('Common/Equip/AmuletData');
 const amulets = new Map(rows(amuletData, 'app.user_data.AmuletData.cData').map((row) => [`${scalar(amuletData, row._AmuletType)}:${row._Lv}`, row]));
 const amuletList = [...amulets].filter(([, row]) => texts[row._Name]?.ja).map(([key, row]) => {
-  const skills = valueList(amuletData, row._Skill).map((skillId, index) => ({ skill_id: skillId, level: row._SkillLevel[index] })).filter((skill) => skill.skill_id > 0);
+  const skills = valueList(amuletData, row._Skill).map((skillId, index) => ({ skill_id: skillId, level: row._SkillLevel[index] })).filter((skill) => skill.skill_id !== 0);
   return { game_id: `amulet:${key}`, amulet_type: scalar(amuletData, row._AmuletType), level: row._Lv, names: localized(row._Name), descriptions: localized(row._Explain), rarity: scalar(amuletData, row._Rare), price: row._Price, skills };
 });
 const amuletRecipeList = [];
@@ -328,7 +328,7 @@ for (const [code, category] of Object.entries(weapons)) {
           : code === 'GunLance' ? { shell_type: scalar(weaponData, row._Wp07ShellType), shell_level: scalar(weaponData, row._Wp07ShellLv), shell_count: row._ShellNum, rapid_shell_count: row._RapidShellNum }
             : ['Bow', 'HeavyBowgun', 'LightBowgun'].includes(code) ? { coating_flags: row._isLoadingBin, special_ammo: scalar(weaponData, row._Wp13SpecialAmmo), ammo_strength: scalar(weaponData, row._AmmoStrength) }
               : {};
-    const skills = valueList(weaponData, row._Skill).map((skillId, index) => ({ skill_id: skillId, level: row._SkillLevel[index] })).filter((skill) => skill.skill_id > 0);
+    const skills = valueList(weaponData, row._Skill).map((skillId, index) => ({ skill_id: skillId, level: row._SkillLevel[index] })).filter((skill) => skill.skill_id !== 0);
     weaponList.push({
       game_id: `weapon:${code}:${weaponId}`, weapon_type: code, category, names: localized(row._Name), descriptions: localized(row._Explain),
       rarity: 19 - scalar(weaponData, row._Rare), price: row._Price, attack: row._Attack, defense: row._Defense, affinity: row._Critical,
@@ -343,7 +343,7 @@ for (const [code, category] of Object.entries(weapons)) {
 }
 const accessoryData = load('Common/Equip/AccessoryData');
 const decorations = rows(accessoryData, 'app.user_data.AccessoryData.cData').filter((row) => texts[row._Name]?.ja).map((row) => {
-  const skills = valueList(accessoryData, row._Skill).map((skillId, index) => ({ skill_id: skillId, level: row._SkillLevel[index] })).filter((skill) => skill.skill_id > 0);
+    const skills = valueList(accessoryData, row._Skill).map((skillId, index) => ({ skill_id: skillId, level: row._SkillLevel[index] })).filter((skill) => skill.skill_id !== 0);
   return { game_id: scalar(accessoryData, row._AccessoryId), names: localized(row._Name), descriptions: localized(row._Explain), type: scalar(accessoryData, row._AccessoryType), rarity: scalar(accessoryData, row._Rare), price: row._Price, required_slot: scalar(accessoryData, row._SlotLevelAcc), skills };
 });
 const accessoryJudgeData = load('Common/Equip/AccessoryJudgeData');

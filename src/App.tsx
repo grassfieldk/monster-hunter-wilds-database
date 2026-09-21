@@ -92,11 +92,12 @@ function MobileHeaderContent() {
     const equipmentId = decodeURIComponent(encodedId);
     const equipment = kind === 'weapons' ? weapons.find((entry) => entry.game_id === equipmentId)
       : kind === 'armor' ? armorSeries.find((entry) => entry.game_id === Number(equipmentId)) ?? armorSeries.find((entry) => entry.game_id === armor.find((item) => item.game_id === equipmentId)?.series_id)
-        : kind === 'amulets' ? amulets.find((entry) => entry.game_id === equipmentId)
+        : kind === 'amulets' ? amulets.find((entry) => entry.game_id === equipmentId) ?? amulets.find((entry) => String(entry.amulet_type) === equipmentId)
           : decorations.find((entry) => String(entry.game_id) === equipmentId);
     if (equipment) {
       const category = kind === 'weapons' ? (equipment as typeof weapons[number]).category : kind === 'armor' ? '防具' : kind === 'amulets' ? '護石' : '装飾品';
-      return <Group w="100%" gap="xs" wrap="nowrap"><Badge size="sm" variant="light">{category}</Badge><Text size="md" fw={600} truncate>{text(equipment.names)}</Text></Group>;
+      const equipmentName = kind === 'amulets' ? text(equipment.names).replace(/[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+$/u, '') : text(equipment.names);
+      return <Group w="100%" gap="xs" wrap="nowrap"><Badge size="sm" variant="light">{category}</Badge><Text size="md" fw={600} truncate>{equipmentName}</Text></Group>;
     }
   }
 

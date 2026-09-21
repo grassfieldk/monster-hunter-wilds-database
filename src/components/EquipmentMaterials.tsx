@@ -1,4 +1,5 @@
 import { Anchor, Group, SimpleGrid, Stack, Table, Text } from '@mantine/core';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { EquipmentMaterial, EquipmentRecipe, Item } from '../types';
 import { text } from '../data';
@@ -26,12 +27,12 @@ export function EquipmentMaterialTable({ materials, itemById }: { materials: Equ
   );
 }
 
-export function EquipmentMaterialGroups({ groups, itemById }: { groups: { key: string | number; label: string; materials: EquipmentMaterial[] }[]; itemById: ItemById }) {
+export function EquipmentMaterialGroups({ groups, itemById }: { groups: { key: string | number; label: ReactNode; materials: EquipmentMaterial[] }[]; itemById: ItemById }) {
   return (
     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
       {groups.map((group) => (
         <Stack key={group.key} gap={4}>
-          <Text size="sm" fw={600}>{group.label}</Text>
+          {typeof group.label === 'string' ? <Text size="sm" fw={600}>{group.label}</Text> : group.label}
           {group.materials.map((material, index) => (
             <Group key={`${material.item_id}-${index}`} justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
               <Text size="sm" style={{ minWidth: 0, flex: 1, overflowWrap: 'anywhere' }}><MaterialLink itemId={material.item_id} itemById={itemById} /></Text>

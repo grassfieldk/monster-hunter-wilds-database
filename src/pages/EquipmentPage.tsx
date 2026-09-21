@@ -7,7 +7,7 @@ import { text, useDatabase } from '../data';
 import { weaponAttributeLabel } from '../labels';
 import { formatEquipmentSkills } from '../formatters';
 import { EquipmentMaterialGroups, EquipmentMaterialTable, EquipmentRecipeSection } from '../components/EquipmentMaterials';
-import type { Amulet, Armor, ArmorSeries, Decoration, Skill, Weapon } from '../types';
+import type { Amulet, Armor, ArmorSeries, Decoration, EquipmentSkill, Skill, Weapon } from '../types';
 import { NotFoundPage } from './NotFoundPage';
 
 const categories = [
@@ -18,6 +18,52 @@ const categories = [
 ] as const;
 
 const armorParts = ['頭', '胴', '腕', '腰', '脚'];
+
+function compareIds(a: number | string, b: number | string) {
+  return Number(a) - Number(b);
+}
+
+type AmuletGroup = {
+  amulet_type: number;
+  items: Amulet[];
+};
+
+function amuletName(amulet: Amulet) {
+  return text(amulet.names).replace(/[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+$/u, '');
+}
+
+function groupAmulets(amulets: Amulet[]) {
+  const groups = new Map<number, Amulet[]>();
+  for (const amulet of amulets) groups.set(amulet.amulet_type, [...(groups.get(amulet.amulet_type) ?? []), amulet]);
+  return [...groups.entries()]
+    .map(([amulet_type, items]) => ({ amulet_type, items: items.sort((a, b) => a.level - b.level) }))
+    .sort((a, b) => compareIds(a.amulet_type, b.amulet_type));
+}
+
+function AmuletLevelMarks({ items }: { items: Amulet[] }) {
+  const levels = new Set(items.map((item) => item.level));
+  const levelLabel = [...levels].sort((a, b) => a - b).join('、');
+  return (
+    <span className="amulet-level-marks" aria-label={`存在するレベル: ${levelLabel}`}>
+      {Array.from({ length: 5 }, (_, index) => (
+        <span key={index + 1} className="amulet-level-mark" data-active={levels.has(index + 1) || undefined} aria-hidden="true" />
+      ))}
+    </span>
+  );
+}
+
+function formatAmuletSkills(items: Amulet[], skillById: Map<number, Skill>) {
+  const names = new Set<string>();
+  for (const item of items) {
+    for (const skill of item.skills) {
+      const definition = skillById.get(skill.skill_id);
+      names.add(definition ? text(definition.names) : `ID ${skill.skill_id}`);
+    }
+    const effect = text(item.descriptions).match(/装備することで(.+?)が発動/u)?.[1] ?? '';
+    for (const match of effect.matchAll(/([^と]+?)スキル/gu)) names.add(match[1]);
+  }
+  return [...names].join('、') || 'なし';
+}
 
 function EquipmentStats({ stats }: { stats: { label: string; value: ReactNode }[] }) {
   return (
@@ -84,7 +130,7 @@ function WeaponTreeView({ currentId, weapons, weaponTrees }: { currentId: string
 function EquipmentList() {
   const { search } = useLocation();
   const navigate = useNavigate();
-  const { armor, armorSeries, amulets, weapons, decorations } = useDatabase();
+  const { armor, armorSeries, amulets, weapons, decorations, skillById } = useDatabase();
   const params = useMemo(() => new URLSearchParams(search), [search]);
   const kind = params.get('kind') ?? 'weapons';
   const active = categories.some((category) => category.key === kind) ? kind : 'weapons';
@@ -95,13 +141,13 @@ function EquipmentList() {
     : weaponCategories[0];
 
   const rows = useMemo(() => {
-    if (active === 'weapons') return weapons.filter((weapon) => weapon.category === activeWeaponCategory).sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'));
+    if (active === 'weapons') return weapons.filter((weapon) => weapon.category === activeWeaponCategory).sort((a, b) => compareIds(a.game_id, b.game_id));
     if (active === 'armor') {
       const armorSeriesIds = new Set(armor.map((item) => item.series_id));
-      return armorSeries.filter((series) => armorSeriesIds.has(series.game_id)).sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'));
+      return armorSeries.filter((series) => armorSeriesIds.has(series.game_id)).sort((a, b) => compareIds(a.game_id, b.game_id));
     }
-    if (active === 'amulets') return [...amulets].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'));
-    return [...decorations].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja'));
+    if (active === 'amulets') return groupAmulets(amulets);
+    return [...decorations].sort((a, b) => compareIds(a.game_id, b.game_id));
   }, [active, activeWeaponCategory, armor, armorSeries, amulets, decorations, weapons]);
 
   return (
@@ -123,7 +169,7 @@ function EquipmentList() {
           <Table.Thead>
             {active === 'weapons' && <Table.Tr><Table.Th>武器</Table.Th><Table.Th className="numeric-cell">攻撃</Table.Th><Table.Th className="numeric-cell">会心</Table.Th></Table.Tr>}
             {active === 'armor' && <Table.Tr><Table.Th>シリーズ</Table.Th><Table.Th className="numeric-cell">レア度</Table.Th></Table.Tr>}
-            {active === 'amulets' && <Table.Tr><Table.Th>護石</Table.Th></Table.Tr>}
+            {active === 'amulets' && <Table.Tr><Table.Th>護石</Table.Th><Table.Th>レベル</Table.Th><Table.Th>スキル</Table.Th></Table.Tr>}
             {active === 'decorations' && <Table.Tr><Table.Th>装飾品</Table.Th><Table.Th className="numeric-cell">必要スロット</Table.Th></Table.Tr>}
           </Table.Thead>
           <Table.Tbody>
@@ -137,8 +183,13 @@ function EquipmentList() {
                 return <Table.Tr key={series.game_id}><Table.Td><Anchor component={Link} to={`/equipment/armor/${encodeURIComponent(String(series.game_id))}`} fw={500}>{text(series.names)}</Anchor></Table.Td><Table.Td className="numeric-cell">{series.rarity}</Table.Td></Table.Tr>;
               }
               if (active === 'amulets') {
-                const item = entry as Amulet;
-                return <Table.Tr key={item.game_id}><Table.Td><Anchor component={Link} to={`/equipment/amulets/${encodeURIComponent(item.game_id)}`} fw={500}>{text(item.names)}</Anchor></Table.Td></Table.Tr>;
+                const group = entry as AmuletGroup;
+                const item = group.items[0];
+                return <Table.Tr key={group.amulet_type}>
+                  <Table.Td><Anchor component={Link} to={`/equipment/amulets/${encodeURIComponent(String(group.amulet_type))}`} fw={500}>{amuletName(item)}</Anchor></Table.Td>
+                  <Table.Td className="centered-cell"><AmuletLevelMarks items={group.items} /></Table.Td>
+                  <Table.Td>{formatAmuletSkills(group.items, skillById)}</Table.Td>
+                </Table.Tr>;
               }
               const item = entry as Decoration;
               return <Table.Tr key={item.game_id}><Table.Td><Anchor component={Link} to={`/equipment/decorations/${encodeURIComponent(String(item.game_id))}`} fw={500}>{text(item.names)}</Anchor></Table.Td><Table.Td className="numeric-cell">{item.required_slot}</Table.Td></Table.Tr>;
@@ -178,12 +229,44 @@ function ArmorDetailStats({ item, seriesName, skillById }: { item: Armor; series
   ]} />;
 }
 
-function AmuletDetailStats({ item, skillById }: { item: Amulet; skillById: Map<number, Skill> }) {
+function formatNumberRange(values: number[]) {
+  const unique = [...new Set(values)].sort((a, b) => a - b);
+  if (unique.length === 1) return unique[0].toLocaleString('ja-JP');
+  return `${unique[0].toLocaleString('ja-JP')}〜${unique.at(-1)?.toLocaleString('ja-JP')}`;
+}
+
+function getArmorSetSkills(items: Armor[]) {
+  const levels = new Map<number, number>();
+  for (const item of items) {
+    for (const skill of item.skills) {
+      levels.set(skill.skill_id, (levels.get(skill.skill_id) ?? 0) + skill.level);
+    }
+  }
+  return [...levels].map(([skill_id, level]) => ({ skill_id, level }));
+}
+
+function ArmorSetSkillTable({ items, skillById }: { items: Armor[]; skillById: Map<number, Skill> }) {
+  const skills = getArmorSetSkills(items);
+  const cells: (EquipmentSkill | null)[] = skills.length ? skills : [null, null];
+  if (cells.length === 1) cells.push(null);
+  const rows: (EquipmentSkill | null)[][] = [];
+  for (let index = 0; index < cells.length; index += 2) rows.push([cells[index], cells[index + 1]]);
+  return (
+    <Box className="responsive-table-container">
+      <Table className="responsive-table responsive-table--intrinsic" withTableBorder withColumnBorders>
+        <Table.Tbody>{rows.map((row, rowIndex) => <Table.Tr key={rowIndex}>
+          {row.map((skill, index) => <Table.Td key={skill ? skill.skill_id : `empty-${rowIndex}-${index}`}>{skill ? `${text(skillById.get(skill.skill_id)?.names)} Lv ${skill.level}` : ''}</Table.Td>)}
+        </Table.Tr>)}</Table.Tbody>
+      </Table>
+    </Box>
+  );
+}
+
+function AmuletDetailStats({ group, skillById }: { group: AmuletGroup; skillById: Map<number, Skill> }) {
   return <EquipmentStats stats={[
-    { label: 'レア度', value: item.rarity },
-    { label: 'レベル', value: item.level },
-    { label: '価格', value: `${item.price.toLocaleString('ja-JP')} z` },
-    { label: 'スキル', value: formatEquipmentSkills(item.skills, skillById) },
+    { label: 'レベル', value: <AmuletLevelMarks items={group.items} /> },
+    { label: 'レア度', value: formatNumberRange(group.items.map((item) => item.rarity)) },
+    { label: 'スキル', value: formatAmuletSkills(group.items, skillById) },
   ]} />;
 }
 
@@ -217,10 +300,13 @@ function ArmorSeriesDetail() {
       <Group gap="xs"><Badge variant="light">防具</Badge><Text size="lg" fw={600}>{text(series.names)}</Text></Group>
       <EquipmentStats stats={[
         { label: 'レア度', value: series.rarity },
-        { label: '生産価格', value: `${series.price.toLocaleString('ja-JP')} z` },
         { label: '部位数', value: pieces.length },
         { label: '装備形式', value: series.one_set ? '一式装備' : '部位別' },
       ]} />
+      <Stack gap={4}>
+        <Text size="sm" c="dimmed">セットスキル</Text>
+        <ArmorSetSkillTable items={pieces} skillById={skillById} />
+      </Stack>
     </Stack>
 
     <Box visibleFrom="sm" className="responsive-table-container">
@@ -253,7 +339,10 @@ function ArmorSeriesDetail() {
       {recipeGroups.length ? <EquipmentMaterialGroups
         groups={recipeGroups.map(({ item, materials }) => ({
           key: item.game_id,
-          label: armorParts[item.part] ?? `部位 ${item.part}`,
+          label: <Group justify="space-between" gap="xs" wrap="nowrap">
+            <Text size="sm" fw={600}>{armorParts[item.part] ?? `部位 ${item.part}`}</Text>
+            <Text size="sm" className="numeric-cell" style={{ flexShrink: 0 }}>{item.price?.toLocaleString('ja-JP') ?? '不明'} z</Text>
+          </Group>,
           materials,
         }))}
         itemById={itemById}
@@ -271,18 +360,25 @@ function EquipmentDetail() {
   const { kind, id } = useParams();
   const { armor, amulets, weapons, decorations, skillById, itemById, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, armorSeries, armorUpgradeRecipes } = useDatabase();
   const decodedId = id ? decodeURIComponent(id) : '';
+  const requestedAmulet = kind === 'amulets' ? amulets.find((entry) => entry.game_id === decodedId) : undefined;
+  const amuletType = requestedAmulet?.amulet_type ?? Number(decodedId);
+  const amuletGroup: AmuletGroup = {
+    amulet_type: amuletType,
+    items: Number.isFinite(amuletType) ? amulets.filter((entry) => entry.amulet_type === amuletType).sort((a, b) => a.level - b.level) : [],
+  };
   const equipment = kind === 'weapons' ? weapons.find((entry) => entry.game_id === decodedId)
     : kind === 'armor' ? armor.find((entry) => entry.game_id === decodedId)
-      : kind === 'amulets' ? amulets.find((entry) => entry.game_id === decodedId)
+      : kind === 'amulets' ? amuletGroup.items[0]
         : kind === 'decorations' ? decorations.find((entry) => String(entry.game_id) === decodedId) : undefined;
   if (!equipment) return <NotFoundPage />;
 
   const recipes = kind === 'weapons' ? weaponRecipes.filter((recipe) => recipe.weapon_id === decodedId)
     : kind === 'armor' ? armorRecipes.filter((recipe) => recipe.armor_id === decodedId)
-      : kind === 'amulets' ? amuletRecipes.filter((recipe) => recipe.amulet_id === decodedId) : [];
+      : kind === 'amulets' ? amuletRecipes.filter((recipe) => amuletGroup.items.some((item) => item.game_id === recipe.amulet_id)) : [];
+  const equipmentName = kind === 'amulets' ? amuletName(equipment as Amulet) : text(equipment.names);
   return <Stack className="page-stack" gap="lg">
     <Stack gap="xs">
-      <Group gap="xs"><Badge variant="light">{kind === 'weapons' ? (equipment as Weapon).category : kind === 'armor' ? '防具' : kind === 'amulets' ? '護石' : '装飾品'}</Badge><Text size="lg" fw={600}>{text(equipment.names)}</Text></Group>
+      <Group gap="xs"><Badge variant="light">{kind === 'weapons' ? (equipment as Weapon).category : kind === 'armor' ? '防具' : kind === 'amulets' ? '護石' : '装飾品'}</Badge><Text size="lg" fw={600}>{equipmentName}</Text></Group>
       <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-line' }}>{text(equipment.descriptions)}</Text>
     </Stack>
     {kind === 'weapons' && (() => {
@@ -301,8 +397,26 @@ function EquipmentDetail() {
       </>;
     })()}
     {kind === 'amulets' && <>
-      <AmuletDetailStats item={equipment as Amulet} skillById={skillById} />
-      <EquipmentRecipeSection recipes={recipes} itemById={itemById} />
+      <AmuletDetailStats group={amuletGroup} skillById={skillById} />
+      <Stack gap="xs">
+        <Text size="sm" fw={600}>必要素材</Text>
+        {recipes.length ? <EquipmentMaterialGroups
+          groups={[...recipes]
+            .sort((a, b) => (a.level ?? Number.MAX_SAFE_INTEGER) - (b.level ?? Number.MAX_SAFE_INTEGER))
+            .map((recipe) => {
+              const amulet = amuletGroup.items.find((item) => item.game_id === recipe.amulet_id);
+              return {
+                key: recipe.amulet_id ?? recipe.level ?? 'unknown',
+                label: <Group justify="space-between" gap="xs" wrap="nowrap">
+                  <Text size="sm" fw={600}>レベル {recipe.level ?? '不明'}</Text>
+                  <Text size="sm" className="numeric-cell" style={{ flexShrink: 0 }}>{amulet?.price.toLocaleString('ja-JP') ?? '不明'} z</Text>
+                </Group>,
+                materials: recipe.materials,
+              };
+            })}
+          itemById={itemById}
+        /> : <Text size="sm" c="dimmed">生産レシピはありません</Text>}
+      </Stack>
     </>}
     {kind === 'decorations' && <DecorationDetailStats item={equipment as Decoration} skillById={skillById} />}
   </Stack>;

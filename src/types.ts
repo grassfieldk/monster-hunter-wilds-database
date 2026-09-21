@@ -42,6 +42,8 @@ export type EquipmentRecipe = {
   weapon_id?: string;
   armor_id?: string;
   amulet_id?: string;
+  amulet_type?: number;
+  level?: number;
   kinsect_id?: string;
 };
 

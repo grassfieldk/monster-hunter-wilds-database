@@ -13,7 +13,7 @@ export function ItemsPage() {
   const activeKind = availableKinds.includes(requestedKind as ItemCategoryKind)
     ? requestedKind as ItemCategoryKind
     : availableKinds[0];
-  const filtered = useMemo(() => [...items].sort((a, b) => text(a.names).localeCompare(text(b.names), 'ja')).filter((item) => !activeKind || item.kind === activeKind), [activeKind, items]);
+  const filtered = useMemo(() => items.filter((item) => !activeKind || item.kind === activeKind).sort((a, b) => a.game_id - b.game_id), [activeKind, items]);
 
   return (
     <Stack className="page-stack" gap="md">

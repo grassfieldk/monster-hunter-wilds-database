@@ -7,7 +7,7 @@ import { createMonsterNameMap, QuestObjective } from '../components/QuestObjecti
 export function QuestsPage() {
   const { quests, monsterById } = useDatabase();
   const [searchParams, setSearchParams] = useSearchParams();
-  const sorted = useMemo(() => quests.filter((quest) => quest.category !== '調査').sort((a, b) => (a.difficulty ?? Number.MAX_SAFE_INTEGER) - (b.difficulty ?? Number.MAX_SAFE_INTEGER) || text(a.names).localeCompare(text(b.names), 'ja')), [quests]);
+  const sorted = useMemo(() => quests.filter((quest) => quest.category !== '調査').sort((a, b) => a.game_id - b.game_id), [quests]);
   const categoryOrder = ['任務', 'フリー', 'イベント', '闘技大会', 'その他'] as const;
   const availableCategories = new Set(sorted.map((quest) => quest.category));
   const questCategories = categoryOrder.filter((category) => availableCategories.has(category));

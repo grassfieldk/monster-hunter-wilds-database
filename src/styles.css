@@ -97,6 +97,26 @@ a {
   text-align: center !important;
 }
 
+.amulet-level-marks {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  vertical-align: middle;
+}
+
+.amulet-level-mark {
+  display: block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 0.1rem solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.amulet-level-mark[data-active] {
+  background: currentColor;
+}
+
 .responsive-table th {
   text-align: center !important;
 }
