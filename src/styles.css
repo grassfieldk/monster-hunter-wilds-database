@@ -193,6 +193,7 @@ a {
 
 .section-tabs:not(.rank-tabs) .mantine-Tabs-tab[data-active] {
   background: var(--mantine-color-dark-6);
+  color: var(--mantine-color-sand-2);
 }
 
 .mobile-footer {
@@ -284,7 +285,7 @@ a {
 }
 
 .mobile-footer-nav .footer-search-button[data-active="true"] {
-  color: var(--mantine-color-blue-2);
+  color: var(--mantine-color-sand-2);
 }
 
 .mobile-footer-nav .footer-search-button:hover,
@@ -300,6 +301,7 @@ a {
 
 .mobile-footer-nav .footer-main-button[data-active="true"] {
   background: var(--mantine-color-dark-7);
+  color: var(--mantine-color-sand-2);
 }
 
 .simulator-search-actions .mantine-InputWrapper-root {
