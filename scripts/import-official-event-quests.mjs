@@ -1,6 +1,6 @@
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
 
 const sourceUrl = 'https://info.monsterhunter.com/wilds/event-quest/ja/schedule';
 const cacheDirectory = path.resolve('.cache/quest-research');
@@ -21,21 +21,32 @@ if (process.platform === 'win32') {
   fs.writeFileSync(htmlPath, html);
 }
 
-const decode = (value) => value
-  .replace(/&#(\d+);/gu, (_, code) => String.fromCodePoint(Number(code)))
-  .replace(/&#x([0-9a-f]+);/giu, (_, code) => String.fromCodePoint(Number.parseInt(code, 16)))
-  .replace(/&nbsp;/gu, ' ')
-  .replace(/&amp;/gu, '&').replace(/&lt;/gu, '<').replace(/&gt;/gu, '>').replace(/&quot;/gu, '"')
-  .replace(/&#39;/gu, "'");
-const textContent = (value) => decode(value.replace(/<[^>]*>/gu, ' ')).replace(/\s+/gu, ' ').trim();
+const decode = (value) =>
+  value
+    .replace(/&#(\d+);/gu, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/giu, (_, code) => String.fromCodePoint(Number.parseInt(code, 16)))
+    .replace(/&nbsp;/gu, ' ')
+    .replace(/&amp;/gu, '&')
+    .replace(/&lt;/gu, '<')
+    .replace(/&gt;/gu, '>')
+    .replace(/&quot;/gu, '"')
+    .replace(/&#39;/gu, "'");
+const textContent = (value) =>
+  decode(value.replace(/<[^>]*>/gu, ' '))
+    .replace(/\s+/gu, ' ')
+    .trim();
 const first = (value, expression) => value.match(expression)?.[1] ?? '';
-const overview = (row) => [...row.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gu)].reduce((result, match) => {
-  const label = textContent(first(match[1], /<span\b[^>]*class="overview_dt"[^>]*>([\s\S]*?)<\/span>/u));
-  if (!label) return result;
-  const value = textContent(match[1].replace(/<span\b[^>]*class="overview_dt"[^>]*>[\s\S]*?<\/span>/u, '')).replace(/^:\s*/u, '');
-  result[label] = value;
-  return result;
-}, {});
+const overview = (row) =>
+  [...row.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gu)].reduce((result, match) => {
+    const label = textContent(first(match[1], /<span\b[^>]*class="overview_dt"[^>]*>([\s\S]*?)<\/span>/u));
+    if (!label) return result;
+    const value = textContent(match[1].replace(/<span\b[^>]*class="overview_dt"[^>]*>[\s\S]*?<\/span>/u, '')).replace(
+      /^:\s*/u,
+      '',
+    );
+    result[label] = value;
+    return result;
+  }, {});
 const hash = (value) => {
   let result = 2166136261;
   for (const character of value) {
@@ -95,10 +106,15 @@ for (const row of rows) {
 const existing = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
 const merged = [...existing.filter((quest) => quest.source?.type !== 'official-event-page'), ...imported];
 fs.writeFileSync(outputPath, JSON.stringify(merged));
-fs.writeFileSync(metadataPath, JSON.stringify({ sourceUrl, fetchedAt: new Date().toISOString(), imported: imported.length }));
+fs.writeFileSync(
+  metadataPath,
+  JSON.stringify({ sourceUrl, fetchedAt: new Date().toISOString(), imported: imported.length }),
+);
 const sourcePath = path.resolve('public/data/source.json');
 const source = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
 source.dataOrigin = 'Monster Hunter Wilds ゲームデータ + 公式イベントページ';
-source.additionalSources = [{ type: 'official-event-page', url: sourceUrl, fetchedAt: new Date().toISOString(), count: imported.length }];
+source.additionalSources = [
+  { type: 'official-event-page', url: sourceUrl, fetchedAt: new Date().toISOString(), count: imported.length },
+];
 fs.writeFileSync(sourcePath, JSON.stringify(source));
 console.log(`公式イベントクエストを ${imported.length} 件取り込みました`);

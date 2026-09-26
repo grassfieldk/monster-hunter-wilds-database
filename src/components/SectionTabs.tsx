@@ -58,11 +58,19 @@ export function SectionTabs() {
   const { items } = useDatabase();
   const tabs = getSectionTabs(pathname, new Set(items.map((item) => item.kind)));
   if (!tabs.length) return null;
-  const selected = pathname === '/simulator' ? 'simulator' : pathname === '/items' || pathname === '/equipment' ? new URLSearchParams(search).get('kind') : hash.slice(1);
-  const fallback = pathname.startsWith('/monsters/') ? getRememberedDetailSection('monster')
-    : pathname.startsWith('/items/') ? getRememberedDetailSection('item')
-      : pathname.startsWith('/quests/') ? getRememberedDetailSection('quest')
-      : tabs[0].target;
+  const selected =
+    pathname === '/simulator'
+      ? 'simulator'
+      : pathname === '/items' || pathname === '/equipment'
+        ? new URLSearchParams(search).get('kind')
+        : hash.slice(1);
+  const fallback = pathname.startsWith('/monsters/')
+    ? getRememberedDetailSection('monster')
+    : pathname.startsWith('/items/')
+      ? getRememberedDetailSection('item')
+      : pathname.startsWith('/quests/')
+        ? getRememberedDetailSection('quest')
+        : tabs[0].target;
   const defaultValue = tabs.some((tab) => tab.target === selected) ? selected : fallback;
 
   return (

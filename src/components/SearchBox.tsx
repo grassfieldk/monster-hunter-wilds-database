@@ -46,7 +46,15 @@ function itemSearchAliases(itemName: string, monsterNames: string[]) {
   return aliases;
 }
 
-export function SearchBox({ large = false, onNavigate, resultsPlacement = 'bottom' }: { large?: boolean; onNavigate?: () => void; resultsPlacement?: 'top' | 'bottom' }) {
+export function SearchBox({
+  large = false,
+  onNavigate,
+  resultsPlacement = 'bottom',
+}: {
+  large?: boolean;
+  onNavigate?: () => void;
+  resultsPlacement?: 'top' | 'bottom';
+}) {
   const { items, monsters, weapons, armor, amulets, decorations, skills } = useDatabase();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -140,7 +148,11 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
     if (!normalized) return [];
     return searchableEntries
       .filter((entry) => entry.normalizedAliases.some((alias) => matchesSearch(normalized, alias)))
-      .sort((a, b) => Number(!a.normalizedAliases.some((alias) => alias.startsWith(normalized))) - Number(!b.normalizedAliases.some((alias) => alias.startsWith(normalized))))
+      .sort(
+        (a, b) =>
+          Number(!a.normalizedAliases.some((alias) => alias.startsWith(normalized))) -
+          Number(!b.normalizedAliases.some((alias) => alias.startsWith(normalized))),
+      )
       .slice(0, 12);
   }, [normalized, searchableEntries]);
 
@@ -157,10 +169,16 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
 
   return (
     <Stack gap={4} pos="relative">
-      <Combobox store={combobox} position={resultsPlacement} offset={0} withinPortal={false} onOptionSubmit={(value) => {
-        const result = results.find((entry) => entry.path === value);
-        if (result) open(result);
-      }}>
+      <Combobox
+        store={combobox}
+        position={resultsPlacement}
+        offset={0}
+        withinPortal={false}
+        onOptionSubmit={(value) => {
+          const result = results.find((entry) => entry.path === value);
+          if (result) open(result);
+        }}
+      >
         <Combobox.Target>
           <TextInput
             aria-label="モンスター名またはアイテム名"
@@ -195,22 +213,27 @@ export function SearchBox({ large = false, onNavigate, resultsPlacement = 'botto
           />
         </Combobox.Target>
         {(normalized || onNavigate) && (
-          <Combobox.Dropdown
-            className="search-results-panel"
-            p={4}
-          >
+          <Combobox.Dropdown className="search-results-panel" p={4}>
             <Combobox.Options className="search-results-options">
-              {results.length ? results.map((result) => (
-                <Combobox.Option key={result.path} value={result.path}>
-                  <Group gap="xs" wrap="nowrap">
-                    <Badge w={80} variant="light" style={{ flexShrink: 0 }}>{result.label}</Badge>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <Text fw={500} lh={1.25} truncate>{result.name}</Text>
-                      <FormattedText size="sm" c="dimmed" lh={1.25} lineClamp={1}>{result.description}</FormattedText>
-                    </div>
-                  </Group>
-                </Combobox.Option>
-              )) : normalized ? (
+              {results.length ? (
+                results.map((result) => (
+                  <Combobox.Option key={result.path} value={result.path}>
+                    <Group gap="xs" wrap="nowrap">
+                      <Badge w={80} variant="light" style={{ flexShrink: 0 }}>
+                        {result.label}
+                      </Badge>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Text fw={500} lh={1.25} truncate>
+                          {result.name}
+                        </Text>
+                        <FormattedText size="sm" c="dimmed" lh={1.25} lineClamp={1}>
+                          {result.description}
+                        </FormattedText>
+                      </div>
+                    </Group>
+                  </Combobox.Option>
+                ))
+              ) : normalized ? (
                 <Combobox.Empty>該当するデータがありません</Combobox.Empty>
               ) : (
                 <Combobox.Empty>名前を入力してください</Combobox.Empty>

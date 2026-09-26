@@ -51,7 +51,15 @@ export type WeaponTree = { weapon_type: string; parent_id: string; child_id: str
 
 export type ArmorSeries = { game_id: number; names: LocalizedText; rarity: number; price: number; one_set: boolean };
 
-export type ArmorUpgrade = { rarity: number; story_no: number; max_level: number; defense_increment: number; points: number; price: number; special: boolean };
+export type ArmorUpgrade = {
+  rarity: number;
+  story_no: number;
+  max_level: number;
+  defense_increment: number;
+  points: number;
+  price: number;
+  special: boolean;
+};
 
 export type ArmorUpgradeRecipe = { series_id: number; materials: EquipmentMaterial[] };
 
@@ -124,7 +132,14 @@ export type Skill = {
   icon: number;
 };
 
-export type SkillLevel = { skill_id: number; level: number; names: LocalizedText; descriptions: LocalizedText; values: number[]; unlocks: number[] };
+export type SkillLevel = {
+  skill_id: number;
+  level: number;
+  names: LocalizedText;
+  descriptions: LocalizedText;
+  values: number[];
+  unlocks: number[];
+};
 
 export type MonsterWeakness = {
   kind: 'element' | 'status' | 'effect';

@@ -1,19 +1,26 @@
 import { Anchor, Box, Stack, Table, Tabs, Text } from '@mantine/core';
 import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { text, useDatabase } from '../data';
 import { createMonsterNameMap, QuestObjective } from '../components/QuestObjective';
+import { text, useDatabase } from '../data';
 
 export function QuestsPage() {
   const { quests, monsterById } = useDatabase();
   const [searchParams, setSearchParams] = useSearchParams();
-  const sorted = useMemo(() => quests.filter((quest) => quest.category !== '調査').sort((a, b) => a.game_id - b.game_id), [quests]);
+  const sorted = useMemo(
+    () => quests.filter((quest) => quest.category !== '調査').sort((a, b) => a.game_id - b.game_id),
+    [quests],
+  );
   const categoryOrder = ['任務', 'フリー', 'イベント', '闘技大会', 'その他'] as const;
   const availableCategories = new Set(sorted.map((quest) => quest.category));
   const questCategories = categoryOrder.filter((category) => availableCategories.has(category));
   const requestedCategory = searchParams.get('category');
-  const activeCategory = questCategories.find((category) => category === requestedCategory) ?? questCategories[0] ?? null;
-  const visibleQuests = useMemo(() => activeCategory === null ? sorted : sorted.filter((quest) => quest.category === activeCategory), [activeCategory, sorted]);
+  const activeCategory =
+    questCategories.find((category) => category === requestedCategory) ?? questCategories[0] ?? null;
+  const visibleQuests = useMemo(
+    () => (activeCategory === null ? sorted : sorted.filter((quest) => quest.category === activeCategory)),
+    [activeCategory, sorted],
+  );
   const monsterNames = useMemo(() => createMonsterNameMap(monsterById.values()), [monsterById]);
   const setCategory = (value: string | null) => {
     const next = new URLSearchParams(searchParams);
@@ -27,7 +34,9 @@ export function QuestsPage() {
       <Tabs key={activeCategory ?? 'empty'} value={activeCategory} onChange={setCategory}>
         <Tabs.List>
           {questCategories.map((category) => (
-            <Tabs.Tab key={category} value={category}>{category}</Tabs.Tab>
+            <Tabs.Tab key={category} value={category}>
+              {category}
+            </Tabs.Tab>
           ))}
         </Tabs.List>
       </Tabs>
@@ -45,17 +54,28 @@ export function QuestsPage() {
             {visibleQuests.map((quest) => (
               <Table.Tr key={quest.game_id}>
                 <Table.Td className="centered-cell">{quest.difficulty ?? '不明'}</Table.Td>
-                <Table.Td className="numeric-cell centered-cell">{quest.order_rank !== null && quest.order_rank > 0 ? quest.order_rank.toLocaleString('ja-JP') : quest.order_rank === null ? '不明' : 'なし'}</Table.Td>
+                <Table.Td className="numeric-cell centered-cell">
+                  {quest.order_rank !== null && quest.order_rank > 0
+                    ? quest.order_rank.toLocaleString('ja-JP')
+                    : quest.order_rank === null
+                      ? '不明'
+                      : 'なし'}
+                </Table.Td>
                 <Table.Td>
                   <Box>
-                    <Anchor component={Link} to={`/quests/${quest.game_id}`} fw={500} display="block">{text(quest.names)}</Anchor>
+                    <Anchor component={Link} to={`/quests/${quest.game_id}`} fw={500} display="block">
+                      {text(quest.names)}
+                    </Anchor>
                     <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-line' }}>
                       <QuestObjective quest={quest} monsters={monsterById} monsterNames={monsterNames} breakOnComma />
                     </Text>
                   </Box>
                 </Table.Td>
                 <Table.Td className="numeric-cell">
-                  {quest.hunter_rank_points === null ? '不明' : `${quest.hunter_rank_points.toLocaleString('ja-JP')}HRP`} / {quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')}z`}
+                  {quest.hunter_rank_points === null
+                    ? '不明'
+                    : `${quest.hunter_rank_points.toLocaleString('ja-JP')}HRP`}{' '}
+                  / {quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')}z`}
                 </Table.Td>
               </Table.Tr>
             ))}

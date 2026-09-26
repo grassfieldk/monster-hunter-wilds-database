@@ -1,7 +1,27 @@
 import { Center, Loader, Stack, Text } from '@mantine/core';
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Amulet, Armor, ArmorSeries, ArmorUpgrade, ArmorUpgradeRecipe, Decoration, DecorationProbability, EquipmentRecipe, Item, ItemSource, ItemUse, Lookups, Monster, Quest, Skill, SkillLevel, SourceInfo, Weapon, WeaponTree } from './types';
+import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import type { ArtianSkillData, RandomAmuletData } from './simulator/model';
+import type {
+  Amulet,
+  Armor,
+  ArmorSeries,
+  ArmorUpgrade,
+  ArmorUpgradeRecipe,
+  Decoration,
+  DecorationProbability,
+  EquipmentRecipe,
+  Item,
+  ItemSource,
+  ItemUse,
+  Lookups,
+  Monster,
+  Quest,
+  Skill,
+  SkillLevel,
+  SourceInfo,
+  Weapon,
+  WeaponTree,
+} from './types';
 
 type Database = {
   items: Item[];
@@ -74,13 +94,68 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       loadJson<WeaponTree[]>('/data/weapon-trees.json', controller.signal),
       loadJson<DecorationProbability[]>('/data/decoration-probabilities.json', controller.signal),
       loadJson<EquipmentRecipe[]>('/data/kinsect-recipes.json', controller.signal),
-    ]).then(([items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, skillLevels, randomAmulets, artianSkills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes]) => {
-      if (!cancelled) setData({ items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, skillLevels, randomAmulets, artianSkills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes });
-    }).catch((error: unknown) => {
-      if (!cancelled && !(error instanceof DOMException && error.name === 'AbortError')) {
-        setLoadError(error instanceof Error ? error : new Error('データの読み込みに失敗しました'));
-      }
-    });
+    ])
+      .then(
+        ([
+          items,
+          monsters,
+          quests,
+          lookups,
+          itemUses,
+          source,
+          itemSources,
+          armor,
+          amulets,
+          weapons,
+          decorations,
+          skills,
+          skillLevels,
+          randomAmulets,
+          artianSkills,
+          armorSeries,
+          armorUpgrades,
+          armorUpgradeRecipes,
+          armorRecipes,
+          amuletRecipes,
+          weaponRecipes,
+          weaponTrees,
+          decorationProbabilities,
+          kinsectRecipes,
+        ]) => {
+          if (!cancelled)
+            setData({
+              items,
+              monsters,
+              quests,
+              lookups,
+              itemUses,
+              source,
+              itemSources,
+              armor,
+              amulets,
+              weapons,
+              decorations,
+              skills,
+              skillLevels,
+              randomAmulets,
+              artianSkills,
+              armorSeries,
+              armorUpgrades,
+              armorUpgradeRecipes,
+              armorRecipes,
+              amuletRecipes,
+              weaponRecipes,
+              weaponTrees,
+              decorationProbabilities,
+              kinsectRecipes,
+            });
+        },
+      )
+      .catch((error: unknown) => {
+        if (!cancelled && !(error instanceof DOMException && error.name === 'AbortError')) {
+          setLoadError(error instanceof Error ? error : new Error('データの読み込みに失敗しました'));
+        }
+      });
     return () => {
       cancelled = true;
       controller.abort();
@@ -99,7 +174,16 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
   }, [data]);
 
   if (loadError) {
-    return <Center mih="100dvh"><Stack align="center" gap="xs"><Text>データを読み込めませんでした</Text><Text size="sm" c="dimmed">ページを再読み込みしてください</Text></Stack></Center>;
+    return (
+      <Center mih="100dvh">
+        <Stack align="center" gap="xs">
+          <Text>データを読み込めませんでした</Text>
+          <Text size="sm" c="dimmed">
+            ページを再読み込みしてください
+          </Text>
+        </Stack>
+      </Center>
+    );
   }
 
   if (!database) {

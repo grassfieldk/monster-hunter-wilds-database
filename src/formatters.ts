@@ -6,8 +6,12 @@ export function formatQuestObjective(value: LocalizedText | undefined): string {
 }
 
 export function formatEquipmentSkills(skills: EquipmentSkill[], skillById: Map<number, Skill>) {
-  return skills.map(({ skill_id, level }) => {
-    const skill = skillById.get(skill_id);
-    return `${skill ? text(skill.names) : `ID ${skill_id}`} Lv ${level}`;
-  }).join('、') || 'なし';
+  return (
+    skills
+      .map(({ skill_id, level }) => {
+        const skill = skillById.get(skill_id);
+        return `${skill ? text(skill.names) : `ID ${skill_id}`} Lv ${level}`;
+      })
+      .join('、') || 'なし'
+  );
 }

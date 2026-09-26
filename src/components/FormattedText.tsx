@@ -12,16 +12,26 @@ function escapeRegExp(value: string) {
 
 function renderMarkup(value: string, monsterIds?: Map<string, number>) {
   const monsterPattern = monsterIds?.size
-    ? new RegExp(`(${[...monsterIds.keys()].sort((a, b) => b.length - a.length).map(escapeRegExp).join('|')})`, 'gu')
+    ? new RegExp(
+        `(${[...monsterIds.keys()]
+          .sort((a, b) => b.length - a.length)
+          .map(escapeRegExp)
+          .join('|')})`,
+        'gu',
+      )
     : undefined;
   return value.split(/(≪[^≪≫]+≫)/g).map((segment, index) => {
     if (!segment.startsWith('≪') || !segment.endsWith('≫')) {
       if (!monsterPattern) return segment;
       return segment.split(monsterPattern).map((part, partIndex) => {
         const monsterId = monsterIds?.get(part);
-        return monsterId === undefined
-          ? part
-          : <Anchor key={`${index}-${partIndex}`} component={Link} to={`/monsters/${monsterId}`}>{part}</Anchor>;
+        return monsterId === undefined ? (
+          part
+        ) : (
+          <Anchor key={`${index}-${partIndex}`} component={Link} to={`/monsters/${monsterId}`}>
+            {part}
+          </Anchor>
+        );
       });
     }
 

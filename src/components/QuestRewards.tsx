@@ -20,26 +20,50 @@ export function QuestRewards({ quest }: { quest: Quest }) {
         result.push({ ...source, itemId: Number(itemId), method: source.method });
       }
     }
-    return result.sort((a, b) => methodOrder.indexOf(a.method) - methodOrder.indexOf(b.method) || text(itemById.get(a.itemId)?.names).localeCompare(text(itemById.get(b.itemId)?.names), 'ja'));
+    return result.sort(
+      (a, b) =>
+        methodOrder.indexOf(a.method) - methodOrder.indexOf(b.method) ||
+        text(itemById.get(a.itemId)?.names).localeCompare(text(itemById.get(b.itemId)?.names), 'ja'),
+    );
   }, [itemById, itemSources, questName]);
 
-  if (!rows.length) return <Text size="sm" c="dimmed">報酬アイテムはありません</Text>;
+  if (!rows.length)
+    return (
+      <Text size="sm" c="dimmed">
+        報酬アイテムはありません
+      </Text>
+    );
 
   return (
     <Box className="responsive-table-container">
       <Table className="responsive-table responsive-table--intrinsic">
         <Table.Thead>
-          <Table.Tr><Table.Th>報酬アイテム</Table.Th><Table.Th className="numeric-cell">個数</Table.Th><Table.Th className="numeric-cell">確率</Table.Th><Table.Th>方法</Table.Th></Table.Tr>
+          <Table.Tr>
+            <Table.Th>報酬アイテム</Table.Th>
+            <Table.Th className="numeric-cell">個数</Table.Th>
+            <Table.Th className="numeric-cell">確率</Table.Th>
+            <Table.Th>方法</Table.Th>
+          </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {rows.map((row, index) => {
             const item = itemById.get(row.itemId);
-            return <Table.Tr key={`${row.itemId}-${row.method}-${row.amount}-${row.chance}-${index}`}>
-              <Table.Td>{item ? <Anchor component={Link} to={`/items/${item.game_id}`}>{text(item.names)}</Anchor> : `ID ${row.itemId}`}</Table.Td>
-              <Table.Td className="numeric-cell">{row.amount ?? '不明'}</Table.Td>
-              <Table.Td className="numeric-cell">{row.chance === undefined ? '不明' : `${row.chance}%`}</Table.Td>
-              <Table.Td>{row.method}</Table.Td>
-            </Table.Tr>;
+            return (
+              <Table.Tr key={`${row.itemId}-${row.method}-${row.amount}-${row.chance}-${index}`}>
+                <Table.Td>
+                  {item ? (
+                    <Anchor component={Link} to={`/items/${item.game_id}`}>
+                      {text(item.names)}
+                    </Anchor>
+                  ) : (
+                    `ID ${row.itemId}`
+                  )}
+                </Table.Td>
+                <Table.Td className="numeric-cell">{row.amount ?? '不明'}</Table.Td>
+                <Table.Td className="numeric-cell">{row.chance === undefined ? '不明' : `${row.chance}%`}</Table.Td>
+                <Table.Td>{row.method}</Table.Td>
+              </Table.Tr>
+            );
           })}
         </Table.Tbody>
       </Table>

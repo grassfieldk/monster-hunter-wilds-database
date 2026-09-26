@@ -8,9 +8,13 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "test:simulator": "node --test scripts/test-simulator.mjs",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "preview": "vite preview",
-    "clean": "node scripts/clean-generated.mjs"
-    ,"import:official-events": "node scripts/import-official-event-quests.mjs"
+    "clean": "node scripts/clean-generated.mjs",
+    "import:official-events": "node scripts/import-official-event-quests.mjs"
   },
   "dependencies": {
     "@mantine/core": "^8.3.2",
@@ -21,6 +25,7 @@
     "react-router-dom": "^7.8.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.14",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",

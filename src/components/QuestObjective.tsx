@@ -1,8 +1,8 @@
 import { Anchor } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import type { Monster, Quest } from '../types';
 import { text } from '../data';
 import { formatQuestObjective } from '../formatters';
+import type { Monster, Quest } from '../types';
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
@@ -19,7 +19,17 @@ export function createMonsterNameMap(monsters: Iterable<Monster>) {
   return names;
 }
 
-export function QuestObjective({ quest, monsters, monsterNames, breakOnComma = false }: { quest: Quest; monsters: Map<number, Monster>; monsterNames?: Map<string, number>; breakOnComma?: boolean }) {
+export function QuestObjective({
+  quest,
+  monsters,
+  monsterNames,
+  breakOnComma = false,
+}: {
+  quest: Quest;
+  monsters: Map<number, Monster>;
+  monsterNames?: Map<string, number>;
+  breakOnComma?: boolean;
+}) {
   const objective = formatQuestObjective(quest.objective);
   if (!objective) return '目的の情報はありません';
 
@@ -37,8 +47,12 @@ export function QuestObjective({ quest, monsters, monsterNames, breakOnComma = f
   const pattern = new RegExp(`(${alternatives.map(escapeRegExp).join('|')})`, 'gu');
   return value.split(pattern).map((segment, index) => {
     const monsterId = names.get(segment);
-    return monsterId === undefined
-      ? segment
-      : <Anchor key={index} component={Link} to={`/monsters/${monsterId}`}>{segment}</Anchor>;
+    return monsterId === undefined ? (
+      segment
+    ) : (
+      <Anchor key={index} component={Link} to={`/monsters/${monsterId}`}>
+        {segment}
+      </Anchor>
+    );
   });
 }

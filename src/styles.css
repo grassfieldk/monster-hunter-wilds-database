@@ -209,7 +209,9 @@ a {
 .search-results-panel {
   height: 480px;
   overflow-y: auto;
+  /* Fallback for browsers without color-mix support */
   background: var(--mantine-color-dark-5);
+  /* biome-ignore lint/suspicious/noDuplicateProperties: Keep the fallback background */
   background: color-mix(in srgb, var(--mantine-color-dark-5) 80%, transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);

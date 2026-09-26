@@ -1,13 +1,12 @@
 import { Badge, Box, Divider, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
-import { text, useDatabase } from '../data';
-import { NotFoundPage } from './NotFoundPage';
+import { useLocation, useParams } from 'react-router-dom';
 import { FormattedText } from '../components/FormattedText';
 import { createMonsterNameMap, QuestObjective } from '../components/QuestObjective';
 import { QuestRewards } from '../components/QuestRewards';
+import { text, useDatabase } from '../data';
 import { detailSections, useDetailSection } from '../sections';
-import { useLocation } from 'react-router-dom';
+import { NotFoundPage } from './NotFoundPage';
 
 export function QuestPage() {
   const { id } = useParams();
@@ -30,31 +29,76 @@ export function QuestPage() {
       <Box visibleFrom="sm">
         <Group gap="sm">
           <Badge variant="light">{quest.category}</Badge>
-          <Title order={1} size="h3">{text(quest.names)}</Title>
+          <Title order={1} size="h3">
+            {text(quest.names)}
+          </Title>
           <Badge variant="light">難度 {quest.difficulty ?? '不明'}</Badge>
         </Group>
       </Box>
 
-      {activeSection === 'quest-basic' && <section id="quest-basic">
-        <Box mb="sm">
-          <Text size="sm" c="dimmed">目的</Text>
-          <Text size="sm" style={{ whiteSpace: 'pre-line' }}>
-            <QuestObjective quest={quest} monsters={monsterById} monsterNames={monsterNames} />
-          </Text>
-        </Box>
-        <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>{text(quest.descriptions)}</FormattedText>
-        <Divider my={{ base: 'sm', sm: 'md' }} />
-        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing={{ base: 'xs', sm: 'sm' }}>
-          <div><Text size="sm" c="dimmed">受注条件</Text><Text size="sm" fw={500}>{quest.order_rank === null ? '不明' : quest.order_rank > 0 ? `HR ${quest.order_rank}` : 'なし'}</Text></div>
-          <div><Text size="sm" c="dimmed">フィールド</Text><Text size="sm" fw={500}>{quest.locations.map(stageName).join('、') || quest.location_names?.join('、') || '不明'}</Text></div>
-          <div><Text size="sm" c="dimmed">制限時間</Text><Text size="sm" fw={500}>{quest.time_limit === null ? '不明' : `${quest.time_limit} 分`}</Text></div>
-          <div><Text size="sm" c="dimmed">報酬金</Text><Text size="sm" fw={500}>{quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')} z`}</Text></div>
-          <div><Text size="sm" c="dimmed">HR ポイント</Text><Text size="sm" fw={500}>{quest.hunter_rank_points === null ? '不明' : quest.hunter_rank_points.toLocaleString('ja-JP')}</Text></div>
-        </SimpleGrid>
-      </section>}
-      {activeSection === 'quest-rewards' && <section id="quest-rewards">
-        <QuestRewards quest={quest} />
-      </section>}
+      {activeSection === 'quest-basic' && (
+        <section id="quest-basic">
+          <Box mb="sm">
+            <Text size="sm" c="dimmed">
+              目的
+            </Text>
+            <Text size="sm" style={{ whiteSpace: 'pre-line' }}>
+              <QuestObjective quest={quest} monsters={monsterById} monsterNames={monsterNames} />
+            </Text>
+          </Box>
+          <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>
+            {text(quest.descriptions)}
+          </FormattedText>
+          <Divider my={{ base: 'sm', sm: 'md' }} />
+          <SimpleGrid cols={{ base: 2, sm: 4 }} spacing={{ base: 'xs', sm: 'sm' }}>
+            <div>
+              <Text size="sm" c="dimmed">
+                受注条件
+              </Text>
+              <Text size="sm" fw={500}>
+                {quest.order_rank === null ? '不明' : quest.order_rank > 0 ? `HR ${quest.order_rank}` : 'なし'}
+              </Text>
+            </div>
+            <div>
+              <Text size="sm" c="dimmed">
+                フィールド
+              </Text>
+              <Text size="sm" fw={500}>
+                {quest.locations.map(stageName).join('、') || quest.location_names?.join('、') || '不明'}
+              </Text>
+            </div>
+            <div>
+              <Text size="sm" c="dimmed">
+                制限時間
+              </Text>
+              <Text size="sm" fw={500}>
+                {quest.time_limit === null ? '不明' : `${quest.time_limit} 分`}
+              </Text>
+            </div>
+            <div>
+              <Text size="sm" c="dimmed">
+                報酬金
+              </Text>
+              <Text size="sm" fw={500}>
+                {quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')} z`}
+              </Text>
+            </div>
+            <div>
+              <Text size="sm" c="dimmed">
+                HR ポイント
+              </Text>
+              <Text size="sm" fw={500}>
+                {quest.hunter_rank_points === null ? '不明' : quest.hunter_rank_points.toLocaleString('ja-JP')}
+              </Text>
+            </div>
+          </SimpleGrid>
+        </section>
+      )}
+      {activeSection === 'quest-rewards' && (
+        <section id="quest-rewards">
+          <QuestRewards quest={quest} />
+        </section>
+      )}
     </Stack>
   );
 }
