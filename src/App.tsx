@@ -17,6 +17,7 @@ import { QuestPage } from './pages/QuestPage';
 import { EquipmentPage } from './pages/EquipmentPage';
 import { SkillPage } from './pages/SkillPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { SimulatorPage } from './pages/SimulatorPage';
 
 function MobileHeaderContent() {
   const { pathname } = useLocation();
@@ -32,6 +33,7 @@ function MobileHeaderContent() {
   if (pathname === '/items') return <Text size="md" fw={600}>アイテム一覧</Text>;
   if (pathname === '/quests') return <Text size="md" fw={600}>クエスト一覧</Text>;
   if (pathname === '/equipment') return <Text size="md" fw={600}>装備一覧</Text>;
+  if (pathname === '/simulator') return <Text size="md" fw={600}>装備シミュレータ</Text>;
 
   if (monsterMatch) {
     const monster = monsterById.get(Number(monsterMatch[1]));
@@ -110,7 +112,7 @@ export function App() {
   const scrollPositions = useRef(new Map<string, number>());
   const monstersActive = pathname.startsWith('/monsters');
   const itemsActive = pathname.startsWith('/items');
-  const equipmentActive = pathname.startsWith('/equipment');
+  const equipmentActive = pathname.startsWith('/equipment') || pathname === '/simulator';
   const scrollKey = `${pathname}${search}${hash}`;
   useEffect(() => {
     window.scrollTo({ top: scrollPositions.current.get(scrollKey) ?? 0, left: 0, behavior: 'auto' });
@@ -141,6 +143,7 @@ export function App() {
                 <Anchor component={Link} to="/items" c="inherit">アイテム</Anchor>
                 <Anchor component={Link} to="/quests" c="inherit">クエスト</Anchor>
                 <Anchor component={Link} to="/equipment" c="inherit">装備</Anchor>
+                <Anchor component={Link} to="/simulator" c="inherit">シミュレータ</Anchor>
               </Group>
               <Box visibleFrom="sm" style={{ width: 'min(42vw, 360px)' }}>
                 <SearchBox />
@@ -197,6 +200,7 @@ export function App() {
               <Route path="/skills/:id" element={<SkillPage />} />
               <Route path="/equipment" element={<EquipmentPage />} />
               <Route path="/equipment/:kind/:id" element={<EquipmentPage />} />
+              <Route path="/simulator" element={<SimulatorPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Container>

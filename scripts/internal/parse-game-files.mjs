@@ -8,7 +8,7 @@ function readDefinition(name) {
     const archive = path.join(bundled, `${name}.gz`);
     return JSON.parse(gunzipSync(fs.readFileSync(archive)).toString('utf8'));
 }
-const layouts = readDefinition('layouts.json');
+const layouts = { ...readDefinition('layouts.json'), ...readDefinition('simulator-layouts.json') };
 const variants = readDefinition('layout-variants.json');
 const current = readDefinition('layouts-current.json');
 export function parse(b, base = b.indexOf(Buffer.from('RSZ\0')), end = b.length, overrides = {}) {

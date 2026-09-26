@@ -124,6 +124,8 @@ export type Skill = {
   icon: number;
 };
 
+export type SkillLevel = { skill_id: number; level: number; names: LocalizedText; descriptions: LocalizedText; values: number[]; unlocks: number[] };
+
 export type MonsterWeakness = {
   kind: 'element' | 'status' | 'effect';
   element?: string;

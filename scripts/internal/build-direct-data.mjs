@@ -342,6 +342,20 @@ for (const [code, category] of Object.entries(weapons)) {
   for (const row of nodes) weaponTreeList.push(...row._NextDataGuidList.map((guid) => nodeByGuid.get(guid)).filter(Boolean).map((next) => ({ weapon_type: code, parent_id: `weapon:${code}:${row._WeaponID}`, child_id: `weapon:${code}:${next._WeaponID}` })));
 }
 const accessoryData = load('Common/Equip/AccessoryData');
+const artianCreateData = load('Facility/ArtianCreateTypeData');
+const artianSkillData = load('Common/Equip/ArtianSkillGroupData');
+const weaponIds = new Set(weaponList.map((weapon) => weapon.game_id));
+const artianWeaponIds = [...new Set(rows(artianCreateData, 'app.user_data.ArtianCreateTypeData.cData').flatMap((row) =>
+  Object.entries(row).filter(([key, value]) => key.startsWith('_') && weaponIds.has(`weapon:${key.slice(1)}:${value}`)).map(([key, value]) => `weapon:${key.slice(1)}:${value}`)))];
+const artianSkillPairs = rows(artianSkillData, 'app.user_data.ArtianSkillGroupData.cData')
+  .map((row) => ({ groupSkillId: row._GroupSkillId, seriesSkillId: row._SeriesSkillId }))
+  .filter((pair) => skillById.has(pair.groupSkillId) && skillById.has(pair.seriesSkillId));
+const artianBonusData = load('Facility/ArtianBonusData');
+const artianBonuses = rows(artianBonusData, 'app.user_data.ArtianBonusData.cData').map((row) => ({
+  id: scalar(artianBonusData, row._BonusId), name: localized(row._Name).ja,
+  normalMax: row._GrindingMaxNum, gogmaMax: row._Em0078_GrindingMaxNum,
+  attack: row._Attack, affinity: row._Critical, attribute: row._AttributeValue, sharpness: row._SharpnessValue,
+}));
 const decorations = rows(accessoryData, 'app.user_data.AccessoryData.cData').filter((row) => texts[row._Name]?.ja).map((row) => {
     const skills = valueList(accessoryData, row._Skill).map((skillId, index) => ({ skill_id: skillId, level: row._SkillLevel[index] })).filter((skill) => skill.skill_id !== 0);
   return { game_id: scalar(accessoryData, row._AccessoryId), names: localized(row._Name), descriptions: localized(row._Explain), type: scalar(accessoryData, row._AccessoryType), rarity: scalar(accessoryData, row._Rare), price: row._Price, required_slot: scalar(accessoryData, row._SlotLevelAcc), skills };
@@ -362,6 +376,8 @@ fs.mkdirSync(output, { recursive: true });
 for (const [file, data] of Object.entries({ items, monsters, quests, lookups: { stages, species, partNames }, 'item-uses': itemUses })) fs.writeFileSync(path.join(output, `${file}.json`), JSON.stringify(data));
 const gameFiles = [...inputs].sort();
 fs.writeFileSync(path.join(cache, 'direct-inputs.json'), JSON.stringify(gameFiles, null, 2));
-fs.writeFileSync(path.join(output, 'source.json'), JSON.stringify({ generatedAt: new Date().toISOString(), dataOrigin: 'Monster Hunter Wilds ゲームデータ', gameFiles }));
-for (const [file, data] of Object.entries({ armor, 'armor-series': armorSeries, 'armor-upgrades': armorUpgrades, 'armor-upgrade-recipes': armorUpgradeRecipes, 'armor-recipes': armorRecipeList, amulets: amuletList, 'amulet-recipes': amuletRecipeList, weapons: weaponList, 'weapon-recipes': weaponRecipeList, 'weapon-trees': weaponTreeList, decorations, 'decoration-probabilities': decorationProbabilities, skills: skillCommon, 'skill-levels': skillLevels, kinsects, 'kinsect-recipes': kinsectRecipeList })) fs.writeFileSync(path.join(output, `${file}.json`), JSON.stringify(data));
+fs.writeFileSync(path.join(output, 'source.json'), JSON.stringify({ generatedAt: new Date().toISOString(), dataOrigin: 'Monster Hunter Wilds ゲームデータ', gameFiles,
+  supplementalSources: [{ name: 'WildsSim', url: 'https://github.com/EXXXI/WildsSim', license: 'MIT', data: ['random-amulet-data'] }],
+}));
+for (const [file, data] of Object.entries({ armor, 'armor-series': armorSeries, 'armor-upgrades': armorUpgrades, 'armor-upgrade-recipes': armorUpgradeRecipes, 'armor-recipes': armorRecipeList, amulets: amuletList, 'amulet-recipes': amuletRecipeList, weapons: weaponList, 'weapon-recipes': weaponRecipeList, 'weapon-trees': weaponTreeList, decorations, 'decoration-probabilities': decorationProbabilities, skills: skillCommon, 'skill-levels': skillLevels, 'artian-skill-data': { weaponIds: artianWeaponIds, skillPairs: artianSkillPairs, bonuses: artianBonuses }, kinsects, 'kinsect-recipes': kinsectRecipeList })) fs.writeFileSync(path.join(output, `${file}.json`), JSON.stringify(data));
 console.log(`直接抽出: ${items.length} アイテム、${monsters.length} モンスター、${quests.length} クエスト、武器 ${weaponList.length} 件、防具 ${armor.length} 件、護石 ${amuletList.length} 件、装飾品 ${decorations.length} 件、スキル ${skillCommon.length} 件`);

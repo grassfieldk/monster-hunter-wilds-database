@@ -33,8 +33,10 @@ function hash(s) {
     return (h ^ (h >>> 16)) >>> 0;
 }
 const bundledList = path.resolve('scripts/data/game-file-list.txt.gz');
+const simulatorList = path.resolve('scripts/data/simulator-game-file-list.txt');
 const filter = new RegExp(process.argv[3] || 'GameDesign/.*(Reward|SupplyItem|Gather|Collect|GimmickBasic|GimmickText|GmID|ItemData).*\\.user\\.3$', 'i');
-const names = new Map(gunzipSync(fs.readFileSync(bundledList)).toString('utf8').split(/\r?\n/).filter(s => filter.test(s)).map(s => [`${hash(s.toUpperCase())}:${hash(s.toLowerCase())}`, s]));
+const fileList = `${gunzipSync(fs.readFileSync(bundledList)).toString('utf8')}\n${fs.readFileSync(simulatorList, 'utf8')}`;
+const names = new Map(fileList.split(/\r?\n/).filter(s => filter.test(s)).map(s => [`${hash(s.toUpperCase())}:${hash(s.toLowerCase())}`, s]));
 const game = process.argv[2];
 const manifestPath = path.join(root, 'manifest.json');
 const records = new Map(!process.argv.includes('--fresh') && fs.existsSync(manifestPath) ? Object.entries(JSON.parse(fs.readFileSync(manifestPath, 'utf8'))) : []);

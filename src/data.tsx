@@ -1,6 +1,7 @@
 import { Center, Loader, Stack, Text } from '@mantine/core';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Amulet, Armor, ArmorSeries, ArmorUpgrade, ArmorUpgradeRecipe, Decoration, DecorationProbability, EquipmentRecipe, Item, ItemSource, ItemUse, Lookups, Monster, Quest, Skill, SourceInfo, Weapon, WeaponTree } from './types';
+import type { Amulet, Armor, ArmorSeries, ArmorUpgrade, ArmorUpgradeRecipe, Decoration, DecorationProbability, EquipmentRecipe, Item, ItemSource, ItemUse, Lookups, Monster, Quest, Skill, SkillLevel, SourceInfo, Weapon, WeaponTree } from './types';
+import type { ArtianSkillData, RandomAmuletData } from './simulator/model';
 
 type Database = {
   items: Item[];
@@ -14,6 +15,9 @@ type Database = {
   weapons: Weapon[];
   decorations: Decoration[];
   skills: Skill[];
+  skillLevels: SkillLevel[];
+  randomAmulets: RandomAmuletData;
+  artianSkills: ArtianSkillData;
   armorSeries: ArmorSeries[];
   armorUpgrades: ArmorUpgrade[];
   armorUpgradeRecipes: ArmorUpgradeRecipe[];
@@ -58,6 +62,9 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       loadJson<Weapon[]>('/data/weapons.json', controller.signal),
       loadJson<Decoration[]>('/data/decorations.json', controller.signal),
       loadJson<Skill[]>('/data/skills.json', controller.signal),
+      loadJson<SkillLevel[]>('/data/skill-levels.json', controller.signal),
+      loadJson<RandomAmuletData>('/data/random-amulet-data.json', controller.signal),
+      loadJson<ArtianSkillData>('/data/artian-skill-data.json', controller.signal),
       loadJson<ArmorSeries[]>('/data/armor-series.json', controller.signal),
       loadJson<ArmorUpgrade[]>('/data/armor-upgrades.json', controller.signal),
       loadJson<ArmorUpgradeRecipe[]>('/data/armor-upgrade-recipes.json', controller.signal),
@@ -67,8 +74,8 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
       loadJson<WeaponTree[]>('/data/weapon-trees.json', controller.signal),
       loadJson<DecorationProbability[]>('/data/decoration-probabilities.json', controller.signal),
       loadJson<EquipmentRecipe[]>('/data/kinsect-recipes.json', controller.signal),
-    ]).then(([items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes]) => {
-      if (!cancelled) setData({ items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes });
+    ]).then(([items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, skillLevels, randomAmulets, artianSkills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes]) => {
+      if (!cancelled) setData({ items, monsters, quests, lookups, itemUses, source, itemSources, armor, amulets, weapons, decorations, skills, skillLevels, randomAmulets, artianSkills, armorSeries, armorUpgrades, armorUpgradeRecipes, armorRecipes, amuletRecipes, weaponRecipes, weaponTrees, decorationProbabilities, kinsectRecipes });
     }).catch((error: unknown) => {
       if (!cancelled && !(error instanceof DOMException && error.name === 'AbortError')) {
         setLoadError(error instanceof Error ? error : new Error('データの読み込みに失敗しました'));

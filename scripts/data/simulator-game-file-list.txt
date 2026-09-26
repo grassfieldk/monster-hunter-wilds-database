@@ -1,0 +1,11 @@
+natives/STM/GameDesign/Common/Equip/AmuletRankJudge.user.3
+natives/STM/GameDesign/Common/Equip/RandomAmuletAccSlot.user.3
+natives/STM/GameDesign/Common/Equip/RandomAmuletLotSkillTable.user.3
+natives/STM/GameDesign/Common/Equip/RandomAmuletPtTable.user.3
+natives/STM/GameDesign/Facility/ArtianBonusData.user.3
+natives/STM/GameDesign/Facility/ArtianBonusCategoryData.user.3
+natives/STM/GameDesign/Facility/ArtianCreateTypeData.user.3
+natives/STM/GameDesign/Facility/ArtianJudgeItemData.user.3
+natives/STM/GameDesign/Facility/ArtianPartsData.user.3
+natives/STM/GameDesign/Facility/ArtianPerformanceData.user.3
+natives/STM/GameDesign/Facility/ArtianWeaponTypeData.user.3

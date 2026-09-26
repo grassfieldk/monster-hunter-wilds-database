@@ -14,6 +14,7 @@ export function HomePage() {
         <Paper component={Link} to="/items" withBorder p="sm" ta="center">アイテム一覧</Paper>
         <Paper component={Link} to="/quests" withBorder p="sm" ta="center">クエスト一覧</Paper>
         <Paper component={Link} to="/equipment" withBorder p="sm" ta="center">装備一覧</Paper>
+        <Paper component={Link} to="/simulator" withBorder p="sm" ta="center">装備シミュレータ</Paper>
       </SimpleGrid>
       <Text size="sm" c="dimmed" ta="center">
         最終更新日: {new Date(source.generatedAt).toLocaleDateString('ja-JP')}
