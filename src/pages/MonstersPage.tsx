@@ -1,6 +1,7 @@
 import { Anchor, Box, Stack, Table, Text } from '@mantine/core';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { MonsterEpithet } from '../components/MonsterEpithet';
 import { monsterEpithet, text, useDatabase } from '../data';
 import { label } from '../labels';
 
@@ -25,7 +26,6 @@ export function MonstersPage() {
           <Table.Tbody>
             {sortedMonsters.map((monster) => {
               const epithet = monsterEpithet(monster);
-              const epithetReading = epithet?.match(/^(.+?)（(.+?)）$/u);
 
               return (
                 <Table.Tr key={monster.game_id}>
@@ -38,15 +38,7 @@ export function MonstersPage() {
                     </Anchor>
                   </Table.Td>
                   <Table.Td>
-                    {epithet &&
-                      (epithetReading ? (
-                        <ruby>
-                          {epithetReading[1]}
-                          <rt>{epithetReading[2]}</rt>
-                        </ruby>
-                      ) : (
-                        <span>{epithet}</span>
-                      ))}
+                    <MonsterEpithet value={epithet} />
                   </Table.Td>
                 </Table.Tr>
               );
