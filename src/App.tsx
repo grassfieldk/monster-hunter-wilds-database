@@ -1,6 +1,7 @@
 import { ActionIcon, Anchor, AppShell, Box, Container, Group, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
+  IconAdjustmentsSearch,
   IconArrowLeft,
   IconArrowRight,
   IconClipboardList,
@@ -33,7 +34,8 @@ export function App() {
   const scrollPositions = useRef(new Map<string, number>());
   const monstersActive = pathname.startsWith('/monsters');
   const itemsActive = pathname.startsWith('/items');
-  const equipmentActive = pathname.startsWith('/equipment') || pathname === '/simulator';
+  const equipmentActive = pathname.startsWith('/equipment');
+  const equipmentSearchActive = pathname === '/simulator';
   const scrollKey = `${pathname}${search}${hash}`;
   useEffect(() => {
     window.scrollTo({ top: scrollPositions.current.get(scrollKey) ?? 0, left: 0, behavior: 'auto' });
@@ -77,7 +79,7 @@ export function App() {
                   装備
                 </Anchor>
                 <Anchor component={Link} to="/simulator" c="inherit">
-                  シミュレータ
+                  装備検索ツール
                 </Anchor>
               </Group>
               <Box visibleFrom="sm" style={{ width: 'clamp(180px, 24vw, 360px)' }}>
@@ -169,6 +171,20 @@ export function App() {
               onClick={closeSearch}
             >
               <IconClipboardList size={18} />
+            </ActionIcon>
+            <ActionIcon
+              component={Link}
+              to="/simulator"
+              variant="subtle"
+              size="lg"
+              h="100%"
+              aria-label="装備検索ツール"
+              title="装備検索ツール"
+              data-active={equipmentSearchActive || undefined}
+              className="footer-main-button"
+              onClick={closeSearch}
+            >
+              <IconAdjustmentsSearch size={18} />
             </ActionIcon>
             <ActionIcon
               component={Link}

@@ -1,21 +1,30 @@
-import { ActionIcon, Button, Group, Select, Stack, Text } from '@mantine/core';
-import { IconTrash } from '@tabler/icons-react';
-import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
+import { Button, Checkbox, SimpleGrid, Stack, Text } from '@mantine/core';
+import { type Dispatch, type SetStateAction, useMemo } from 'react';
+import { OptionPicker } from '../../components/OptionPicker';
 import { text } from '../../data';
-import type { Skill } from '../../types';
-import { decorationTypeForSlot, type GearData, type SkillTarget, type SortMode } from '../model';
+import type { Skill, SkillLevel } from '../../types';
+import { decorationTypeForSlot, type GearData, maxSeriesSkillTargets, type SkillTarget, type SortMode } from '../model';
 import type { SearchProgress } from '../search';
+import { type SkillOption, SkillTargetList } from './SkillTargetList';
 
 type Props = {
   data: GearData;
   skills: Skill[];
+  skillLevels: SkillLevel[];
   availableLevels: Map<number, number[]>;
-  targets: SkillTarget[];
-  setTargets: Dispatch<SetStateAction<SkillTarget[]>>;
+  unusableSkillIds: Set<number>;
+  weaponTargets: SkillTarget[];
+  setWeaponTargets: Dispatch<SetStateAction<SkillTarget[]>>;
+  armorTargets: SkillTarget[];
+  setArmorTargets: Dispatch<SetStateAction<SkillTarget[]>>;
+  seriesTargets: SkillTarget[];
+  setSeriesTargets: Dispatch<SetStateAction<SkillTarget[]>>;
   sort: SortMode;
   setSort: Dispatch<SetStateAction<SortMode>>;
   weaponType: string | null;
   setWeaponType: Dispatch<SetStateAction<string | null>>;
+  includeMeldingOnly: boolean;
+  setIncludeMeldingOnly: Dispatch<SetStateAction<boolean>>;
   searching: boolean;
   progress: SearchProgress | null;
   onSearch: () => void;
@@ -25,27 +34,51 @@ type Props = {
 export function SearchControls({
   data,
   skills,
+  skillLevels,
   availableLevels,
-  targets,
-  setTargets,
+  unusableSkillIds,
+  weaponTargets,
+  setWeaponTargets,
+  armorTargets,
+  setArmorTargets,
+  seriesTargets,
+  setSeriesTargets,
   sort,
   setSort,
   weaponType,
   setWeaponType,
+  includeMeldingOnly,
+  setIncludeMeldingOnly,
   searching,
   progress,
   onSearch,
   onCancel,
 }: Props) {
   const { weapons, armor, amulets, decorations, artianSkills, maxSkillLevels } = data;
-  const [skillCategory, setSkillCategory] = useState<'weapon' | 'armor'>('armor');
   const skillOptions = useMemo(
     () =>
       skills
         .filter((item) => maxSkillLevels[item.game_id] > 0 && !text(item.names).startsWith('#Rejected#'))
-        .map((item) => ({ value: String(item.game_id), label: text(item.names) }))
-        .sort((a, b) => a.label.localeCompare(b.label, 'ja')),
+        .map((item): SkillOption => {
+          const description = text(item.descriptions);
+          return {
+            id: item.game_id,
+            name: text(item.names),
+            description: description.startsWith('#Rejected#') ? '' : description,
+          };
+        })
+        .sort((a, b) => a.name.localeCompare(b.name, 'ja')),
     [skills, maxSkillLevels],
+  );
+  const levelDescriptions = useMemo(
+    () =>
+      new Map(
+        skillLevels.map((row) => {
+          const description = text(row.descriptions);
+          return [`${row.skill_id}:${row.level}`, description.startsWith('#Rejected#') ? '' : description] as const;
+        }),
+      ),
+    [skillLevels],
   );
   const weaponSkillIds = useMemo(
     () =>
@@ -69,9 +102,10 @@ export function SearchControls({
       ]),
     [armor, amulets, decorations, artianSkills],
   );
-  const categorizedSkillOptions = skillOptions.filter((item) =>
-    (skillCategory === 'weapon' ? weaponSkillIds : armorSkillIds).has(Number(item.value)),
-  );
+  const seriesSkillIds = new Set(skills.filter((skill) => skill.category === 1).map((skill) => skill.game_id));
+  const weaponSkillOptions = skillOptions.filter((item) => weaponSkillIds.has(item.id) && !seriesSkillIds.has(item.id));
+  const armorSkillOptions = skillOptions.filter((item) => armorSkillIds.has(item.id) && !seriesSkillIds.has(item.id));
+  const seriesSkillOptions = skillOptions.filter((item) => armorSkillIds.has(item.id) && seriesSkillIds.has(item.id));
   const weaponTypeOptions = useMemo(
     () =>
       [...new Map(weapons.map((item) => [item.weapon_type, item.category])).entries()].map(([value, label]) => ({
@@ -83,109 +117,86 @@ export function SearchControls({
 
   return (
     <Stack gap="sm">
-      <Text fw={600}>スキル条件から検索</Text>
-      <Group gap="xs">
-        <Button
-          size="xs"
-          variant={skillCategory === 'weapon' ? 'filled' : 'light'}
-          onClick={() => setSkillCategory('weapon')}
-        >
-          武器系スキル
-        </Button>
-        <Button
-          size="xs"
-          variant={skillCategory === 'armor' ? 'filled' : 'light'}
-          onClick={() => setSkillCategory('armor')}
-        >
-          防具系スキル
-        </Button>
-      </Group>
-      {targets.map((target, index) => (
-        <Group key={index} gap="xs" align="end" wrap="nowrap">
-          <Select
-            label={index === 0 ? 'スキル' : undefined}
-            placeholder="スキルを選択"
-            searchable
-            clearable
-            data={
-              target.id && !categorizedSkillOptions.some((option) => option.value === String(target.id))
-                ? [...categorizedSkillOptions, ...skillOptions.filter((option) => option.value === String(target.id))]
-                : categorizedSkillOptions
-            }
-            value={target.id ? String(target.id) : null}
-            onChange={(value) =>
-              setTargets((current) =>
-                current.map((entry, at) =>
-                  at === index ? { id: Number(value), level: availableLevels.get(Number(value))?.[0] ?? 1 } : entry,
-                ),
-              )
-            }
-            style={{ flex: '1 1 12rem', minWidth: 0, maxWidth: 400 }}
-          />
-          <Select
-            label={index === 0 ? '必要 Lv' : undefined}
-            data={(availableLevels.get(target.id) ?? [1]).map((level) => ({
-              value: String(level),
-              label: String(level),
-            }))}
-            value={String(target.level)}
-            onChange={(value) =>
-              setTargets((current) =>
-                current.map((entry, at) => (at === index ? { ...entry, level: Number(value) || 1 } : entry)),
-              )
-            }
-            w={78}
-          />
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            size="md"
-            aria-label="スキルを削除"
-            onClick={() => setTargets((current) => current.filter((_, at) => at !== index))}
-          >
-            <IconTrash size={16} />
-          </ActionIcon>
-        </Group>
-      ))}
-      <Group>
-        <Button variant="light" onClick={() => setTargets((current) => [...current, { id: 0, level: 1 }])}>
-          スキルを追加
-        </Button>
-      </Group>
-      <Group gap="sm" className="simulator-search-actions">
-        <Select
-          aria-label="武器種"
+      <Text fw={600}>検索条件</Text>
+      <SimpleGrid cols={{ base: 2, sm: 2 }} spacing="sm" className="simulator-search-settings">
+        <OptionPicker
+          label="武器種"
           placeholder="全武器種"
           clearable
-          searchable
           data={weaponTypeOptions}
           value={weaponType}
           onChange={setWeaponType}
-          w={180}
+          buttonClassName="simulator-compact-select"
+          style={{ width: '100%' }}
         />
-        <Select
-          aria-label="候補の優先順位"
+        <Stack gap={4}>
+          <Text size="sm" fw={500}>
+            錬金装飾
+          </Text>
+          <div className="simulator-melding-checkbox-control">
+            <Checkbox
+              label="含める"
+              checked={includeMeldingOnly}
+              onChange={(event) => setIncludeMeldingOnly(event.currentTarget.checked)}
+            />
+          </div>
+        </Stack>
+      </SimpleGrid>
+      <SimpleGrid cols={{ base: 2, sm: 2 }} spacing="sm" className="simulator-skill-targets">
+        <SkillTargetList
+          title="武器系スキル"
+          options={weaponSkillOptions}
+          targets={weaponTargets}
+          setTargets={setWeaponTargets}
+          availableLevels={availableLevels}
+          unusableSkillIds={unusableSkillIds}
+          levelDescriptions={levelDescriptions}
+        />
+        <SkillTargetList
+          title="防具系スキル"
+          options={armorSkillOptions}
+          targets={armorTargets}
+          setTargets={setArmorTargets}
+          availableLevels={availableLevels}
+          unusableSkillIds={unusableSkillIds}
+          levelDescriptions={levelDescriptions}
+        />
+      </SimpleGrid>
+      <SkillTargetList
+        title="シリーズスキル"
+        options={seriesSkillOptions}
+        targets={seriesTargets}
+        setTargets={setSeriesTargets}
+        maxTargets={maxSeriesSkillTargets}
+        availableLevels={availableLevels}
+        unusableSkillIds={unusableSkillIds}
+        levelDescriptions={levelDescriptions}
+      />
+      <SimpleGrid cols={{ base: 2, sm: 2 }} spacing="sm" className="simulator-search-actions">
+        <Button
+          onClick={searching ? onCancel : onSearch}
+          variant={searching ? 'light' : 'filled'}
+          color={searching ? 'gray' : undefined}
+          className="simulator-search-button"
+        >
+          {searching ? '中断' : '検索'}
+        </Button>
+        <OptionPicker
+          ariaLabel="候補の優先順位"
           data={[
             { value: 'slots', label: '空き枠優先' },
             { value: 'defense', label: '防御・耐性優先' },
           ]}
           value={sort}
           onChange={(value) => setSort(value === 'defense' ? 'defense' : 'slots')}
-          w={180}
+          buttonClassName="simulator-compact-select"
+          style={{ width: '100%' }}
         />
-        <Button onClick={onSearch} loading={searching} className="simulator-search-button">
-          検索
-        </Button>
-        {searching && (
-          <Button variant="light" color="gray" onClick={onCancel}>
-            中断
-          </Button>
-        )}
-      </Group>
-      {searching && (
+      </SimpleGrid>
+      {(searching || progress) && (
         <Text size="sm">
-          {progress?.stage === 'preparing' ? '候補を準備中' : '検索中'}　確認した件数{' '}
-          {progress?.visited.toLocaleString() ?? 0} 件
+          検索済: {progress?.visited.toLocaleString() ?? 0} 件、ヒット:{' '}
+          {progress?.limitReached ? '200 件以上' : `${progress?.found.toLocaleString() ?? 0} 件`}
         </Text>
       )}
       <Text size="xs" c="dimmed">

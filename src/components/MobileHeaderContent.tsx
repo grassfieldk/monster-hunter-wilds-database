@@ -47,7 +47,7 @@ export function MobileHeaderContent() {
   if (pathname === '/simulator')
     return (
       <Text size="md" fw={600}>
-        装備シミュレータ
+        装備検索ツール
       </Text>
     );
 

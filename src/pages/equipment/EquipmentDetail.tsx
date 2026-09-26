@@ -5,12 +5,12 @@ import {
   EquipmentMaterialTable,
   EquipmentRecipeSection,
 } from '../../components/EquipmentMaterials';
+import { EquipmentSkills, SkillDescriptionTooltip } from '../../components/SkillDescriptionTooltip';
 import { text, useDatabase } from '../../data';
-import { formatEquipmentSkills } from '../../formatters';
 import { weaponAttributeLabel } from '../../labels';
 import type { Amulet, Armor, Decoration, EquipmentSkill, Skill, Weapon } from '../../types';
 import { NotFoundPage } from '../NotFoundPage';
-import { type AmuletGroup, AmuletLevelMarks, amuletName, formatAmuletSkills } from './amulets';
+import { type AmuletGroup, AmuletLevelMarks, AmuletSkills, amuletName } from './amulets';
 import { EquipmentStats } from './EquipmentStats';
 import { armorParts } from './equipmentConstants';
 import { WeaponTreeView } from './WeaponTreeView';
@@ -32,7 +32,7 @@ function WeaponDetailStats({ item, skillById }: { item: Weapon; skillById: Map<n
         { label: '価格', value: `${item.price.toLocaleString('ja-JP')} z` },
         { label: '属性', value: attributes },
         { label: 'スロット', value: item.slots.join('・') || 'なし' },
-        { label: 'スキル', value: formatEquipmentSkills(item.skills, skillById) },
+        { label: 'スキル', value: <EquipmentSkills skills={item.skills} skillById={skillById} /> },
       ]}
     />
   );
@@ -56,7 +56,7 @@ function ArmorDetailStats({
         { label: '防御力', value: item.defense },
         { label: 'スロット', value: item.slots.join('・') || 'なし' },
         { label: '属性耐性', value: item.resistances.join('・') },
-        { label: 'スキル', value: formatEquipmentSkills(item.skills, skillById) },
+        { label: 'スキル', value: <EquipmentSkills skills={item.skills} skillById={skillById} /> },
       ]}
     />
   );
@@ -92,7 +92,13 @@ function ArmorSetSkillTable({ items, skillById }: { items: Armor[]; skillById: M
             <Table.Tr key={rowIndex}>
               {row.map((skill, index) => (
                 <Table.Td key={skill ? skill.skill_id : `empty-${rowIndex}-${index}`}>
-                  {skill ? `${text(skillById.get(skill.skill_id)?.names)} Lv ${skill.level}` : ''}
+                  {skill ? (
+                    <SkillDescriptionTooltip skillId={skill.skill_id} level={skill.level}>
+                      {text(skillById.get(skill.skill_id)?.names)} Lv {skill.level}
+                    </SkillDescriptionTooltip>
+                  ) : (
+                    ''
+                  )}
                 </Table.Td>
               ))}
             </Table.Tr>
@@ -109,7 +115,7 @@ function AmuletDetailStats({ group, skillById }: { group: AmuletGroup; skillById
       stats={[
         { label: 'レベル', value: <AmuletLevelMarks items={group.items} /> },
         { label: 'レア度', value: formatNumberRange(group.items.map((item) => item.rarity)) },
-        { label: 'スキル', value: formatAmuletSkills(group.items, skillById) },
+        { label: 'スキル', value: <AmuletSkills items={group.items} skillById={skillById} /> },
       ]}
     />
   );
@@ -122,7 +128,7 @@ function DecorationDetailStats({ item, skillById }: { item: Decoration; skillByI
         { label: 'レア度', value: item.rarity },
         { label: '必要スロット', value: item.required_slot },
         { label: '価格', value: `${item.price.toLocaleString('ja-JP')} z` },
-        { label: 'スキル', value: formatEquipmentSkills(item.skills, skillById) },
+        { label: 'スキル', value: <EquipmentSkills skills={item.skills} skillById={skillById} /> },
       ]}
     />
   );
@@ -192,7 +198,9 @@ export function ArmorSeriesDetail() {
                 <Table.Td className="numeric-cell">{item.defense.toLocaleString('ja-JP')}</Table.Td>
                 <Table.Td>{item.slots.join('・') || 'なし'}</Table.Td>
                 <Table.Td>{item.resistances.join('・')}</Table.Td>
-                <Table.Td>{formatEquipmentSkills(item.skills, skillById)}</Table.Td>
+                <Table.Td>
+                  <EquipmentSkills skills={item.skills} skillById={skillById} />
+                </Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>
@@ -216,7 +224,7 @@ export function ArmorSeriesDetail() {
               属性耐性: {item.resistances.join('・')}
             </Text>
             <Text size="sm" c="dimmed" style={{ overflowWrap: 'anywhere' }}>
-              スキル: {formatEquipmentSkills(item.skills, skillById)}
+              スキル: <EquipmentSkills skills={item.skills} skillById={skillById} />
             </Text>
           </Stack>
         ))}

@@ -1,5 +1,7 @@
-import { Button, Group, Select, SimpleGrid, Stack, Table, Text } from '@mantine/core';
+import { Button, Group, SimpleGrid, Stack, Table, Text } from '@mantine/core';
 import { type Dispatch, type SetStateAction, useMemo } from 'react';
+import { OptionPicker } from '../../components/OptionPicker';
+import { SkillDescriptionTooltip } from '../../components/SkillDescriptionTooltip';
 import { text } from '../../data';
 import type { Skill, SkillLevel } from '../../types';
 import {
@@ -8,6 +10,7 @@ import {
   decorationTypeForSlot,
   type EquipmentSlot,
   equipmentSlots,
+  formatSlotLevels,
   type GearData,
   isVirtualAmulet,
   isVirtualWeapon,
@@ -17,6 +20,7 @@ import {
 import { ArtianBonusEditor } from './ArtianBonusEditor';
 import { ArtianSkillEditor } from './ArtianSkillEditor';
 import { RandomAmuletEditor } from './RandomAmuletEditor';
+import { SkillLevelMarks, skillSlotCount } from './SkillLevelMarks';
 
 const slotLabels: Record<EquipmentSlot, string> = {
   weapon: '武器',
@@ -35,19 +39,34 @@ type Props = {
   skillById: Map<number, Skill>;
   skillLevels: SkillLevel[];
   availableLevels: Map<number, number[]>;
+  unusableSkillIds: Set<number>;
   onShare: () => void;
 };
 
-export function BuildEditor({ build, setBuild, data, skillById, skillLevels, availableLevels, onShare }: Props) {
+export function BuildEditor({
+  build,
+  setBuild,
+  data,
+  skillById,
+  skillLevels,
+  availableLevels,
+  unusableSkillIds,
+  onShare,
+}: Props) {
   const { weapons, armor, amulets, decorations } = data;
+  const slotCount = skillSlotCount(availableLevels);
   const summary = useMemo(() => summarizeBuild(build, data), [build, data]);
   const equipped = useMemo(() => selectedGear(build, data), [build, data]);
+  const weaponGroups = useMemo(
+    () => [...new Set(weapons.map((item) => item.category))].map((category) => ({ value: category, label: category })),
+    [weapons],
+  );
   const gearOptions = useMemo(
     () => ({
       weapon: [
-        ...weapons.map((item) => ({ value: item.game_id, label: `${item.category}　${text(item.names)}` })),
+        ...weapons.map((item) => ({ value: item.game_id, label: text(item.names), group: item.category })),
         ...(isVirtualWeapon(equipped.weapon)
-          ? [{ value: equipped.weapon.game_id, label: `${equipped.weapon.category}　${text(equipped.weapon.names)}` }]
+          ? [{ value: equipped.weapon.game_id, label: text(equipped.weapon.names), group: equipped.weapon.category }]
           : []),
       ],
       head: armor.filter((item) => item.part === 0).map((item) => ({ value: item.game_id, label: text(item.names) })),
@@ -112,22 +131,21 @@ export function BuildEditor({ build, setBuild, data, skillById, skillLevels, ava
           const levels = item && 'slots' in item ? item.slots.filter((level) => level > 0) : [];
           return (
             <Stack key={slot} gap="xs">
-              <Select
+              <OptionPicker
                 className="simulator-gear-select"
                 label={slotLabels[slot]}
                 placeholder={`${slotLabels[slot]}を選択`}
-                searchable={slot === 'amulet'}
                 clearable
+                groups={slot === 'weapon' ? weaponGroups : undefined}
                 data={gearOptions[slot]}
                 value={build[slot]}
                 onChange={(value) => updateGear(slot, value)}
               />
               {levels.map((level, index) => (
-                <Select
+                <OptionPicker
                   key={index}
                   size="xs"
-                  label={`装飾品 ${index + 1}（スロット ${level}）`}
-                  searchable
+                  label={`装飾品 ${index + 1}（${level}）`}
                   clearable
                   data={(
                     decorationOptions.get(
@@ -156,7 +174,7 @@ export function BuildEditor({ build, setBuild, data, skillById, skillLevels, ava
       <Group gap="lg">
         <Text size="sm">防御力 {summary.defense}</Text>
         <Text size="sm">耐性 {summary.resistances.join(' / ')}</Text>
-        <Text size="sm">空きスロット {summary.freeSlots.join('・') || 'なし'}</Text>
+        <Text size="sm">空きスロット {formatSlotLevels(summary.freeSlots)}</Text>
       </Group>
       <Text size="xs" c="dimmed">
         防御力は防具の強化前の値です
@@ -174,9 +192,19 @@ export function BuildEditor({ build, setBuild, data, skillById, skillLevels, ava
           {[...summary.skills]
             .sort((a, b) => text(skillById.get(a[0])?.names).localeCompare(text(skillById.get(b[0])?.names), 'ja'))
             .map(([id, level]) => (
-              <Table.Tr key={id}>
-                <Table.Td>{text(skillById.get(id)?.names) || `ID ${id}`}</Table.Td>
-                <Table.Td>Lv {level}</Table.Td>
+              <Table.Tr key={id} className={unusableSkillIds.has(id) ? 'simulator-skill-unusable' : undefined}>
+                <Table.Td>
+                  <SkillDescriptionTooltip skillId={id} level={activeLevel(id, level) ?? level}>
+                    {text(skillById.get(id)?.names) || `ID ${id}`}
+                  </SkillDescriptionTooltip>
+                </Table.Td>
+                <Table.Td>
+                  <SkillLevelMarks
+                    level={activeLevel(id, level) ?? 0}
+                    maxLevel={availableLevels.get(id)?.at(-1) ?? level}
+                    slotCount={slotCount}
+                  />
+                </Table.Td>
                 <Table.Td>
                   {activeLevel(id, level) === null
                     ? '未発動'

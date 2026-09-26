@@ -1,5 +1,6 @@
-import { Button, Group, Select, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Button, Group, SimpleGrid, Stack, Text } from '@mantine/core';
 import type { Dispatch, SetStateAction } from 'react';
+import { OptionPicker } from '../../components/OptionPicker';
 import type { Build, GearData } from '../model';
 
 type Props = { build: Build; setBuild: Dispatch<SetStateAction<Build>>; data: GearData };
@@ -42,12 +43,11 @@ export function RandomAmuletEditor({ build, setBuild, data }: Props) {
       </Group>
       {randomCombo && randomParts && (
         <>
-          <Select
+          <OptionPicker
             label="レア度・スロット"
-            searchable
             data={randomAmulets.combos.map((combo, index) => ({
               value: String(index),
-              label: `レア ${combo.rarity}　${combo.slots.map((slot) => `${slot.type === -1638455296 ? '武器' : '防具'}${slot.level}`).join('・') || 'スロットなし'}　組 ${combo.groups.join('-')}`,
+              label: `レア ${combo.rarity}　${combo.slots.map((slot) => `${slot.type === -1638455296 ? '武器' : '防具'}（${slot.level}）`).join('・') || 'スロットなし'}　組 ${combo.groups.join('-')}`,
             }))}
             value={String(randomComboIndex)}
             onChange={(value) => {
@@ -61,10 +61,9 @@ export function RandomAmuletEditor({ build, setBuild, data }: Props) {
           />
           <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="xs">
             {randomCombo.groups.map((group, index) => (
-              <Select
+              <OptionPicker
                 key={index}
                 label={`スキル ${index + 1}`}
-                searchable
                 data={randomAmulets.groups[group]
                   .filter(
                     (skill) =>

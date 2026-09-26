@@ -1,5 +1,6 @@
-import { Button, Group, Select, Stack, Text } from '@mantine/core';
+import { Button, Group, Stack, Text } from '@mantine/core';
 import type { Dispatch, SetStateAction } from 'react';
+import { OptionPicker } from '../../components/OptionPicker';
 import type { Weapon } from '../../types';
 import { type Build, type GearData, isVirtualWeapon, type VirtualWeapon } from '../model';
 
@@ -22,8 +23,8 @@ export function ArtianBonusEditor({ build, setBuild, data, weapon }: Props) {
           </Text>
           {(build.weaponBonuses ?? []).map((id, index) => (
             <Group key={index} gap="xs" wrap="wrap">
-              <Select
-                aria-label={`復元強化 ${index + 1}`}
+              <OptionPicker
+                ariaLabel={`復元強化 ${index + 1}`}
                 value={String(id)}
                 data={artianSkills.bonuses
                   .filter(

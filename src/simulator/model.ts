@@ -3,6 +3,9 @@ import type { Amulet, Armor, Decoration, EquipmentSkill, Weapon } from '../types
 export type EquipmentSlot = 'weapon' | 'head' | 'chest' | 'arms' | 'waist' | 'legs' | 'amulet';
 export const armorSlots: EquipmentSlot[] = ['head', 'chest', 'arms', 'waist', 'legs'];
 export const equipmentSlots: EquipmentSlot[] = ['weapon', ...armorSlots, 'amulet'];
+export function formatSlotLevels(levels: number[]): string {
+  return levels.map((level) => `（${level}）`).join('') || 'なし';
+}
 export type Build = {
   weapon: string | null;
   weaponBonuses?: number[];
@@ -42,12 +45,14 @@ export type ArtianSkillData = {
   bonuses: ArtianBonus[];
 };
 export type SkillTarget = { id: number; level: number };
+export const maxSeriesSkillTargets = 3;
 export type SortMode = 'slots' | 'defense';
 export type GearData = {
   weapons: Weapon[];
   armor: Armor[];
   amulets: Amulet[];
   decorations: Decoration[];
+  meldingOnlyDecorationIds?: number[];
   maxSkillLevels: Record<number, number>;
   skillNames: Record<number, string>;
   randomAmulets: RandomAmuletData;

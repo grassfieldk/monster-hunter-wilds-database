@@ -1,3 +1,4 @@
+import { SkillDescriptionTooltip } from '../../components/SkillDescriptionTooltip';
 import { text } from '../../data';
 import type { Amulet, Skill } from '../../types';
 
@@ -46,4 +47,16 @@ export function formatAmuletSkills(items: Amulet[], skillById: Map<number, Skill
     for (const match of effect.matchAll(/([^と]+?)スキル/gu)) names.add(match[1]);
   }
   return [...names].join('、') || 'なし';
+}
+
+export function AmuletSkills({ items, skillById }: { items: Amulet[]; skillById: Map<number, Skill> }) {
+  const names = formatAmuletSkills(items, skillById);
+  if (names === 'なし') return names;
+  const ids = new Map([...skillById.values()].map((skill) => [text(skill.names), skill.game_id]));
+  return names.split('、').map((name, index) => (
+    <span key={name}>
+      {index > 0 && '、'}
+      <SkillDescriptionTooltip skillId={ids.get(name)}>{name}</SkillDescriptionTooltip>
+    </span>
+  ));
 }

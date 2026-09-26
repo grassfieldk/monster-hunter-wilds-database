@@ -1,5 +1,6 @@
-import { Select, Stack, Text } from '@mantine/core';
+import { Stack, Text } from '@mantine/core';
 import type { Dispatch, SetStateAction } from 'react';
+import { OptionPicker } from '../../components/OptionPicker';
 import type { Weapon } from '../../types';
 import { type Build, type GearData, isVirtualWeapon, type VirtualWeapon } from '../model';
 
@@ -21,14 +22,15 @@ export function ArtianSkillEditor({ build, setBuild, data, weapon }: Props) {
           <Text size="sm" fw={600}>
             アーティアスキル
           </Text>
-          <Select
-            searchable
+          <OptionPicker
             placeholder="スキルの組み合わせを選択"
             data={artianSkills.skillPairs.map((pair) => ({
               value: `${pair.groupSkillId}.${pair.seriesSkillId}`,
               label: `${skillNames[pair.groupSkillId]}・${skillNames[pair.seriesSkillId]}`,
             }))}
-            value={isVirtualWeapon(equipped.weapon) ? build.weapon?.slice(build.weapon.lastIndexOf(':') + 1) : null}
+            value={
+              isVirtualWeapon(equipped.weapon) ? (build.weapon?.slice(build.weapon.lastIndexOf(':') + 1) ?? null) : null
+            }
             onChange={(value) =>
               setBuild((current) => ({
                 ...current,

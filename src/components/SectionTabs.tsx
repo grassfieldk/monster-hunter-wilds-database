@@ -26,13 +26,12 @@ function getSectionTabs(pathname: string, itemKinds: Set<string>): SectionTab[] 
       .map((kind) => ({ label: itemCategoryLabels[kind], target: kind, to: `/items?kind=${kind}#items-category` }));
   }
 
-  if (pathname === '/equipment' || pathname === '/simulator') {
+  if (pathname === '/equipment') {
     return [
       { label: '武器', target: 'weapons', to: '/equipment?kind=weapons' },
       { label: '防具', target: 'armor', to: '/equipment?kind=armor' },
       { label: '護石', target: 'amulets', to: '/equipment?kind=amulets' },
       { label: '装飾品', target: 'decorations', to: '/equipment?kind=decorations' },
-      { label: 'シミュレータ', target: 'simulator', to: '/simulator' },
     ];
   }
 
@@ -60,11 +59,7 @@ export function SectionTabs() {
   const tabs = getSectionTabs(pathname, new Set(items.map((item) => item.kind)));
   const listRef = useRef<HTMLDivElement>(null);
   const selected =
-    pathname === '/simulator'
-      ? 'simulator'
-      : pathname === '/items' || pathname === '/equipment'
-        ? new URLSearchParams(search).get('kind')
-        : hash.slice(1);
+    pathname === '/items' || pathname === '/equipment' ? new URLSearchParams(search).get('kind') : hash.slice(1);
   const fallback = pathname.startsWith('/monsters/')
     ? getRememberedDetailSection('monster')
     : pathname.startsWith('/items/')

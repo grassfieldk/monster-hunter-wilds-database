@@ -1,9 +1,10 @@
-import { Anchor, Box, NativeSelect, Stack, Table } from '@mantine/core';
+import { Anchor, Box, Stack, Table } from '@mantine/core';
 import { useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { OptionPicker } from '../../components/OptionPicker';
 import { text, useDatabase } from '../../data';
 import type { ArmorSeries, Decoration, Weapon } from '../../types';
-import { type AmuletGroup, AmuletLevelMarks, amuletName, formatAmuletSkills, groupAmulets } from './amulets';
+import { type AmuletGroup, AmuletLevelMarks, AmuletSkills, amuletName, groupAmulets } from './amulets';
 import { categories, compareIds } from './equipmentConstants';
 
 export function EquipmentList() {
@@ -39,14 +40,15 @@ export function EquipmentList() {
     <Stack className={active === 'weapons' ? 'page-stack with-rank-tabs' : 'page-stack'} gap="md">
       {active === 'weapons' && (
         <Box className="section-tabs rank-tabs">
-          <NativeSelect
-            aria-label="武器種"
-            data={weaponCategories}
+          <OptionPicker
+            ariaLabel="武器種"
+            data={weaponCategories.map((category) => ({ value: category, label: category }))}
             value={activeWeaponCategory ?? null}
             size="sm"
-            classNames={{ root: 'weapon-type-select-root', input: 'weapon-type-select' }}
+            className="weapon-type-select-root"
+            buttonClassName="weapon-type-select"
             onChange={(value) => {
-              navigate(`/equipment?kind=weapons&weapon=${encodeURIComponent(value.currentTarget.value)}`);
+              if (value) navigate(`/equipment?kind=weapons&weapon=${encodeURIComponent(value)}`);
             }}
           />
         </Box>
@@ -131,7 +133,9 @@ export function EquipmentList() {
                     <Table.Td className="centered-cell">
                       <AmuletLevelMarks items={group.items} />
                     </Table.Td>
-                    <Table.Td>{formatAmuletSkills(group.items, skillById)}</Table.Td>
+                    <Table.Td>
+                      <AmuletSkills items={group.items} skillById={skillById} />
+                    </Table.Td>
                   </Table.Tr>
                 );
               }

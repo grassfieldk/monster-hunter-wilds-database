@@ -304,13 +304,109 @@ a {
   color: var(--mantine-color-sand-2);
 }
 
-.simulator-search-actions .mantine-InputWrapper-root {
-  flex: 1 1 130px;
+.simulator-search-settings > *,
+.simulator-skill-targets > *,
+.simulator-search-actions > * {
   min-width: 0;
 }
 
+.simulator-search-settings .option-picker,
+.simulator-search-actions .option-picker {
+  min-width: 0;
+}
+
+.simulator-skill-targets .mantine-Button-root,
+.simulator-skill-targets .mantine-Button-label {
+  min-width: 0;
+}
+
+.simulator-skill-targets .mantine-Button-label > .mantine-Group-root > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.simulator-search-actions .option-picker {
+  width: 100%;
+}
+
+.simulator-search-settings .simulator-compact-select,
+.simulator-search-actions .simulator-compact-select {
+  padding-inline: 8px;
+}
+
+.simulator-melding-checkbox-control {
+  display: flex;
+  align-items: center;
+  height: calc(2.25rem * var(--mantine-scale));
+}
+
 .simulator-search-actions .simulator-search-button {
-  min-width: 112px;
+  width: 100%;
+  min-width: 0;
+}
+
+.simulator-skill-option,
+.option-picker-option {
+  display: block;
+  width: 100%;
+  border-radius: var(--mantine-radius-sm);
+  text-align: left;
+}
+
+.simulator-skill-option {
+  padding: 8px;
+}
+
+.option-picker-option {
+  padding: var(--mantine-spacing-xs);
+}
+
+.simulator-skill-unusable {
+  color: var(--mantine-color-dimmed);
+  opacity: 0.55;
+}
+
+.simulator-result-equipment-row {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: var(--mantine-spacing-xs);
+  padding: var(--mantine-spacing-xs) 0;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.simulator-result-equipment-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  min-width: 0;
+}
+
+@media (min-width: 48em) {
+  .simulator-result-equipment-detail {
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 1fr);
+    gap: var(--mantine-spacing-sm);
+  }
+}
+
+.simulator-skill-level-marks {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0;
+  vertical-align: middle;
+}
+
+.simulator-skill-level-marks svg {
+  display: block;
+  height: 11px;
+  flex: none;
+}
+
+.simulator-skill-option:hover,
+.simulator-skill-option:focus-visible,
+.option-picker-option:hover,
+.option-picker-option:focus-visible {
+  background: var(--mantine-color-default-hover);
 }
 
 @media (max-width: 47.99em) {
@@ -335,12 +431,8 @@ a {
     gap: var(--mantine-spacing-xs);
   }
 
-  .simulator-gear-select .mantine-Select-wrapper {
+  .simulator-gear-select .mantine-Button-root {
     min-width: 0;
-  }
-
-  .simulator-search-actions .simulator-search-button {
-    flex: 1 1 100%;
   }
 
   .hitzone-table {
@@ -363,7 +455,7 @@ a {
   }
 
   .section-tabs:not(.rank-tabs) .mantine-Tabs-tab {
-    flex: 0 0 auto;
+    flex: 1 0 auto;
   }
 
   .main-with-section-tabs {

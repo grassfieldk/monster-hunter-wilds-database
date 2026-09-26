@@ -23,7 +23,7 @@ export function HomePage() {
           装備一覧
         </Paper>
         <Paper component={Link} to="/simulator" withBorder p="sm" ta="center">
-          装備シミュレータ
+          装備検索ツール
         </Paper>
       </SimpleGrid>
       <Text size="sm" c="dimmed" ta="center">
