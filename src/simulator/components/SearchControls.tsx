@@ -1,4 +1,5 @@
-import { Button, Group, Paper, Select, Stack, Text } from '@mantine/core';
+import { ActionIcon, Button, Group, Select, Stack, Text } from '@mantine/core';
+import { IconTrash } from '@tabler/icons-react';
 import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
 import { text } from '../../data';
 import type { Skill } from '../../types';
@@ -81,113 +82,115 @@ export function SearchControls({
   );
 
   return (
-    <Paper withBorder p="md">
-      <Stack gap="sm">
-        <Text fw={600}>スキル条件から検索</Text>
-        <Group gap="xs">
-          <Button
-            size="xs"
-            variant={skillCategory === 'armor' ? 'filled' : 'light'}
-            onClick={() => setSkillCategory('armor')}
-          >
-            防具系スキル
-          </Button>
-          <Button
-            size="xs"
-            variant={skillCategory === 'weapon' ? 'filled' : 'light'}
-            onClick={() => setSkillCategory('weapon')}
-          >
-            武器系スキル
-          </Button>
-        </Group>
-        {targets.map((target, index) => (
-          <Group key={index} gap="xs" align="end" wrap="nowrap">
-            <Select
-              label={index === 0 ? 'スキル' : undefined}
-              placeholder="スキルを選択"
-              searchable
-              clearable
-              data={
-                target.id && !categorizedSkillOptions.some((option) => option.value === String(target.id))
-                  ? [...categorizedSkillOptions, ...skillOptions.filter((option) => option.value === String(target.id))]
-                  : categorizedSkillOptions
-              }
-              value={target.id ? String(target.id) : null}
-              onChange={(value) =>
-                setTargets((current) =>
-                  current.map((entry, at) =>
-                    at === index ? { id: Number(value), level: availableLevels.get(Number(value))?.[0] ?? 1 } : entry,
-                  ),
-                )
-              }
-              style={{ flex: 1 }}
-            />
-            <Select
-              label={index === 0 ? '必要 Lv' : undefined}
-              data={(availableLevels.get(target.id) ?? [1]).map((level) => ({
-                value: String(level),
-                label: String(level),
-              }))}
-              value={String(target.level)}
-              onChange={(value) =>
-                setTargets((current) =>
-                  current.map((entry, at) => (at === index ? { ...entry, level: Number(value) || 1 } : entry)),
-                )
-              }
-              w={92}
-            />
-            <Button
-              variant="subtle"
-              color="gray"
-              onClick={() => setTargets((current) => current.filter((_, at) => at !== index))}
-            >
-              削除
-            </Button>
-          </Group>
-        ))}
-        <Group gap="sm">
-          <Button variant="light" onClick={() => setTargets((current) => [...current, { id: 0, level: 1 }])}>
-            スキルを追加
-          </Button>
+    <Stack gap="sm">
+      <Text fw={600}>スキル条件から検索</Text>
+      <Group gap="xs">
+        <Button
+          size="xs"
+          variant={skillCategory === 'weapon' ? 'filled' : 'light'}
+          onClick={() => setSkillCategory('weapon')}
+        >
+          武器系スキル
+        </Button>
+        <Button
+          size="xs"
+          variant={skillCategory === 'armor' ? 'filled' : 'light'}
+          onClick={() => setSkillCategory('armor')}
+        >
+          防具系スキル
+        </Button>
+      </Group>
+      {targets.map((target, index) => (
+        <Group key={index} gap="xs" align="end" wrap="nowrap">
           <Select
-            aria-label="武器種"
-            placeholder="全武器種"
-            clearable
+            label={index === 0 ? 'スキル' : undefined}
+            placeholder="スキルを選択"
             searchable
-            data={weaponTypeOptions}
-            value={weaponType}
-            onChange={setWeaponType}
-            w={180}
+            clearable
+            data={
+              target.id && !categorizedSkillOptions.some((option) => option.value === String(target.id))
+                ? [...categorizedSkillOptions, ...skillOptions.filter((option) => option.value === String(target.id))]
+                : categorizedSkillOptions
+            }
+            value={target.id ? String(target.id) : null}
+            onChange={(value) =>
+              setTargets((current) =>
+                current.map((entry, at) =>
+                  at === index ? { id: Number(value), level: availableLevels.get(Number(value))?.[0] ?? 1 } : entry,
+                ),
+              )
+            }
+            style={{ flex: '1 1 12rem', minWidth: 0, maxWidth: 400 }}
           />
           <Select
-            aria-label="候補の優先順位"
-            data={[
-              { value: 'slots', label: '空きスロット優先' },
-              { value: 'defense', label: '防御・耐性優先' },
-            ]}
-            value={sort}
-            onChange={(value) => setSort(value === 'defense' ? 'defense' : 'slots')}
-            w={180}
+            label={index === 0 ? '必要 Lv' : undefined}
+            data={(availableLevels.get(target.id) ?? [1]).map((level) => ({
+              value: String(level),
+              label: String(level),
+            }))}
+            value={String(target.level)}
+            onChange={(value) =>
+              setTargets((current) =>
+                current.map((entry, at) => (at === index ? { ...entry, level: Number(value) || 1 } : entry)),
+              )
+            }
+            w={78}
           />
-          <Button onClick={onSearch} loading={searching}>
-            検索
-          </Button>
-          {searching && (
-            <Button variant="light" color="gray" onClick={onCancel}>
-              中断
-            </Button>
-          )}
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="md"
+            aria-label="スキルを削除"
+            onClick={() => setTargets((current) => current.filter((_, at) => at !== index))}
+          >
+            <IconTrash size={16} />
+          </ActionIcon>
         </Group>
+      ))}
+      <Group>
+        <Button variant="light" onClick={() => setTargets((current) => [...current, { id: 0, level: 1 }])}>
+          スキルを追加
+        </Button>
+      </Group>
+      <Group gap="sm" className="simulator-search-actions">
+        <Select
+          aria-label="武器種"
+          placeholder="全武器種"
+          clearable
+          searchable
+          data={weaponTypeOptions}
+          value={weaponType}
+          onChange={setWeaponType}
+          w={180}
+        />
+        <Select
+          aria-label="候補の優先順位"
+          data={[
+            { value: 'slots', label: '空き枠優先' },
+            { value: 'defense', label: '防御・耐性優先' },
+          ]}
+          value={sort}
+          onChange={(value) => setSort(value === 'defense' ? 'defense' : 'slots')}
+          w={180}
+        />
+        <Button onClick={onSearch} loading={searching} className="simulator-search-button">
+          検索
+        </Button>
         {searching && (
-          <Text size="sm">
-            {progress?.stage === 'preparing' ? '候補を準備中' : '検索中'}　確認した件数{' '}
-            {progress?.visited.toLocaleString() ?? 0} 件
-          </Text>
+          <Button variant="light" color="gray" onClick={onCancel}>
+            中断
+          </Button>
         )}
-        <Text size="xs" c="dimmed">
-          条件を満たす装備の上位 30 件を表示します。空き枠・防御力が同じ候補では、指定外スキルの有用性も比較します
+      </Group>
+      {searching && (
+        <Text size="sm">
+          {progress?.stage === 'preparing' ? '候補を準備中' : '検索中'}　確認した件数{' '}
+          {progress?.visited.toLocaleString() ?? 0} 件
         </Text>
-      </Stack>
-    </Paper>
+      )}
+      <Text size="xs" c="dimmed">
+        空き枠・防御力が同じ候補では、指定外スキルの有用性も比較します
+      </Text>
+    </Stack>
   );
 }

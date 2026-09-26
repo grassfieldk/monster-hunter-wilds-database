@@ -56,14 +56,14 @@ export function App() {
           <Container visibleFrom="sm" size="lg" h="100%" px={{ base: 'xs', sm: 'md' }}>
             <Group h="100%" justify="space-between" wrap="nowrap">
               <Anchor component={Link} to="/" c="inherit" underline="never">
-                <Text fw={600} visibleFrom="xs">
+                <Text fw={600} visibleFrom="md">
                   MHWilds データベース
                 </Text>
-                <Text fw={600} hiddenFrom="xs">
+                <Text fw={600} hiddenFrom="md">
                   MHWilds DB
                 </Text>
               </Anchor>
-              <Group visibleFrom="sm" gap="lg">
+              <Group visibleFrom="sm" gap="xs" wrap="nowrap" className="desktop-header-nav">
                 <Anchor component={Link} to="/monsters" c="inherit">
                   モンスター
                 </Anchor>
@@ -80,7 +80,7 @@ export function App() {
                   シミュレータ
                 </Anchor>
               </Group>
-              <Box visibleFrom="sm" style={{ width: 'min(42vw, 360px)' }}>
+              <Box visibleFrom="sm" style={{ width: 'clamp(180px, 24vw, 360px)' }}>
                 <SearchBox />
               </Box>
             </Group>

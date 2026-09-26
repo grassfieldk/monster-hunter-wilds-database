@@ -1,4 +1,5 @@
 import { Box, Tabs } from '@mantine/core';
+import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useDatabase } from '../data';
 import { itemCategoryKinds, itemCategoryLabels } from '../itemCategories';
@@ -57,7 +58,7 @@ export function SectionTabs() {
   const { pathname, search, hash } = useLocation();
   const { items } = useDatabase();
   const tabs = getSectionTabs(pathname, new Set(items.map((item) => item.kind)));
-  if (!tabs.length) return null;
+  const listRef = useRef<HTMLDivElement>(null);
   const selected =
     pathname === '/simulator'
       ? 'simulator'
@@ -70,13 +71,18 @@ export function SectionTabs() {
       ? getRememberedDetailSection('item')
       : pathname.startsWith('/quests/')
         ? getRememberedDetailSection('quest')
-        : tabs[0].target;
+        : tabs[0]?.target;
   const defaultValue = tabs.some((tab) => tab.target === selected) ? selected : fallback;
+  useEffect(() => {
+    if (!defaultValue || !window.matchMedia('(max-width: 47.99em)').matches) return;
+    listRef.current?.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }, [defaultValue]);
+  if (!tabs.length) return null;
 
   return (
     <Box className="section-tabs">
       <Tabs value={defaultValue} variant="pills" inverted>
-        <Tabs.List grow>
+        <Tabs.List ref={listRef} grow>
           {tabs.map((tab) => (
             <Tabs.Tab
               key={tab.target}

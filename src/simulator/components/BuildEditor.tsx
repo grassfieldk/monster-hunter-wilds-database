@@ -1,4 +1,4 @@
-import { Button, Group, Paper, Select, SimpleGrid, Stack, Table, Text } from '@mantine/core';
+import { Button, Group, Select, SimpleGrid, Stack, Table, Text } from '@mantine/core';
 import { type Dispatch, type SetStateAction, useMemo } from 'react';
 import { text } from '../../data';
 import type { Skill, SkillLevel } from '../../types';
@@ -94,100 +94,98 @@ export function BuildEditor({ build, setBuild, data, skillById, skillLevels, ava
   };
 
   return (
-    <Paper withBorder p="md">
-      <Stack gap="md">
-        <Group justify="space-between">
-          <Text fw={600}>装備を組む</Text>
-          <Button size="xs" variant="light" onClick={onShare}>
-            URL をコピー
-          </Button>
-        </Group>
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-          {equipmentSlots.map((slot) => {
-            const item =
-              slot === 'weapon'
-                ? equipped.weapon
-                : slot === 'amulet'
-                  ? equipped.amulet
-                  : equipped.armor[armorSlots.indexOf(slot)];
-            const levels = item && 'slots' in item ? item.slots.filter((level) => level > 0) : [];
-            return (
-              <Stack key={slot} gap="xs">
+    <Stack gap="md">
+      <Group justify="space-between" align="start">
+        <Text fw={600}>装備を組む</Text>
+        <Button size="xs" variant="light" onClick={onShare}>
+          URL をコピー
+        </Button>
+      </Group>
+      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+        {equipmentSlots.map((slot) => {
+          const item =
+            slot === 'weapon'
+              ? equipped.weapon
+              : slot === 'amulet'
+                ? equipped.amulet
+                : equipped.armor[armorSlots.indexOf(slot)];
+          const levels = item && 'slots' in item ? item.slots.filter((level) => level > 0) : [];
+          return (
+            <Stack key={slot} gap="xs">
+              <Select
+                className="simulator-gear-select"
+                label={slotLabels[slot]}
+                placeholder={`${slotLabels[slot]}を選択`}
+                searchable={slot === 'amulet'}
+                clearable
+                data={gearOptions[slot]}
+                value={build[slot]}
+                onChange={(value) => updateGear(slot, value)}
+              />
+              {levels.map((level, index) => (
                 <Select
-                  label={slotLabels[slot]}
+                  key={index}
+                  size="xs"
+                  label={`装飾品 ${index + 1}（スロット ${level}）`}
                   searchable
                   clearable
-                  data={gearOptions[slot]}
-                  value={build[slot]}
-                  onChange={(value) => updateGear(slot, value)}
+                  data={(
+                    decorationOptions.get(
+                      slot === 'amulet' && isVirtualAmulet(item) ? item.slotTypes[index] : decorationTypeForSlot(slot),
+                    ) ?? []
+                  )
+                    .filter((deco) => deco.required_slot <= level)
+                    .map((deco) => ({ value: String(deco.game_id), label: text(deco.names) }))}
+                  value={build.decorations[slot]?.[index] == null ? null : String(build.decorations[slot]?.[index])}
+                  onChange={(value) =>
+                    setBuild((current) => {
+                      const ids = [...(current.decorations[slot] ?? [])];
+                      ids[index] = value === null ? null : Number(value);
+                      return { ...current, decorations: { ...current.decorations, [slot]: ids } };
+                    })
+                  }
                 />
-                {levels.map((level, index) => (
-                  <Select
-                    key={index}
-                    size="xs"
-                    label={`装飾品 ${index + 1}（スロット ${level}）`}
-                    searchable
-                    clearable
-                    data={(
-                      decorationOptions.get(
-                        slot === 'amulet' && isVirtualAmulet(item)
-                          ? item.slotTypes[index]
-                          : decorationTypeForSlot(slot),
-                      ) ?? []
-                    )
-                      .filter((deco) => deco.required_slot <= level)
-                      .map((deco) => ({ value: String(deco.game_id), label: text(deco.names) }))}
-                    value={build.decorations[slot]?.[index] == null ? null : String(build.decorations[slot]?.[index])}
-                    onChange={(value) =>
-                      setBuild((current) => {
-                        const ids = [...(current.decorations[slot] ?? [])];
-                        ids[index] = value === null ? null : Number(value);
-                        return { ...current, decorations: { ...current.decorations, [slot]: ids } };
-                      })
-                    }
-                  />
-                ))}
-              </Stack>
-            );
-          })}
-        </SimpleGrid>
-        <ArtianSkillEditor build={build} setBuild={setBuild} data={data} weapon={equipped.weapon} />
-        <RandomAmuletEditor build={build} setBuild={setBuild} data={data} />
-        <ArtianBonusEditor build={build} setBuild={setBuild} data={data} weapon={equipped.weapon} />
-        <Group gap="lg">
-          <Text size="sm">防御力 {summary.defense}</Text>
-          <Text size="sm">耐性 {summary.resistances.join(' / ')}</Text>
-          <Text size="sm">空きスロット {summary.freeSlots.join('・') || 'なし'}</Text>
-        </Group>
-        <Text size="xs" c="dimmed">
-          防御力は防具の強化前の値です
-        </Text>
-        {equipped.weapon && (
-          <Group gap="lg">
-            <Text size="sm">攻撃力 {summary.attack}</Text>
-            <Text size="sm">会心率 {summary.affinity}%</Text>
-            <Text size="sm">属性値 {summary.attributeValue}</Text>
-            {summary.sharpnessBonus > 0 && <Text size="sm">斬れ味強化 +{summary.sharpnessBonus}</Text>}
-          </Group>
-        )}
-        <Table withTableBorder withColumnBorders>
-          <Table.Tbody>
-            {[...summary.skills]
-              .sort((a, b) => text(skillById.get(a[0])?.names).localeCompare(text(skillById.get(b[0])?.names), 'ja'))
-              .map(([id, level]) => (
-                <Table.Tr key={id}>
-                  <Table.Td>{text(skillById.get(id)?.names) || `ID ${id}`}</Table.Td>
-                  <Table.Td>Lv {level}</Table.Td>
-                  <Table.Td>
-                    {activeLevel(id, level) === null
-                      ? '未発動'
-                      : (skillEffects.get(`${id}:${activeLevel(id, level)}`) ?? '')}
-                  </Table.Td>
-                </Table.Tr>
               ))}
-          </Table.Tbody>
-        </Table>
-      </Stack>
-    </Paper>
+            </Stack>
+          );
+        })}
+      </SimpleGrid>
+      <ArtianSkillEditor build={build} setBuild={setBuild} data={data} weapon={equipped.weapon} />
+      <RandomAmuletEditor build={build} setBuild={setBuild} data={data} />
+      <ArtianBonusEditor build={build} setBuild={setBuild} data={data} weapon={equipped.weapon} />
+      <Group gap="lg">
+        <Text size="sm">防御力 {summary.defense}</Text>
+        <Text size="sm">耐性 {summary.resistances.join(' / ')}</Text>
+        <Text size="sm">空きスロット {summary.freeSlots.join('・') || 'なし'}</Text>
+      </Group>
+      <Text size="xs" c="dimmed">
+        防御力は防具の強化前の値です
+      </Text>
+      {equipped.weapon && (
+        <Group gap="lg">
+          <Text size="sm">攻撃力 {summary.attack}</Text>
+          <Text size="sm">会心率 {summary.affinity}%</Text>
+          <Text size="sm">属性値 {summary.attributeValue}</Text>
+          {summary.sharpnessBonus > 0 && <Text size="sm">斬れ味強化 +{summary.sharpnessBonus}</Text>}
+        </Group>
+      )}
+      <Table withTableBorder withColumnBorders>
+        <Table.Tbody>
+          {[...summary.skills]
+            .sort((a, b) => text(skillById.get(a[0])?.names).localeCompare(text(skillById.get(b[0])?.names), 'ja'))
+            .map(([id, level]) => (
+              <Table.Tr key={id}>
+                <Table.Td>{text(skillById.get(id)?.names) || `ID ${id}`}</Table.Td>
+                <Table.Td>Lv {level}</Table.Td>
+                <Table.Td>
+                  {activeLevel(id, level) === null
+                    ? '未発動'
+                    : (skillEffects.get(`${id}:${activeLevel(id, level)}`) ?? '')}
+                </Table.Td>
+              </Table.Tr>
+            ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }

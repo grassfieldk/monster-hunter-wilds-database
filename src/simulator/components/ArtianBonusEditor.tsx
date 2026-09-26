@@ -21,7 +21,7 @@ export function ArtianBonusEditor({ build, setBuild, data, weapon }: Props) {
             アーティア武器の復元強化
           </Text>
           {(build.weaponBonuses ?? []).map((id, index) => (
-            <Group key={index} gap="xs" wrap="nowrap">
+            <Group key={index} gap="xs" wrap="wrap">
               <Select
                 aria-label={`復元強化 ${index + 1}`}
                 value={String(id)}
@@ -41,7 +41,7 @@ export function ArtianBonusEditor({ build, setBuild, data, weapon }: Props) {
                     ),
                   }))
                 }
-                style={{ flex: 1 }}
+                style={{ flex: '1 1 12rem', minWidth: 0 }}
               />
               <Button
                 size="xs"
