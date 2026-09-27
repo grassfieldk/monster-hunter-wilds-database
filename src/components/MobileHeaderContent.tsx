@@ -50,16 +50,20 @@ export function MobileHeaderContent() {
     const item = itemById.get(Number(itemMatch[1]));
     if (item) {
       return (
-        <Group w="100%" gap="xs" wrap="nowrap">
-          <Badge size="sm" variant="light">
-            RARE {item.rarity}
-          </Badge>
-          <Text size="md" truncate>
-            {text(item.names)}
-          </Text>
-          <Text size="sm" c="dimmed" truncate>
-            {label(item.kind)}
-          </Text>
+        <Group w="100%" gap="xs" justify="space-between" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap" miw={0}>
+            <Badge size="sm" variant="light">
+              RARE {item.rarity}
+            </Badge>
+            <Text size="md" truncate>
+              {text(item.names)}
+            </Text>
+          </Group>
+          {item.reading && (
+            <Text size="sm" c="dimmed" ta="right" truncate>
+              {item.reading}
+            </Text>
+          )}
         </Group>
       );
     }

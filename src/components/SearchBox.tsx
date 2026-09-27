@@ -7,7 +7,7 @@ import { FormattedText } from './FormattedText';
 
 type Result = {
   id: string;
-  kind: 'monsters' | 'items' | 'equipment' | 'skills';
+  kind: 'monsters' | 'items' | 'skills';
   label: string;
   path: string;
   name: string;
@@ -36,12 +36,14 @@ function matchesSearch(query: string, candidate: string) {
   return false;
 }
 
-function itemSearchAliases(itemName: string, monsterNames: string[]) {
-  const aliases = [itemName];
+function itemSearchAliases(itemName: string, itemReading: string, monsters: { name: string; reading: string }[]) {
+  const aliases = [itemName, itemReading];
   const separatorIndex = itemName.indexOf('の');
   const suffix = separatorIndex >= 0 ? itemName.slice(separatorIndex) : itemName;
-  for (const monsterName of monsterNames) {
-    aliases.push(monsterName, `${monsterName}${suffix}`);
+  const readingSeparatorIndex = itemReading.indexOf('の');
+  const readingSuffix = readingSeparatorIndex >= 0 ? itemReading.slice(readingSeparatorIndex) : itemReading;
+  for (const monster of monsters) {
+    aliases.push(monster.name, `${monster.name}${suffix}`, monster.reading, `${monster.reading}${readingSuffix}`);
   }
   return aliases;
 }
@@ -55,7 +57,7 @@ export function SearchBox({
   onNavigate?: () => void;
   resultsPlacement?: 'top' | 'bottom';
 }) {
-  const { items, monsters, weapons, armor, amulets, decorations, skills } = useDatabase();
+  const { items, monsters, skills } = useDatabase();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const normalized = normalizeSearch(query.trim());
@@ -66,6 +68,7 @@ export function SearchBox({
 
   const searchableEntries = useMemo<SearchEntry[]>(() => {
     const itemMonsterNames = new Map<number, string[]>();
+    const monsterByName = new Map(monsters.map((monster) => [text(monster.names), monster]));
     for (const monster of monsters) {
       const monsterName = text(monster.names);
       for (const reward of monster.rewards) {
@@ -82,7 +85,7 @@ export function SearchBox({
         path: `/monsters/${monster.game_id}`,
         name: text(monster.names),
         description: text(monster.descriptions),
-        searchAliases: [text(monster.names)],
+        searchAliases: [text(monster.names), monster.reading ?? ''],
       })),
       ...items.map((item) => ({
         id: String(item.game_id),
@@ -91,43 +94,14 @@ export function SearchBox({
         path: `/items/${item.game_id}`,
         name: text(item.names),
         description: text(item.descriptions),
-        searchAliases: itemSearchAliases(text(item.names), itemMonsterNames.get(item.game_id) ?? []),
-      })),
-      ...weapons.map((weapon) => ({
-        id: weapon.game_id,
-        kind: 'equipment' as const,
-        label: weapon.category,
-        path: `/equipment/weapons/${encodeURIComponent(weapon.game_id)}`,
-        name: text(weapon.names),
-        description: text(weapon.descriptions),
-        searchAliases: [text(weapon.names)],
-      })),
-      ...armor.map((item) => ({
-        id: item.game_id,
-        kind: 'equipment' as const,
-        label: '防具',
-        path: `/equipment/armor/${encodeURIComponent(item.game_id)}`,
-        name: text(item.names),
-        description: text(item.descriptions),
-        searchAliases: [text(item.names)],
-      })),
-      ...amulets.map((item) => ({
-        id: item.game_id,
-        kind: 'equipment' as const,
-        label: '護石',
-        path: `/equipment/amulets/${encodeURIComponent(item.game_id)}`,
-        name: text(item.names),
-        description: text(item.descriptions),
-        searchAliases: [text(item.names)],
-      })),
-      ...decorations.map((item) => ({
-        id: String(item.game_id),
-        kind: 'equipment' as const,
-        label: '装飾品',
-        path: `/equipment/decorations/${encodeURIComponent(String(item.game_id))}`,
-        name: text(item.names),
-        description: text(item.descriptions),
-        searchAliases: [text(item.names)],
+        searchAliases: itemSearchAliases(
+          text(item.names),
+          item.reading ?? '',
+          (itemMonsterNames.get(item.game_id) ?? []).map((name) => ({
+            name,
+            reading: monsterByName.get(name)?.reading ?? '',
+          })),
+        ),
       })),
       ...skills.map((skill) => ({
         id: String(skill.game_id),
@@ -142,7 +116,7 @@ export function SearchBox({
       ...entry,
       normalizedAliases: entry.searchAliases.map(normalizeSearch),
     }));
-  }, [armor, amulets, decorations, items, monsters, skills, weapons]);
+  }, [items, monsters, skills]);
 
   const results = useMemo<Result[]>(() => {
     if (!normalized) return [];

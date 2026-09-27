@@ -17,6 +17,7 @@ export type ItemRecipe = {
 export type Item = {
   game_id: number;
   names: LocalizedText;
+  reading?: string;
   descriptions: LocalizedText;
   kind: string;
   rarity: number;
@@ -170,6 +171,7 @@ export type Monster = {
   game_id: number;
   species: string;
   names: LocalizedText;
+  reading?: string;
   descriptions: LocalizedText;
   features: LocalizedText;
   tips: LocalizedText;

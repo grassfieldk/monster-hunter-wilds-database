@@ -3,7 +3,6 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { FormattedText } from '../components/FormattedText';
 import { ItemSources } from '../components/ItemSources';
 import { text, useDatabase } from '../data';
-import { label } from '../labels';
 import { detailSections, useDetailSection } from '../sections';
 import { NotFoundPage } from './NotFoundPage';
 
@@ -42,15 +41,19 @@ export function ItemPage() {
   return (
     <Stack className="page-stack" gap="lg">
       <Box visibleFrom="sm">
-        <Group gap="sm">
-          <Title order={1} size="h3">
-            {text(item.names)}
-          </Title>
-          <Badge variant="light">RARE {item.rarity}</Badge>
+        <Group w="100%" justify="space-between" align="flex-start" gap="md" wrap="nowrap">
+          <Group gap="sm" wrap="nowrap" miw={0}>
+            <Title order={1} size="h3">
+              {text(item.names)}
+            </Title>
+            <Badge variant="light">RARE {item.rarity}</Badge>
+          </Group>
+          {item.reading && (
+            <Text c="dimmed" size="sm" ta="right">
+              {item.reading}
+            </Text>
+          )}
         </Group>
-        <Text c="dimmed" mt={4}>
-          {label(item.kind)}
-        </Text>
         <FormattedText
           className="long-description"
           size="sm"

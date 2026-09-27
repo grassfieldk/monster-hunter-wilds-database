@@ -738,6 +738,12 @@ fs.writeFileSync(
     gameFiles,
     supplementalSources: [
       { name: 'WildsSim', url: 'https://github.com/EXXXI/WildsSim', license: 'MIT', data: ['random-amulet-data'] },
+      {
+        name: 'Kuromoji',
+        url: 'https://github.com/takuyaa/kuromoji.js',
+        license: 'Apache-2.0',
+        data: ['Japanese monster and item readings'],
+      },
     ],
   }),
 );

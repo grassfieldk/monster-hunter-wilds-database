@@ -1,5 +1,6 @@
 import { Center, Loader, Stack, Text } from '@mantine/core';
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { parseMonsterEpithet } from './monsterEpithet.mjs';
 import type { ArtianSkillData, RandomAmuletData } from './simulator/model';
 import type {
   Amulet,
@@ -216,7 +217,7 @@ export function text(value?: Record<string, string>) {
 export function monsterEpithet(monster: Monster) {
   const monsterName = text(monster.names);
   for (const source of [monster.features, monster.descriptions]) {
-    const candidate = text(source).match(/≪([^≫]+)≫/u)?.[1];
+    const candidate = parseMonsterEpithet(text(source))?.value;
     if (candidate && candidate !== monsterName && /[\u3400-\u9fff]/u.test(candidate)) return candidate;
   }
   return undefined;

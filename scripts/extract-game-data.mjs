@@ -50,4 +50,5 @@ for (const name of [
   fs.copyFileSync(path.join(site, `${name}.json`), path.join(publicData, `${name}.json`));
 }
 run('scripts/internal/build-random-amulet-data.mjs');
+run('scripts/internal/build-japanese-readings.mjs');
 console.log('ゲームデータからサイト用データを生成しました');
