@@ -293,11 +293,12 @@ function selectRandomAmulets(
   return { items, examined };
 }
 
-function* allWeapons(data: GearData, weaponType: string | null): Generator<Gear> {
+function* allWeapons(data: GearData, weaponType: string | null, includeArtian: boolean): Generator<Gear> {
   for (const weapon of data.weapons)
     if (!data.artianSkills.weaponIds.includes(weapon.game_id) && (!weaponType || weapon.weapon_type === weaponType))
       yield weapon;
-  for (const weapon of artianWeapons(data)) if (!weaponType || weapon.weapon_type === weaponType) yield weapon;
+  if (includeArtian)
+    for (const weapon of artianWeapons(data)) if (!weaponType || weapon.weapon_type === weaponType) yield weapon;
 }
 
 function makeCandidates(
@@ -447,6 +448,7 @@ export function searchBuilds(
   includeMeldingOnly = false,
   seriesTargets: SkillTarget[] = [],
   stopAfterFirst = false,
+  includeArtian = true,
 ): SearchResult[] {
   if (!targets.length) return [];
   const seriesRequirements = seriesTargets.slice(0, maxSeriesSkillTargets);
@@ -461,6 +463,7 @@ export function searchBuilds(
       includeMeldingOnly,
       [],
       true,
+      includeArtian,
     );
     if (!seriesResults.length) {
       onProgress?.({ stage: 'searching', visited: 0, found: 0, results: [] });
@@ -501,12 +504,15 @@ export function searchBuilds(
     decorationOptions.set(key, options);
     return options;
   };
+  const artianWeaponIds = new Set(data.artianSkills.weaponIds);
   const profiles = [
     ...new Map(
-      data.weapons.map((weapon) => [
-        `${weapon.weapon_type}:${weapon.attribute_value > 0 ? weapon.attribute : 0}:${weapon.sub_attribute_value > 0 ? weapon.sub_attribute : 0}`,
-        weapon,
-      ]),
+      data.weapons
+        .filter((weapon) => includeArtian || !artianWeaponIds.has(weapon.game_id))
+        .map((weapon) => [
+          `${weapon.weapon_type}:${weapon.attribute_value > 0 ? weapon.attribute : 0}:${weapon.sub_attribute_value > 0 ? weapon.sub_attribute : 0}`,
+          weapon,
+        ]),
     ).values(),
   ];
   const allMask = (1n << BigInt(profiles.length)) - 1n;
@@ -559,7 +565,6 @@ export function searchBuilds(
       ),
     );
   };
-  const artianWeaponIds = new Set(data.artianSkills.weaponIds);
   const directPotentialBySlot = new Map<EquipmentSlot, number[]>();
   const decoratedPotentialBySlot = new Map<EquipmentSlot, number[]>();
   const randomAmuletPotential = targets.map(() => 0);
@@ -568,7 +573,10 @@ export function searchBuilds(
     const decoratedMaxima = targets.map(() => 0);
     const items: Gear[] =
       slot === 'weapon'
-        ? data.weapons.filter((item) => !weaponType || item.weapon_type === weaponType)
+        ? data.weapons.filter(
+            (item) =>
+              (!weaponType || item.weapon_type === weaponType) && (includeArtian || !artianWeaponIds.has(item.game_id)),
+          )
         : slot === 'amulet'
           ? data.amulets
           : data.armor.filter((item) => item.part === armorSlots.indexOf(slot));
@@ -633,7 +641,7 @@ export function searchBuilds(
     const selectedAmulets = slot === 'amulet' && phase === 3 ? selectedRandomAmulets : null;
     const items: Iterable<Gear> =
       slot === 'weapon'
-        ? allWeapons(data, weaponType)
+        ? allWeapons(data, weaponType, includeArtian)
         : slot === 'amulet'
           ? (selectedAmulets?.items ?? data.amulets)
           : data.armor.filter((item) => item.part === armorSlots.indexOf(slot));

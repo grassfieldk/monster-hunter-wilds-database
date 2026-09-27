@@ -1,4 +1,4 @@
-import { Button, Checkbox, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Button, Checkbox, Group, SimpleGrid, Stack, Text } from '@mantine/core';
 import { type Dispatch, type SetStateAction, useMemo } from 'react';
 import { OptionPicker } from '../../components/OptionPicker';
 import { text } from '../../data';
@@ -27,6 +27,8 @@ type Props = {
   setWeaponType: Dispatch<SetStateAction<string | null>>;
   includeMeldingOnly: boolean;
   setIncludeMeldingOnly: Dispatch<SetStateAction<boolean>>;
+  includeArtian: boolean;
+  setIncludeArtian: Dispatch<SetStateAction<boolean>>;
   searching: boolean;
   progress: SearchProgress | null;
   onSearch: () => void;
@@ -52,6 +54,8 @@ export function SearchControls({
   setWeaponType,
   includeMeldingOnly,
   setIncludeMeldingOnly,
+  includeArtian,
+  setIncludeArtian,
   searching,
   progress,
   onSearch,
@@ -119,8 +123,8 @@ export function SearchControls({
     [weapons],
   );
   const criteria = useMemo(
-    () => ({ weaponTargets, armorTargets, seriesTargets, sort, weaponType, includeMeldingOnly }),
-    [weaponTargets, armorTargets, seriesTargets, sort, weaponType, includeMeldingOnly],
+    () => ({ weaponTargets, armorTargets, seriesTargets, sort, weaponType, includeMeldingOnly, includeArtian }),
+    [weaponTargets, armorTargets, seriesTargets, sort, weaponType, includeMeldingOnly, includeArtian],
   );
 
   return (
@@ -139,14 +143,23 @@ export function SearchControls({
         />
         <Stack gap={4}>
           <Text size="sm" fw={500}>
-            錬金装飾
+            ランダム装備
           </Text>
-          <div className="simulator-melding-checkbox-control">
-            <Checkbox
-              label="含める"
-              checked={includeMeldingOnly}
-              onChange={(event) => setIncludeMeldingOnly(event.currentTarget.checked)}
-            />
+          <div className="simulator-random-equipment-control">
+            <Group gap="xs" wrap="nowrap">
+              <Checkbox
+                size="xs"
+                label="錬金装飾"
+                checked={includeMeldingOnly}
+                onChange={(event) => setIncludeMeldingOnly(event.currentTarget.checked)}
+              />
+              <Checkbox
+                size="xs"
+                label="アーティア"
+                checked={includeArtian}
+                onChange={(event) => setIncludeArtian(event.currentTarget.checked)}
+              />
+            </Group>
           </div>
         </Stack>
       </SimpleGrid>

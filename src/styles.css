@@ -338,7 +338,7 @@ a {
   padding-inline: 8px;
 }
 
-.simulator-melding-checkbox-control {
+.simulator-random-equipment-control {
   display: flex;
   align-items: center;
   height: calc(2.25rem * var(--mantine-scale));

@@ -88,6 +88,8 @@ export function SimulatorPage() {
     setWeaponType,
     includeMeldingOnly,
     setIncludeMeldingOnly,
+    includeArtian,
+    setIncludeArtian,
     progress,
     results,
     searching,
@@ -144,6 +146,8 @@ export function SimulatorPage() {
         setWeaponType={setWeaponType}
         includeMeldingOnly={includeMeldingOnly}
         setIncludeMeldingOnly={setIncludeMeldingOnly}
+        includeArtian={includeArtian}
+        setIncludeArtian={setIncludeArtian}
         searching={searching}
         progress={progress}
         onSearch={startSearch}

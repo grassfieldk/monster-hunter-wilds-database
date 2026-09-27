@@ -113,6 +113,7 @@ test('検索条件と結果を保存して復元できる', () => {
       sort: 'slots',
       weaponType: 'LongSword',
       includeMeldingOnly: false,
+      includeArtian: false,
       progress: { stage: 'searching', visited: 100, found: 1, results: [result] },
       results: [result],
       searching: false,
@@ -125,10 +126,12 @@ test('検索条件と結果を保存して復元できる', () => {
     });
     const { seriesTargets: _, searchedTargets: __, ...previousVersion } = saved;
     delete previousVersion.includeMeldingOnly;
+    delete previousVersion.includeArtian;
     storage.set('simulator-search-v1', JSON.stringify(previousVersion));
     assert.deepEqual(readSavedSearch()?.seriesTargets, []);
     assert.deepEqual(readSavedSearch()?.searchedTargets, []);
     assert.equal(readSavedSearch()?.includeMeldingOnly, false);
+    assert.equal(readSavedSearch()?.includeArtian, true);
   } finally {
     if (previous === undefined) delete globalThis.localStorage;
     else globalThis.localStorage = previous;
@@ -150,10 +153,12 @@ test('名前付き検索条件を最大 30 件まで保存し、削除後に再�
       sort: 'slots',
       weaponType: 'LongSword',
       includeMeldingOnly: false,
+      includeArtian: false,
     };
     const presets = Array.from({ length: 30 }, (_, index) => saveSearchPreset(`条件 ${index}`, criteria));
     assert.ok(presets.every((result) => 'preset' in result));
     assert.equal(readSearchPresets().length, 30);
+    assert.ok(readSearchPresets().every((preset) => !preset.criteria.includeArtian));
     assert.deepEqual(saveSearchPreset('条件 0', criteria), { error: 'duplicate' });
     assert.deepEqual(saveSearchPreset('条件 30', criteria), { error: 'limit' });
     const first = presets[0].preset;
@@ -194,6 +199,7 @@ test('保存済み検索条件が 30 件を超えている場合は新しい 30 
       readSearchPresets().map((preset) => preset.name),
       Array.from({ length: 30 }, (_, index) => `条件 ${index + 2}`),
     );
+    assert.ok(readSearchPresets().every((preset) => preset.criteria.includeArtian));
     assert.equal(JSON.parse(storage.get('simulator-search-presets-v1')).length, 30);
   } finally {
     if (previous === undefined) delete globalThis.localStorage;
@@ -244,6 +250,21 @@ test('防具、通常護石、装飾品、鑑定護石の順に検索する', ()
   assert.equal(results[0].build.head, 'direct-head');
   assert.ok(results.some((result) => result.phase === 2 && result.build.decorations.head?.includes(10)));
   assert.ok(results.some((result) => result.phase === 3 && result.build.amulet?.startsWith('random-amulet:')));
+});
+
+test('アーティア武器を検索対象から切り替えられる', () => {
+  const data = fixture();
+  data.weapons.push(weapon('artian-source'));
+  data.artianSkills.weaponIds = ['artian-source'];
+  data.artianSkills.skillPairs = [{ groupSkillId: 2, seriesSkillId: 3 }];
+  data.skillNames[2] = 'アーティアスキル';
+  data.skillNames[3] = 'シリーズスキル';
+  data.maxSkillLevels[2] = 1;
+  data.maxSkillLevels[3] = 1;
+  const target = [{ id: 2, level: 1 }];
+  const included = searchBuilds(data, target, 'slots');
+  assert.ok(included.some((result) => result.build.weapon === 'artian:artian-source:2.3'));
+  assert.deepEqual(searchBuilds(data, target, 'slots', null, undefined, false, false, [], false, false), []);
 });
 
 test('装飾品で上限に達したら鑑定護石を準備しない', () => {

@@ -10,6 +10,7 @@ export type SearchCriteria = {
   sort: SortMode;
   weaponType: string | null;
   includeMeldingOnly: boolean;
+  includeArtian: boolean;
 };
 
 export type SearchPreset = {
@@ -46,18 +47,17 @@ function validCriteria(value: unknown): value is SearchCriteria {
     value.seriesTargets.length <= maxSeriesSkillTargets &&
     (value.sort === 'slots' || value.sort === 'defense') &&
     (value.weaponType === null || typeof value.weaponType === 'string') &&
-    typeof value.includeMeldingOnly === 'boolean'
+    typeof value.includeMeldingOnly === 'boolean' &&
+    typeof value.includeArtian === 'boolean'
   );
 }
 
-function validPreset(value: unknown): value is SearchPreset {
-  return (
-    isRecord(value) &&
-    typeof value.id === 'string' &&
-    typeof value.name === 'string' &&
-    value.name.trim().length > 0 &&
-    validCriteria(value.criteria)
-  );
+function parsePreset(value: unknown): SearchPreset | null {
+  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.name !== 'string' || !value.name.trim())
+    return null;
+  if (!isRecord(value.criteria)) return null;
+  const criteria = { ...value.criteria, includeArtian: value.criteria.includeArtian ?? true };
+  return validCriteria(criteria) ? { id: value.id, name: value.name, criteria } : null;
 }
 
 export function readSearchPresets(): SearchPreset[] {
@@ -66,7 +66,7 @@ export function readSearchPresets(): SearchPreset[] {
     if (!raw) return [];
     const saved: unknown = JSON.parse(raw);
     if (!Array.isArray(saved)) return [];
-    const presets = saved.filter(validPreset);
+    const presets = saved.map(parsePreset).filter((preset): preset is SearchPreset => preset !== null);
     const limited = presets.slice(-maxSearchPresets);
     if (limited.length < presets.length) {
       try {

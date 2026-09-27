@@ -10,6 +10,7 @@ self.onmessage = (
     weaponRequired: boolean;
     includeMeldingOnly: boolean;
     seriesTargets: SkillTarget[];
+    includeArtian: boolean;
   }>,
 ) => {
   try {
@@ -23,6 +24,8 @@ self.onmessage = (
         event.data.weaponRequired,
         event.data.includeMeldingOnly,
         event.data.seriesTargets,
+        false,
+        event.data.includeArtian,
       ),
     });
   } catch (error) {

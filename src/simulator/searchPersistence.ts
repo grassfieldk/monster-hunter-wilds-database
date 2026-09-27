@@ -11,6 +11,7 @@ export type SavedSearch = {
   sort: SortMode;
   weaponType: string | null;
   includeMeldingOnly: boolean;
+  includeArtian: boolean;
   progress: SearchProgress | null;
   results: SearchResult[];
   searching: boolean;
@@ -67,6 +68,7 @@ export function readSavedSearch(): SavedSearch | null {
     if (saved.sort !== 'slots' && saved.sort !== 'defense') return null;
     if (saved.weaponType !== null && typeof saved.weaponType !== 'string') return null;
     if (saved.includeMeldingOnly !== undefined && typeof saved.includeMeldingOnly !== 'boolean') return null;
+    if (saved.includeArtian !== undefined && typeof saved.includeArtian !== 'boolean') return null;
     if (!Array.isArray(saved.results) || !saved.results.every(validResult)) return null;
     const progress = saved.progress;
     if (
@@ -85,6 +87,7 @@ export function readSavedSearch(): SavedSearch | null {
       sort: saved.sort,
       weaponType: saved.weaponType,
       includeMeldingOnly: saved.includeMeldingOnly ?? false,
+      includeArtian: saved.includeArtian ?? true,
       progress: progress as SearchProgress | null,
       results: saved.results.slice(0, 10),
       searching: saved.searching === true,
