@@ -424,6 +424,7 @@ function bestDecorations(
   equippedSkills: EquipmentSkill[],
   maxSkillLevels: Record<number, number>,
   skillNames: Record<number, string>,
+  feasibilityCache: Map<string, boolean>,
 ) {
   const needed = targets.map((target, index) => Math.max(0, target.level - initial[index]));
   if (needed.every((value) => value === 0))
@@ -433,6 +434,39 @@ function bestDecorations(
       utility: 0,
     };
   const options = slots.map((slot) => optionsFor(slot, weapon));
+  const feasibilityKey = `${weapon.weapon_type}:${weapon.attribute_value > 0 ? weapon.attribute : 0}:${weapon.sub_attribute_value > 0 ? weapon.sub_attribute : 0}|${needed.join(',')}|${slots
+    .map((slot) => `${slot.type}.${slot.level}`)
+    .sort()
+    .join(',')}`;
+  let feasible = feasibilityCache.get(feasibilityKey);
+  if (feasible === undefined) {
+    const remainingGain = Array.from({ length: slots.length + 1 }, () => targets.map(() => 0));
+    for (let index = slots.length - 1; index >= 0; index--)
+      for (let targetIndex = 0; targetIndex < targets.length; targetIndex++)
+        remainingGain[index][targetIndex] =
+          remainingGain[index + 1][targetIndex] +
+          options[index].reduce((best, option) => Math.max(best, option.gains[targetIndex]), 0);
+    const feasibilityMemo = new Map<string, boolean>();
+    const canFill = (index: number, deficit: number[]): boolean => {
+      if (deficit.every((value) => value === 0)) return true;
+      if (index === slots.length || deficit.some((value, at) => value > remainingGain[index][at])) return false;
+      const key = `${index}:${deficit.join(',')}`;
+      const cached = feasibilityMemo.get(key);
+      if (cached !== undefined) return cached;
+      const possible =
+        canFill(index + 1, deficit) ||
+        options[index].some((option) => {
+          const next = deficit.map((value, at) => Math.max(0, value - option.gains[at]));
+          return next.some((value, at) => value < deficit[at]) && canFill(index + 1, next);
+        });
+      feasibilityMemo.set(key, possible);
+      return possible;
+    };
+    feasible = canFill(0, needed);
+    if (feasibilityCache.size >= 20_000) feasibilityCache.delete(feasibilityCache.keys().next().value ?? '');
+    feasibilityCache.set(feasibilityKey, feasible);
+  }
+  if (!feasible) return null;
   const targetIds = new Set(targets.map((target) => target.id));
   const utilityIds = [
     ...new Set(options.flatMap((entries) => entries.flatMap((entry) => entry.skills.map((skill) => skill.skill_id)))),
@@ -575,7 +609,9 @@ export function searchBuilds(
       data.weapons
         .filter(
           (weapon) =>
-            (includeArtian || !artianWeaponIds.has(weapon.game_id)) && (!weaponId || weapon.game_id === weaponId),
+            (includeArtian || !artianWeaponIds.has(weapon.game_id)) &&
+            (!weaponType || weapon.weapon_type === weaponType) &&
+            (!weaponId || weapon.game_id === weaponId),
         )
         .map((weapon) => [
           `${weapon.weapon_type}:${weapon.attribute_value > 0 ? weapon.attribute : 0}:${weapon.sub_attribute_value > 0 ? weapon.sub_attribute : 0}`,
@@ -759,6 +795,7 @@ export function searchBuilds(
     return entries;
   };
   const results: SearchResult[] = [];
+  const decorationFeasibility = new Map<string, boolean>();
   let visited = 0;
   let found = 0;
   let lastResultReport = 0;
@@ -830,6 +867,7 @@ export function searchBuilds(
               node.selected.flatMap(({ entry }) => entry.item.skills),
               data.maxSkillLevels,
               data.skillNames,
+              decorationFeasibility,
             );
       if (
         option &&

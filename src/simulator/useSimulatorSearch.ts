@@ -4,6 +4,8 @@ import type { SearchProgress, SearchResult } from './search';
 import { readSavedSearch, saveSearch } from './searchPersistence';
 import type { SearchCriteria } from './searchPresets';
 
+const searchTimeoutMs = 30_000;
+
 export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) {
   const { maxSkillLevels } = data;
   const validWeaponId = (weaponType: string | null, weaponId: string | null, includeArtian: boolean) =>
@@ -38,7 +40,21 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
     saved?.searching ? 'リロードにより検索を中断しました' : (saved?.message ?? ''),
   );
   const worker = useRef<Worker | null>(null);
-  useEffect(() => () => worker.current?.terminate(), []);
+  const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resultCount = useRef(results.length);
+  const stopWorker = () => {
+    if (timeout.current !== null) clearTimeout(timeout.current);
+    timeout.current = null;
+    worker.current?.terminate();
+    worker.current = null;
+  };
+  useEffect(
+    () => () => {
+      worker.current?.terminate();
+      if (timeout.current !== null) clearTimeout(timeout.current);
+    },
+    [],
+  );
   useEffect(() => {
     saveSearch({
       weaponTargets,
@@ -54,7 +70,9 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
       results,
       searching,
       message:
-        message === '探索した候補には、条件を満たす装備がありませんでした' || message.includes('中断しました')
+        message === '探索した候補には、条件を満たす装備がありませんでした' ||
+        message.includes('中断しました') ||
+        message.includes('時間上限')
           ? message
           : '',
     });
@@ -76,6 +94,7 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
   const startSearch = () => {
     setProgress(null);
     setResults([]);
+    resultCount.current = 0;
     const selected = [
       ...[...weaponTargets, ...armorTargets, ...seriesTargets]
         .filter((target) => Number.isSafeInteger(target.id) && target.level > 0)
@@ -105,12 +124,28 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
       setMessage('指定されたスキルの最大 Lv を超えています');
       return;
     }
-    worker.current?.terminate();
+    stopWorker();
     setSearchedTargets(selected);
     setSearching(true);
     setMessage('');
     const next = new Worker(new URL('../simulator/search.worker.ts', import.meta.url), { type: 'module' });
     worker.current = next;
+    timeout.current = setTimeout(() => {
+      if (worker.current !== next) return;
+      stopWorker();
+      setSearching(false);
+      setProgress((current) => ({
+        stage: 'searching',
+        visited: current?.visited ?? 0,
+        found: current?.found ?? resultCount.current,
+        lowerBound: true,
+      }));
+      setMessage(
+        resultCount.current
+          ? '検索を時間上限で終了しました。見つかった候補のみ表示しています'
+          : '検索を時間上限で終了しました。時間内に候補は見つかりませんでした',
+      );
+    }, searchTimeoutMs);
     next.onmessage = (
       event: MessageEvent<{
         results?: SearchResult[];
@@ -121,24 +156,33 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
       if (worker.current !== next) return;
       if (event.data.progress) {
         setProgress(event.data.progress);
-        if (event.data.progress.results) setResults(event.data.progress.results);
+        if (event.data.progress.results) {
+          resultCount.current = event.data.progress.results.length;
+          setResults(event.data.progress.results);
+        }
         return;
       }
       setSearching(false);
-      if (event.data.error) setMessage(event.data.error);
-      else {
+      if (event.data.error) {
+        setMessage(event.data.error);
+        setProgress((current) =>
+          current && resultCount.current ? { ...current, lowerBound: true, results: undefined } : current,
+        );
+      } else {
+        resultCount.current = event.data.results?.length ?? 0;
         setResults(event.data.results ?? []);
         if (!event.data.results?.length) setMessage('探索した候補には、条件を満たす装備がありませんでした');
       }
-      next.terminate();
-      if (worker.current === next) worker.current = null;
+      stopWorker();
     };
     next.onerror = () => {
       if (worker.current !== next) return;
       setSearching(false);
       setMessage('検索に失敗しました');
-      next.terminate();
-      if (worker.current === next) worker.current = null;
+      setProgress((current) =>
+        current && resultCount.current ? { ...current, lowerBound: true, results: undefined } : current,
+      );
+      stopWorker();
     };
     next.postMessage({
       data,
@@ -153,14 +197,16 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
     });
   };
   const cancelSearch = () => {
-    worker.current?.terminate();
-    worker.current = null;
+    stopWorker();
     setSearching(false);
+    setProgress((current) =>
+      current && resultCount.current ? { ...current, lowerBound: true, results: undefined } : current,
+    );
     setMessage('検索を中断しました');
   };
   const loadCriteria = (criteria: SearchCriteria) => {
-    worker.current?.terminate();
-    worker.current = null;
+    stopWorker();
+    resultCount.current = 0;
     setWeaponTargets(criteria.weaponTargets.map((target) => ({ ...target })));
     setArmorTargets(criteria.armorTargets.map((target) => ({ ...target })));
     setSeriesTargets(criteria.seriesTargets.map((target) => ({ ...target })));
