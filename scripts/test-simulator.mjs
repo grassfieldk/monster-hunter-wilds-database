@@ -46,6 +46,7 @@ const { deleteSearchPreset, readSearchPresets, saveSearchPreset } = await import
 const skill = (skillId, level) => ({ skill_id: skillId, level });
 const armor = (id, part, slots, defense, skills = []) => ({
   game_id: id,
+  rarity: 14,
   part,
   slots,
   defense,
@@ -55,6 +56,7 @@ const armor = (id, part, slots, defense, skills = []) => ({
 });
 const weapon = (id) => ({
   game_id: id,
+  rarity: 8,
   weapon_type: 'LongSword',
   category: '大剣',
   slots: [],
@@ -68,6 +70,7 @@ const weapon = (id) => ({
 const amulet = (id) => ({ game_id: id, skills: [], names: { ja: id } });
 const fixture = () => ({
   weapons: [weapon('weapon-a')],
+  weaponTrees: [],
   armor: [
     armor('head-a', 0, [3, 1], 1),
     armor('head-b', 0, [3], 100),
@@ -487,6 +490,33 @@ test('指定した武器だけを検索結果に使う', () => {
       true,
       'missing',
     ),
+    [],
+  );
+});
+
+test('上位の最終強化武器と上位防具だけを検索対象にする', () => {
+  const data = fixture();
+  data.weapons = [
+    { ...weapon('low-final'), rarity: 4 },
+    { ...weapon('high-intermediate'), rarity: 7 },
+    weapon('high-final'),
+  ];
+  data.weaponTrees = [{ parent_id: 'high-intermediate', child_id: 'high-final', weapon_type: 'LongSword' }];
+  data.armor = [
+    { ...armor('low-head', 0, [], 100, [skill(1, 1)]), rarity: 17 },
+    armor('high-head', 0, [], 1, [skill(1, 1)]),
+  ];
+  data.decorations = [];
+  const targets = [{ id: 1, level: 1 }];
+  const results = searchBuilds(data, targets, 'defense', null, undefined, true);
+  assert.ok(results.length > 0);
+  assert.ok(results.every((result) => result.build.weapon === 'high-final' && result.build.head === 'high-head'));
+  assert.deepEqual(
+    searchBuilds(data, targets, 'slots', null, undefined, false, false, [], false, true, 'low-final'),
+    [],
+  );
+  assert.deepEqual(
+    searchBuilds(data, targets, 'slots', null, undefined, false, false, [], false, true, 'high-intermediate'),
     [],
   );
 });

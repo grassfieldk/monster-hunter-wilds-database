@@ -5,6 +5,7 @@ import { text } from '../../data';
 import type { Skill, SkillLevel, Weapon } from '../../types';
 import { decorationTypeForSlot, type GearData, maxSeriesSkillTargets, type SkillTarget, type SortMode } from '../model';
 import type { SearchProgress } from '../search';
+import { searchableArmor } from '../searchableGear';
 import type { SearchCriteria } from '../searchPresets';
 import { SavedSearchPresets } from './SavedSearchPresets';
 import { type SkillOption, SkillTargetList } from './SkillTargetList';
@@ -68,7 +69,8 @@ export function SearchControls({
   onCancel,
   onLoadCriteria,
 }: Props) {
-  const { weapons, armor, amulets, decorations, artianSkills, maxSkillLevels } = data;
+  const { armor, amulets, decorations, artianSkills, maxSkillLevels } = data;
+  const armorCandidates = useMemo(() => searchableArmor(armor), [armor]);
   const skillOptions = useMemo(
     () =>
       skills
@@ -97,24 +99,24 @@ export function SearchControls({
   const weaponSkillIds = useMemo(
     () =>
       new Set([
-        ...weapons.flatMap((item) => item.skills.map((skill) => skill.skill_id)),
+        ...selectableWeapons.flatMap((item) => item.skills.map((skill) => skill.skill_id)),
         ...decorations
           .filter((item) => item.type === decorationTypeForSlot('weapon'))
           .flatMap((item) => item.skills.map((skill) => skill.skill_id)),
       ]),
-    [weapons, decorations],
+    [selectableWeapons, decorations],
   );
   const armorSkillIds = useMemo(
     () =>
       new Set([
-        ...armor.flatMap((item) => item.skills.map((skill) => skill.skill_id)),
+        ...armorCandidates.flatMap((item) => item.skills.map((skill) => skill.skill_id)),
         ...amulets.flatMap((item) => item.skills.map((skill) => skill.skill_id)),
         ...decorations
           .filter((item) => item.type === decorationTypeForSlot('head'))
           .flatMap((item) => item.skills.map((skill) => skill.skill_id)),
         ...artianSkills.skillPairs.flatMap((pair) => [pair.groupSkillId, pair.seriesSkillId]),
       ]),
-    [armor, amulets, decorations, artianSkills],
+    [armorCandidates, amulets, decorations, artianSkills],
   );
   const seriesSkillIds = new Set(skills.filter((skill) => skill.category === 1).map((skill) => skill.game_id));
   const weaponSkillOptions = skillOptions.filter((item) => weaponSkillIds.has(item.id) && !seriesSkillIds.has(item.id));
@@ -122,11 +124,13 @@ export function SearchControls({
   const seriesSkillOptions = skillOptions.filter((item) => armorSkillIds.has(item.id) && seriesSkillIds.has(item.id));
   const weaponTypeOptions = useMemo(
     () =>
-      [...new Map(weapons.map((item) => [item.weapon_type, item.category])).entries()].map(([value, label]) => ({
-        value,
-        label,
-      })),
-    [weapons],
+      [...new Map(selectableWeapons.map((item) => [item.weapon_type, item.category])).entries()].map(
+        ([value, label]) => ({
+          value,
+          label,
+        }),
+      ),
+    [selectableWeapons],
   );
   const weaponOptions = useMemo(() => {
     const selected = selectableWeapons.filter((weapon) => weapon.weapon_type === weaponType);

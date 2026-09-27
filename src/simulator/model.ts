@@ -1,4 +1,4 @@
-import type { Amulet, Armor, Decoration, EquipmentSkill, Weapon } from '../types';
+import type { Amulet, Armor, Decoration, EquipmentSkill, Weapon, WeaponTree } from '../types';
 
 export type EquipmentSlot = 'weapon' | 'head' | 'chest' | 'arms' | 'waist' | 'legs' | 'amulet';
 export const armorSlots: EquipmentSlot[] = ['head', 'chest', 'arms', 'waist', 'legs'];
@@ -58,6 +58,7 @@ export const maxSeriesSkillTargets = 3;
 export type SortMode = 'slots' | 'defense';
 export type GearData = {
   weapons: Weapon[];
+  weaponTrees: WeaponTree[];
   armor: Armor[];
   amulets: Amulet[];
   decorations: Decoration[];

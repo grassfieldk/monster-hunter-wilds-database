@@ -5,9 +5,9 @@ import { text, useDatabase } from '../data';
 import { BuildEditor } from '../simulator/components/BuildEditor';
 import { SearchControls } from '../simulator/components/SearchControls';
 import { SearchResults } from '../simulator/components/SearchResults';
-import { finalWeapons } from '../simulator/finalWeapons';
 import type { Build } from '../simulator/model';
 import { skillUsable } from '../simulator/relevance';
+import { searchableWeapons } from '../simulator/searchableGear';
 import { readSharedBuild } from '../simulator/share';
 import { useSimulatorSearch } from '../simulator/useSimulatorSearch';
 
@@ -48,6 +48,7 @@ export function SimulatorPage() {
   const data = useMemo(
     () => ({
       weapons,
+      weaponTrees,
       armor,
       amulets,
       decorations,
@@ -61,6 +62,7 @@ export function SimulatorPage() {
     }),
     [
       weapons,
+      weaponTrees,
       armor,
       amulets,
       decorations,
@@ -75,7 +77,7 @@ export function SimulatorPage() {
     () => new Set(skills.filter((skill) => skill.category === 1).map((skill) => skill.game_id)),
     [skills],
   );
-  const selectableWeapons = useMemo(() => finalWeapons(weapons, weaponTrees), [weapons, weaponTrees]);
+  const selectableWeapons = useMemo(() => searchableWeapons(weapons, weaponTrees), [weapons, weaponTrees]);
   const [params, setParams] = useSearchParams();
   const sharedBuild = params.get('build');
   const [build, setBuild] = useState<Build>(() => readSharedBuild(sharedBuild));
@@ -109,7 +111,7 @@ export function SimulatorPage() {
   } = useSimulatorSearch(data, seriesSkillIds);
   const unusableSkillIds = useMemo(() => {
     if (!weaponType) return new Set<number>();
-    const selectedWeapons = weapons.filter(
+    const selectedWeapons = selectableWeapons.filter(
       (weapon) => weapon.weapon_type === weaponType && (!weaponId || weapon.game_id === weaponId),
     );
     return new Set(
@@ -117,7 +119,7 @@ export function SimulatorPage() {
         .filter((skill) => !selectedWeapons.some((weapon) => skillUsable(text(skill.names), weapon)))
         .map((skill) => skill.game_id),
     );
-  }, [weaponType, weaponId, weapons, skills]);
+  }, [weaponType, weaponId, selectableWeapons, skills]);
 
   const share = async () => {
     const next = new URLSearchParams(params);

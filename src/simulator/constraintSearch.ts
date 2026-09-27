@@ -12,6 +12,7 @@ import {
 } from './model';
 import { skillUsable, utilityForSkillLevels } from './relevance';
 import type { SearchResult } from './search';
+import { searchableGear } from './searchableGear';
 
 type Item = Weapon | Armor | Amulet;
 type GearVariable = { name: string; slot: EquipmentSlot; item: Item };
@@ -176,6 +177,7 @@ export async function findConstraintBuilds(
   onResult?: (results: SearchResult[]) => void,
   weaponId: string | null = null,
 ): Promise<SearchResult[]> {
+  data = searchableGear(data);
   const excludedDecorations = includeMeldingOnly ? new Set<number>() : new Set(data.meldingOnlyDecorationIds ?? []);
   const artianIds = new Set(data.artianSkills.weaponIds);
   const types = [...new Set(data.weapons.map((weapon) => weapon.weapon_type))].filter(

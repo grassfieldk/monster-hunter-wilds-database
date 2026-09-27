@@ -16,6 +16,7 @@ import {
   type VirtualWeapon,
 } from './model';
 import { restrictedSkill, skillUsable, skillUtility, utilityForSkillLevels, utilityForSkills } from './relevance';
+import { searchableGear } from './searchableGear';
 
 type Gear = Weapon | Armor | Amulet | VirtualAmulet | VirtualWeapon;
 type Slot = { owner: EquipmentSlot; index: number; level: number; type: number };
@@ -513,6 +514,7 @@ export function searchBuilds(
   weaponId: string | null = null,
 ): SearchResult[] {
   if (!targets.length) return [];
+  data = searchableGear(data);
   const seriesRequirements = seriesTargets.slice(0, maxSeriesSkillTargets);
   if (seriesRequirements.length && !stopAfterFirst) {
     const seriesResults = searchBuilds(

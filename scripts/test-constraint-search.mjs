@@ -9,6 +9,7 @@ const skillLevels = read('skill-levels');
 const probabilities = read('decoration-probabilities');
 const data = {
   weapons: read('weapons'),
+  weaponTrees: read('weapon-trees'),
   armor: read('armor'),
   amulets: read('amulets'),
   decorations: read('decorations'),
