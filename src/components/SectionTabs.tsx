@@ -3,7 +3,9 @@ import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useDatabase } from '../data';
 import { itemCategoryKinds, itemCategoryLabels } from '../itemCategories';
+import { getQuestCategories } from '../questCategories';
 import { getRememberedDetailSection } from '../sections';
+import type { Quest } from '../types';
 
 type SectionTab = {
   label: string;
@@ -11,7 +13,7 @@ type SectionTab = {
   to?: string;
 };
 
-function getSectionTabs(pathname: string, itemKinds: Set<string>): SectionTab[] {
+function getSectionTabs(pathname: string, itemKinds: Set<string>, quests: Quest[], search: string): SectionTab[] {
   if (/^\/monsters\/[^/]+$/u.test(pathname)) {
     return [
       { label: '基本情報', target: 'monster-basic' },
@@ -35,6 +37,14 @@ function getSectionTabs(pathname: string, itemKinds: Set<string>): SectionTab[] 
     ];
   }
 
+  if (pathname === '/quests') {
+    return getQuestCategories(quests).map((category) => {
+      const params = new URLSearchParams(search);
+      params.set('category', category);
+      return { label: category, target: category, to: `/quests?${params.toString()}` };
+    });
+  }
+
   if (/^\/items\/[^/]+$/u.test(pathname)) {
     return [
       { label: '基本情報', target: 'item-basic' },
@@ -55,11 +65,16 @@ function getSectionTabs(pathname: string, itemKinds: Set<string>): SectionTab[] 
 
 export function SectionTabs() {
   const { pathname, search, hash } = useLocation();
-  const { items } = useDatabase();
-  const tabs = getSectionTabs(pathname, new Set(items.map((item) => item.kind)));
+  const { items, quests } = useDatabase();
+  const tabs = getSectionTabs(pathname, new Set(items.map((item) => item.kind)), quests, search);
   const listRef = useRef<HTMLDivElement>(null);
+  const searchParams = new URLSearchParams(search);
   const selected =
-    pathname === '/items' || pathname === '/equipment' ? new URLSearchParams(search).get('kind') : hash.slice(1);
+    pathname === '/items' || pathname === '/equipment'
+      ? searchParams.get('kind')
+      : pathname === '/quests'
+        ? searchParams.get('category')
+        : hash.slice(1);
   const fallback = pathname.startsWith('/monsters/')
     ? getRememberedDetailSection('monster')
     : pathname.startsWith('/items/')

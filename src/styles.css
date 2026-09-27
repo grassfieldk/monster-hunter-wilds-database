@@ -159,6 +159,11 @@ a {
   padding: 4px;
 }
 
+.mantine-Tabs-tab {
+  justify-content: center;
+  text-align: center;
+}
+
 .section-tabs.rank-tabs {
   position: static;
   z-index: 1;
@@ -317,6 +322,12 @@ a {
 
 .option-picker > .mantine-Button-root {
   font-weight: 400;
+}
+
+.weapon-type-select .mantine-Button-label {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
 }
 
 .simulator-skill-targets .mantine-Button-root,
