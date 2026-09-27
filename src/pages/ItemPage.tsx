@@ -90,9 +90,9 @@ export function ItemPage() {
                 <Table.Tr>
                   <Table.Td className="numeric-cell">{item.max_count}</Table.Td>
                   <Table.Td className="numeric-cell">
-                    {item.buy_price ? `${item.buy_price.toLocaleString('ja-JP')} z` : '購入不可'}
+                    {item.buy_price ? `${item.buy_price.toLocaleString('ja-JP')}z` : '購入不可'}
                   </Table.Td>
-                  <Table.Td className="numeric-cell">{item.sell_price.toLocaleString('ja-JP')} z</Table.Td>
+                  <Table.Td className="numeric-cell">{item.sell_price.toLocaleString('ja-JP')}z</Table.Td>
                 </Table.Tr>
               </Table.Tbody>
             </Table>

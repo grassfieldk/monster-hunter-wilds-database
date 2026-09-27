@@ -29,7 +29,7 @@ function WeaponDetailStats({ item, skillById }: { item: Weapon; skillById: Map<n
         { label: 'レア度', value: item.rarity },
         { label: '攻撃力', value: item.attack },
         { label: '会心率', value: `${item.affinity}%` },
-        { label: '価格', value: `${item.price.toLocaleString('ja-JP')} z` },
+        { label: '価格', value: `${item.price.toLocaleString('ja-JP')}z` },
         { label: '属性', value: attributes },
         { label: 'スロット', value: item.slots.join('・') || 'なし' },
         { label: 'スキル', value: <EquipmentSkills skills={item.skills} skillById={skillById} /> },
@@ -127,7 +127,7 @@ function DecorationDetailStats({ item, skillById }: { item: Decoration; skillByI
       stats={[
         { label: 'レア度', value: item.rarity },
         { label: '必要スロット', value: item.required_slot },
-        { label: '価格', value: `${item.price.toLocaleString('ja-JP')} z` },
+        { label: '価格', value: `${item.price.toLocaleString('ja-JP')}z` },
         { label: 'スキル', value: <EquipmentSkills skills={item.skills} skillById={skillById} /> },
       ]}
     />
@@ -238,7 +238,7 @@ export function ArmorSeriesDetail() {
                 <Group justify="space-between" gap="xs" wrap="nowrap">
                   <Text size="sm">{armorParts[item.part] ?? `部位 ${item.part}`}</Text>
                   <Text size="sm" className="numeric-cell" style={{ flexShrink: 0 }}>
-                    {item.price?.toLocaleString('ja-JP') ?? '不明'} z
+                    {item.price?.toLocaleString('ja-JP') ?? '不明'}z
                   </Text>
                 </Group>
               ),
@@ -381,7 +381,7 @@ export function EquipmentDetail() {
                         <Group justify="space-between" gap="xs" wrap="nowrap">
                           <Text size="sm">レベル {recipe.level ?? '不明'}</Text>
                           <Text size="sm" className="numeric-cell" style={{ flexShrink: 0 }}>
-                            {amulet?.price.toLocaleString('ja-JP') ?? '不明'} z
+                            {amulet?.price.toLocaleString('ja-JP') ?? '不明'}z
                           </Text>
                         </Group>
                       ),

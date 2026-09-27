@@ -47,9 +47,9 @@ export function ItemsPage() {
                     </Anchor>
                   </Table.Td>
                   <Table.Td className="numeric-cell">
-                    {item.buy_price ? `${item.buy_price.toLocaleString('ja-JP')} z` : '購入不可'}
+                    {item.buy_price ? `${item.buy_price.toLocaleString('ja-JP')}z` : '購入不可'}
                   </Table.Td>
-                  <Table.Td className="numeric-cell">{item.sell_price.toLocaleString('ja-JP')} z</Table.Td>
+                  <Table.Td className="numeric-cell">{item.sell_price.toLocaleString('ja-JP')}z</Table.Td>
                   <Table.Td visibleFrom="sm">
                     <FormattedText className="long-description" size="sm" lineClamp={1}>
                       {text(item.descriptions)}

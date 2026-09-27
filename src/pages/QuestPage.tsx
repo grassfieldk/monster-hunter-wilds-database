@@ -78,7 +78,7 @@ export function QuestPage() {
                 報酬金
               </Text>
               <Text size="sm">
-                {quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')} z`}
+                {quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')}z`}
               </Text>
             </div>
             <div>

@@ -478,7 +478,7 @@ a {
   }
 
   .main-with-section-tabs {
-    padding-bottom: calc(var(--app-shell-footer-offset, 0rem) + var(--app-shell-padding) + 36px) !important;
+    padding-bottom: 150px !important;
   }
 
   .long-description {

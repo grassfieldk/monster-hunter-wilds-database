@@ -170,20 +170,6 @@ export function App() {
             </ActionIcon>
             <ActionIcon
               component={Link}
-              to="/simulator"
-              variant="subtle"
-              size="lg"
-              h="100%"
-              aria-label="装備検索ツール"
-              title="装備検索ツール"
-              data-active={equipmentSearchActive || undefined}
-              className="footer-main-button"
-              onClick={closeSearch}
-            >
-              <IconAdjustmentsSearch size={18} />
-            </ActionIcon>
-            <ActionIcon
-              component={Link}
               to="/equipment"
               variant="subtle"
               size="lg"
@@ -195,6 +181,20 @@ export function App() {
               onClick={closeSearch}
             >
               <IconShield size={18} />
+            </ActionIcon>
+            <ActionIcon
+              component={Link}
+              to="/simulator"
+              variant="subtle"
+              size="lg"
+              h="100%"
+              aria-label="装備検索ツール"
+              title="装備検索ツール"
+              data-active={equipmentSearchActive || undefined}
+              className="footer-main-button"
+              onClick={closeSearch}
+            >
+              <IconAdjustmentsSearch size={18} />
             </ActionIcon>
           </Group>
         </AppShell.Footer>

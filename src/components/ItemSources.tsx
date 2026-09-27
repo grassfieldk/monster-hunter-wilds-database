@@ -234,7 +234,7 @@ export function ItemSources({ item }: { item: Item }) {
             title: '価格',
             numeric: true,
             render: (row) =>
-              points(row) ? '—' : item.buy_price > 0 ? `${item.buy_price.toLocaleString('ja-JP')} z` : '不明',
+              points(row) ? '—' : item.buy_price > 0 ? `${item.buy_price.toLocaleString('ja-JP')}z` : '不明',
           });
         if (rows.some((row) => row.part !== undefined))
           columns.push({ title: '部位', render: (row) => row.part ?? '不明' });
