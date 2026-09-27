@@ -9,6 +9,7 @@ import {
   type Build,
   decorationTypeForSlot,
   type EquipmentSlot,
+  equipmentSlotLabels,
   equipmentSlots,
   formatSlotLevels,
   type GearData,
@@ -21,16 +22,6 @@ import { ArtianBonusEditor } from './ArtianBonusEditor';
 import { ArtianSkillEditor } from './ArtianSkillEditor';
 import { RandomAmuletEditor } from './RandomAmuletEditor';
 import { SkillLevelMarks, skillSlotCount } from './SkillLevelMarks';
-
-const slotLabels: Record<EquipmentSlot, string> = {
-  weapon: '武器',
-  head: '頭',
-  chest: '胴',
-  arms: '腕',
-  waist: '腰',
-  legs: '脚',
-  amulet: '護石',
-};
 
 type Props = {
   build: Build;
@@ -133,8 +124,8 @@ export function BuildEditor({
             <Stack key={slot} gap="xs">
               <OptionPicker
                 className="simulator-gear-select"
-                label={slotLabels[slot]}
-                placeholder={`${slotLabels[slot]}を選択`}
+                label={equipmentSlotLabels[slot]}
+                placeholder={`${equipmentSlotLabels[slot]}を選択`}
                 clearable
                 groups={slot === 'weapon' ? weaponGroups : undefined}
                 data={gearOptions[slot]}

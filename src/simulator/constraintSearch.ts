@@ -10,7 +10,7 @@ import {
   type SkillTarget,
   summarizeBuild,
 } from './model';
-import { skillUsable, utilityForSkills } from './relevance';
+import { skillUsable, utilityForSkillLevels } from './relevance';
 import type { SearchResult } from './search';
 
 type Item = Weapon | Armor | Amulet;
@@ -163,11 +163,7 @@ function resultFromSolution(
     resistances: summary.resistances,
     freeSlots: summary.freeSlots,
     skills: [...summary.skills],
-    utility: utilityForSkills(
-      [...selectedGear.flatMap((entry) => entry.item.skills), ...selectedDecos.flatMap((deco) => deco.skills)],
-      targetIds,
-      data.skillNames,
-    ),
+    utility: utilityForSkillLevels(summary.skills, targetIds, data.skillNames),
   };
 }
 

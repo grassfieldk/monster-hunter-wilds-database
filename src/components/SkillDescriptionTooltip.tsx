@@ -21,11 +21,14 @@ export function SkillDescriptionTooltip({
       : skillLevels
           .filter((entry) => entry.skill_id === skillId && entry.level <= level)
           .sort((a, b) => b.level - a.level)[0];
-  const effectDescription = text(effect?.descriptions);
+  const effectDescription = effect ? text(effect.descriptions) : '';
+  const skillDescription = skillById.get(skillId ?? NaN)?.descriptions;
   const description =
     effectDescription && !effectDescription.startsWith('#Rejected#')
       ? effectDescription
-      : text(skillById.get(skillId ?? NaN)?.descriptions);
+      : skillDescription
+        ? text(skillDescription)
+        : '';
   if (!description || description.startsWith('#Rejected#')) return <>{children}</>;
   return (
     <Tooltip label={description} multiline maw={320} events={{ hover: true, focus: true, touch: true }}>

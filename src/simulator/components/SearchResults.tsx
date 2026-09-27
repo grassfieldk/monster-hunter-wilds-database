@@ -4,7 +4,15 @@ import { useMemo } from 'react';
 import { SkillDescriptionTooltip } from '../../components/SkillDescriptionTooltip';
 import { text } from '../../data';
 import type { Decoration, Skill } from '../../types';
-import { type Build, equipmentSlots, formatSlotLevels, type GearData, type SkillTarget, selectedGear } from '../model';
+import {
+  type Build,
+  equipmentSlotLabels,
+  equipmentSlots,
+  formatSlotLevels,
+  type GearData,
+  type SkillTarget,
+  selectedGear,
+} from '../model';
 import type { SearchResult } from '../search';
 import { SkillLevelMarks, skillSlotCount } from './SkillLevelMarks';
 
@@ -20,8 +28,6 @@ type Props = {
   searching: boolean;
   onEdit: (build: Build) => void;
 };
-
-const equipmentLabels = ['武器', '頭', '胴', '腕', '腰', '脚', '護石'];
 
 export function SearchResults({
   results,
@@ -98,7 +104,7 @@ export function SearchResults({
                       return (
                         <div key={slot} className="simulator-result-equipment-row">
                           <Text size="xs" c="dimmed">
-                            {equipmentLabels[slotIndex]}
+                            {equipmentSlotLabels[slot]}
                           </Text>
                           <div className="simulator-result-equipment-detail">
                             <Text size="sm" style={{ minWidth: 0, overflowWrap: 'anywhere' }}>

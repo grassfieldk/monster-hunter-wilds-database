@@ -66,7 +66,15 @@ const rows = [...sourceHtml.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gu)]
   .filter((row) => /class="title"/u.test(row));
 const imported = [];
 const importedKeys = new Set();
-const usedIds = new Set(JSON.parse(fs.readFileSync(outputPath, 'utf8')).map((quest) => quest.game_id));
+const existing = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+const baseQuests = existing.filter((quest) => quest.source?.type !== 'official-event-page');
+const existingOfficialIds = new Map(
+  existing
+    .filter((quest) => quest.source?.type === 'official-event-page' && quest.source.key)
+    .map((quest) => [quest.source.key, quest.game_id]),
+);
+const reservedOfficialIds = new Set(existingOfficialIds.values());
+const usedIds = new Set(baseQuests.map((quest) => quest.game_id));
 for (const row of rows) {
   const titleBlock = first(row, /<div\b[^>]*class="title"[^>]*>([\s\S]*?)<\/div>\s*<p\b[^>]*class="terms"/u);
   const titleSpans = [...titleBlock.matchAll(/<span\b[^>]*>([\s\S]*?)<\/span>/gu)];
@@ -80,8 +88,11 @@ for (const row of rows) {
   const key = `${title}|${difficulty ?? ''}|${start}|${end}`;
   if (importedKeys.has(key)) continue;
   importedKeys.add(key);
-  let gameId = hash(key);
-  while (usedIds.has(gameId)) gameId = (gameId + 1) | 0;
+  let gameId = existingOfficialIds.get(key);
+  if (gameId === undefined || usedIds.has(gameId)) {
+    gameId = hash(key);
+    while (usedIds.has(gameId) || reservedOfficialIds.has(gameId)) gameId = (gameId + 1) | 0;
+  }
   usedIds.add(gameId);
   imported.push({
     game_id: gameId,
@@ -103,8 +114,7 @@ for (const row of rows) {
   });
 }
 
-const existing = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
-const merged = [...existing.filter((quest) => quest.source?.type !== 'official-event-page'), ...imported];
+const merged = [...baseQuests, ...imported];
 fs.writeFileSync(outputPath, JSON.stringify(merged));
 fs.writeFileSync(
   metadataPath,

@@ -1,4 +1,4 @@
-import type { Amulet, Armor, Decoration, Weapon } from '../types';
+import type { Amulet, Armor, Decoration, EquipmentSkill, Weapon } from '../types';
 import {
   armorSlots,
   type Build,
@@ -15,11 +15,11 @@ import {
   type VirtualAmulet,
   type VirtualWeapon,
 } from './model';
-import { restrictedSkill, skillUsable, skillUtility, utilityForSkills } from './relevance';
+import { restrictedSkill, skillUsable, skillUtility, utilityForSkillLevels, utilityForSkills } from './relevance';
 
 type Gear = Weapon | Armor | Amulet | VirtualAmulet | VirtualWeapon;
 type Slot = { owner: EquipmentSlot; index: number; level: number; type: number };
-type DecorationOption = { id: number; gains: number[]; utility: number };
+type DecorationOption = { id: number; gains: number[]; skills: EquipmentSkill[] };
 type Candidate = {
   item: Gear;
   levels: number[];
@@ -344,7 +344,7 @@ function makeCandidates(
     const allowed = item.skills.reduce((mask, skill) => mask & (skillMasks.get(skill.skill_id) ?? allMask), allMask);
     if (allowed === 0n) continue;
     entry.allowed = allowed;
-    entry.utility = utilityForSkills(item.skills, targetIds, data.skillNames);
+    entry.utility = utilityForSkills(item.skills, targetIds, data.skillNames, data.maxSkillLevels);
     const weaponProperties =
       owner === 'weapon' && 'weapon_type' in item
         ? [item.weapon_type, item.attribute, item.attribute_value > 0, item.sub_attribute, item.sub_attribute_value > 0]
@@ -409,6 +409,9 @@ function bestDecorations(
   targets: SkillTarget[],
   weapon: Weapon,
   optionsFor: (slot: Slot, weapon: Weapon) => DecorationOption[],
+  equippedSkills: EquipmentSkill[],
+  maxSkillLevels: Record<number, number>,
+  skillNames: Record<number, string>,
 ) {
   const needed = targets.map((target, index) => Math.max(0, target.level - initial[index]));
   if (needed.every((value) => value === 0))
@@ -418,17 +421,31 @@ function bestDecorations(
       utility: 0,
     };
   const options = slots.map((slot) => optionsFor(slot, weapon));
+  const targetIds = new Set(targets.map((target) => target.id));
+  const utilityIds = [
+    ...new Set(options.flatMap((entries) => entries.flatMap((entry) => entry.skills.map((skill) => skill.skill_id)))),
+  ]
+    .filter((id) => !targetIds.has(id))
+    .sort((a, b) => a - b);
+  const utilityIndex = new Map(utilityIds.map((id, index) => [id, index]));
+  const equippedLevels = new Map<number, number>();
+  for (const skill of equippedSkills)
+    equippedLevels.set(skill.skill_id, (equippedLevels.get(skill.skill_id) ?? 0) + skill.level);
+  const initialUtilityLevels = utilityIds.map((id) =>
+    Math.min(equippedLevels.get(id) ?? 0, maxSkillLevels[id] ?? Number.POSITIVE_INFINITY),
+  );
   const memo = new Map<string, { free: number[]; ids: (number | null)[]; utility: number } | null>();
   const solve = (
     index: number,
     deficit: number[],
+    utilityLevels: number[],
   ): { free: number[]; ids: (number | null)[]; utility: number } | null => {
     if (index === slots.length)
       return deficit.every((value) => value === 0) ? { free: [0, 0, 0], ids: [], utility: 0 } : null;
-    const key = `${index}:${deficit.join(',')}`;
+    const key = `${index}:${deficit.join(',')}:${utilityLevels.join(',')}`;
     if (memo.has(key)) return memo.get(key) ?? null;
     const slot = slots[index];
-    const skip = solve(index + 1, deficit);
+    const skip = solve(index + 1, deficit, utilityLevels);
     let best = skip
       ? {
           free: skip.free.map((value, at) => value + (slot.level === 3 - at ? 1 : 0)),
@@ -439,8 +456,20 @@ function bestDecorations(
     for (const deco of options[index]) {
       const next = deficit.map((value, at) => Math.max(0, value - deco.gains[at]));
       if (next.every((value, at) => value === deficit[at])) continue;
-      const tail = solve(index + 1, next);
-      const utility = (tail?.utility ?? 0) + deco.utility;
+      const nextUtilityLevels = [...utilityLevels];
+      let gainedUtility = 0;
+      for (const skill of deco.skills) {
+        const at = utilityIndex.get(skill.skill_id);
+        if (at === undefined) continue;
+        const level = Math.min(
+          nextUtilityLevels[at] + skill.level,
+          maxSkillLevels[skill.skill_id] ?? Number.POSITIVE_INFINITY,
+        );
+        gainedUtility += (level - nextUtilityLevels[at]) * skillUtility(skillNames[skill.skill_id] ?? '');
+        nextUtilityLevels[at] = level;
+      }
+      const tail = solve(index + 1, next, nextUtilityLevels);
+      const utility = (tail?.utility ?? 0) + gainedUtility;
       if (
         tail &&
         (!best ||
@@ -456,7 +485,7 @@ function bestDecorations(
     memo.set(key, best);
     return best;
   };
-  return solve(0, needed);
+  return solve(0, needed, initialUtilityLevels);
 }
 
 export function searchBuilds(
@@ -520,7 +549,7 @@ export function searchBuilds(
         gains: targets.map((target) =>
           deco.skills.filter((skill) => skill.skill_id === target.id).reduce((sum, skill) => sum + skill.level, 0),
         ),
-        utility: utilityForSkills(deco.skills, targetIds, data.skillNames),
+        skills: deco.skills,
       }));
     decorationOptions.set(key, options);
     return options;
@@ -771,7 +800,16 @@ export function searchBuilds(
                 utility: 0,
               }
             : null
-          : bestDecorations(node.slots, node.levels, targets, weapon, optionsFor);
+          : bestDecorations(
+              node.slots,
+              node.levels,
+              targets,
+              weapon,
+              optionsFor,
+              node.selected.flatMap(({ entry }) => entry.item.skills),
+              data.maxSkillLevels,
+              data.skillNames,
+            );
       if (
         option &&
         (!placement ||
@@ -802,7 +840,7 @@ export function searchBuilds(
       resistances: summary.resistances,
       freeSlots: summary.freeSlots,
       skills: [...summary.skills],
-      utility: node.utility + placement.utility,
+      utility: utilityForSkillLevels(summary.skills, targetIds, data.skillNames),
     };
   };
   const prepareSearchPhase = (phase: number, searchSlots: EquipmentSlot[]): SearchPhaseContext => {

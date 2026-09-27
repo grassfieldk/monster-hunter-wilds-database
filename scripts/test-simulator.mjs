@@ -12,6 +12,16 @@ const bundled = await build({
 const { searchBuilds } = await import(
   `data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`
 );
+const modelBundle = await build({
+  entryPoints: ['src/simulator/model.ts'],
+  bundle: true,
+  platform: 'node',
+  format: 'esm',
+  write: false,
+});
+const { defaultRandomAmuletId, emptyBuild, selectedGear } = await import(
+  `data:text/javascript;base64,${Buffer.from(modelBundle.outputFiles[0].text).toString('base64')}`
+);
 const persistenceBundle = await build({
   entryPoints: ['src/simulator/searchPersistence.ts'],
   bundle: true,
@@ -72,6 +82,126 @@ const fixture = () => ({
   skillNames: { 1: '試験スキル' },
   randomAmulets: { groups: {}, combos: [] },
   artianSkills: { weaponIds: [], skillPairs: [], bonuses: [] },
+});
+
+test('スキルなしの枠を含む鑑定護石を選択できる', () => {
+  const data = fixture();
+  data.randomAmulets = {
+    groups: { 1: [skill(1, 1)], 2: [skill(2, 1)] },
+    combos: [{ rarity: 5, groups: [1, 2, 0], slots: [] }],
+  };
+  const build = { ...emptyBuild(), amulet: defaultRandomAmuletId(data.randomAmulets, 0) };
+  assert.equal(build.amulet, 'random-amulet:0:1.1:2.1:0.0');
+  assert.deepEqual(selectedGear(build, data).amulet?.skills, [skill(1, 1), skill(2, 1)]);
+});
+
+test('多数のスキル検索で最適化処理が失敗しても通常検索を続ける', async () => {
+  const data = fixture();
+  const targets = Array.from({ length: 10 }, (_, index) => ({ id: index + 1, level: 1 }));
+  data.armor = [
+    armor(
+      'head',
+      0,
+      [],
+      1,
+      targets.map((target) => skill(target.id, 1)),
+    ),
+  ];
+  data.decorations = [];
+  data.maxSkillLevels = Object.fromEntries(targets.map((target) => [target.id, 1]));
+  data.skillNames = Object.fromEntries(targets.map((target) => [target.id, `スキル ${target.id}`]));
+  const workerBundle = await build({
+    entryPoints: ['src/simulator/search.worker.ts'],
+    bundle: true,
+    platform: 'node',
+    format: 'esm',
+    write: false,
+    plugins: [
+      {
+        name: 'failed-constraint-search',
+        setup(bundle) {
+          bundle.onResolve({ filter: /^\.\/constraintSearch$/ }, ({ path }) => ({
+            path,
+            namespace: 'failed-constraint-search',
+          }));
+          bundle.onLoad({ filter: /.*/, namespace: 'failed-constraint-search' }, () => ({
+            contents: 'export async function findConstraintBuilds() { throw new Error("最適化処理の失敗") }',
+            loader: 'js',
+          }));
+        },
+      },
+    ],
+  });
+  const previous = globalThis.self;
+  const messages = [];
+  globalThis.self = { postMessage: (message) => messages.push(message) };
+  try {
+    await import(`data:text/javascript;base64,${Buffer.from(workerBundle.outputFiles[0].text).toString('base64')}`);
+    await globalThis.self.onmessage({
+      data: {
+        data,
+        targets,
+        sort: 'slots',
+        weaponType: null,
+        weaponRequired: false,
+        includeMeldingOnly: false,
+        seriesTargets: [],
+        includeArtian: false,
+      },
+    });
+    assert.equal(messages.at(-1).results[0].build.head, 'head');
+  } finally {
+    if (previous === undefined) delete globalThis.self;
+    else globalThis.self = previous;
+  }
+});
+
+test('指定外スキルの上限を超えた Lv は順位に加算しない', () => {
+  const data = fixture();
+  data.armor = [
+    armor('head-overcap', 0, [], 1, [skill(1, 1), skill(2, 5)]),
+    armor('head-useful', 0, [], 1, [skill(1, 1), skill(3, 3)]),
+  ];
+  data.decorations = [];
+  data.maxSkillLevels = { 1: 1, 2: 2, 3: 3 };
+  data.skillNames = { 1: '指定スキル', 2: '指定外 A', 3: '指定外 B' };
+  const results = searchBuilds(data, [{ id: 1, level: 1 }], 'slots');
+  assert.deepEqual(
+    results.map((result) => result.build.head),
+    ['head-useful', 'head-overcap'],
+  );
+  assert.deepEqual(
+    results.map((result) => result.utility),
+    [3, 2],
+  );
+});
+
+test('装飾品も発動上限に基づいて選ぶ', () => {
+  const data = fixture();
+  data.armor = [armor('head', 0, [1], 1)];
+  data.decorations = [
+    { game_id: 11, type: 1842954880, required_slot: 1, skills: [skill(1, 1), skill(2, 5)] },
+    { game_id: 12, type: 1842954880, required_slot: 1, skills: [skill(1, 1), skill(3, 3)] },
+  ];
+  data.maxSkillLevels = { 1: 1, 2: 2, 3: 3 };
+  data.skillNames = { 1: '指定スキル', 2: '指定外 A', 3: '指定外 B' };
+  const results = searchBuilds(data, [{ id: 1, level: 1 }], 'slots');
+  assert.equal(results[0].build.decorations.head[0], 12);
+  assert.equal(results[0].utility, 3);
+});
+
+test('既存装備で上限に達した指定外スキルを装飾品で重複評価しない', () => {
+  const data = fixture();
+  data.armor = [armor('head', 0, [1], 1, [skill(2, 2)])];
+  data.decorations = [
+    { game_id: 11, type: 1842954880, required_slot: 1, skills: [skill(1, 1), skill(2, 2)] },
+    { game_id: 12, type: 1842954880, required_slot: 1, skills: [skill(1, 1), skill(3, 1)] },
+  ];
+  data.maxSkillLevels = { 1: 1, 2: 2, 3: 1 };
+  data.skillNames = { 1: '指定スキル', 2: '指定外 A', 3: '指定外 B' };
+  const results = searchBuilds(data, [{ id: 1, level: 1 }], 'slots');
+  assert.equal(results[0].build.decorations.head[0], 12);
+  assert.equal(results[0].utility, 3);
 });
 
 test('空きスロット優先では小さい枠に装飾品を入れる', () => {

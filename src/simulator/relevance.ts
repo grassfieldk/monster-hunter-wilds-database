@@ -1,7 +1,6 @@
 import type { EquipmentSkill, Weapon } from '../types';
 
 const ranged = new Set(['Bow', 'LightBowgun', 'HeavyBowgun']);
-const bowAndGuns = new Set(['Bow', 'LightBowgun', 'HeavyBowgun']);
 const guards = new Set(['LongSword', 'ShortSword', 'Lance', 'GunLance', 'ChargeAxe', 'HeavyBowgun']);
 const sharpness = new Set(['匠', '業物', '剛刃研磨', '心眼', '鈍器使い', '達人芸', '砥石使用高速化']);
 const bowOnly = new Set(['毒ビン追加', '麻痺ビン追加', '睡眠ビン追加', '爆破ビン追加', '減気ビン追加']);
@@ -83,7 +82,7 @@ export function skillUsable(name: string, weapon: Weapon): boolean {
   if (name === '速射強化') return type === 'LightBowgun';
   if (sharpness.has(name)) return !ranged.has(type);
   if (bowOnly.has(name)) return type === 'Bow';
-  if (shots.has(name)) return bowAndGuns.has(type);
+  if (shots.has(name)) return ranged.has(type);
   if (guardsOnly.has(name)) return guards.has(type);
   const attributes = [
     weapon.attribute_value > 0 ? weapon.attribute : 0,
@@ -107,9 +106,27 @@ export function utilityForSkills(
   skills: EquipmentSkill[],
   targetIds: Set<number>,
   names: Record<number, string>,
+  maxSkillLevels: Record<number, number>,
 ): number {
   return skills.reduce(
-    (sum, skill) => sum + (targetIds.has(skill.skill_id) ? 0 : skill.level * skillUtility(names[skill.skill_id] ?? '')),
+    (sum, skill) =>
+      sum +
+      (targetIds.has(skill.skill_id)
+        ? 0
+        : Math.min(skill.level, maxSkillLevels[skill.skill_id] ?? skill.level) *
+          skillUtility(names[skill.skill_id] ?? '')),
     0,
   );
+}
+
+export function utilityForSkillLevels(
+  skills: Iterable<[number, number]>,
+  targetIds: Set<number>,
+  names: Record<number, string>,
+): number {
+  let utility = 0;
+  for (const [id, level] of skills) {
+    if (!targetIds.has(id)) utility += level * skillUtility(names[id] ?? '');
+  }
+  return utility;
 }

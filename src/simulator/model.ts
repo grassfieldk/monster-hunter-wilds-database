@@ -3,6 +3,15 @@ import type { Amulet, Armor, Decoration, EquipmentSkill, Weapon } from '../types
 export type EquipmentSlot = 'weapon' | 'head' | 'chest' | 'arms' | 'waist' | 'legs' | 'amulet';
 export const armorSlots: EquipmentSlot[] = ['head', 'chest', 'arms', 'waist', 'legs'];
 export const equipmentSlots: EquipmentSlot[] = ['weapon', ...armorSlots, 'amulet'];
+export const equipmentSlotLabels: Record<EquipmentSlot, string> = {
+  weapon: '武器',
+  head: '頭',
+  chest: '胴',
+  arms: '腕',
+  waist: '腰',
+  legs: '脚',
+  amulet: '護石',
+};
 export function formatSlotLevels(levels: number[]): string {
   return levels.map((level) => `（${level}）`).join('') || 'なし';
 }
@@ -92,6 +101,19 @@ export function validBuild(value: unknown): value is Build {
       ids.length <= 3 &&
       ids.every((id) => id === null || Number.isSafeInteger(id)),
   );
+}
+
+export function defaultRandomAmuletId(randomAmulets: RandomAmuletData, index: number): string {
+  const combo = randomAmulets.combos[index];
+  const used = new Set<number>();
+  const picks = combo.groups.map((group) => {
+    if (group === 0) return '0.0';
+    const choices = randomAmulets.groups[group];
+    const choice = choices.find((skill) => !used.has(skill.skill_id)) ?? choices[0];
+    used.add(choice.skill_id);
+    return `${choice.skill_id}.${choice.level}`;
+  });
+  return `random-amulet:${index}:${picks.join(':')}`;
 }
 
 function virtualAmulet(id: string, data: GearData): VirtualAmulet | null {
