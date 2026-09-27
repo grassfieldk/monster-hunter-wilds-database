@@ -329,6 +329,10 @@ a {
   width: 100%;
 }
 
+.simulator-saved-search-controls {
+  min-width: 0;
+}
+
 .simulator-search-settings .simulator-compact-select,
 .simulator-search-actions .simulator-compact-select {
   padding-inline: 8px;

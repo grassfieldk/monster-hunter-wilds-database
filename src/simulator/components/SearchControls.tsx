@@ -5,6 +5,8 @@ import { text } from '../../data';
 import type { Skill, SkillLevel } from '../../types';
 import { decorationTypeForSlot, type GearData, maxSeriesSkillTargets, type SkillTarget, type SortMode } from '../model';
 import type { SearchProgress } from '../search';
+import type { SearchCriteria } from '../searchPresets';
+import { SavedSearchPresets } from './SavedSearchPresets';
 import { type SkillOption, SkillTargetList } from './SkillTargetList';
 
 type Props = {
@@ -29,6 +31,7 @@ type Props = {
   progress: SearchProgress | null;
   onSearch: () => void;
   onCancel: () => void;
+  onLoadCriteria: (criteria: SearchCriteria) => void;
 };
 
 export function SearchControls({
@@ -53,6 +56,7 @@ export function SearchControls({
   progress,
   onSearch,
   onCancel,
+  onLoadCriteria,
 }: Props) {
   const { weapons, armor, amulets, decorations, artianSkills, maxSkillLevels } = data;
   const skillOptions = useMemo(
@@ -114,6 +118,10 @@ export function SearchControls({
       })),
     [weapons],
   );
+  const criteria = useMemo(
+    () => ({ weaponTargets, armorTargets, seriesTargets, sort, weaponType, includeMeldingOnly }),
+    [weaponTargets, armorTargets, seriesTargets, sort, weaponType, includeMeldingOnly],
+  );
 
   return (
     <Stack gap="sm">
@@ -172,6 +180,7 @@ export function SearchControls({
         unusableSkillIds={unusableSkillIds}
         levelDescriptions={levelDescriptions}
       />
+      <SavedSearchPresets criteria={criteria} onLoad={onLoadCriteria} />
       <SimpleGrid cols={{ base: 2, sm: 2 }} spacing="sm" className="simulator-search-actions">
         <Button
           onClick={searching ? onCancel : onSearch}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { type GearData, maxSeriesSkillTargets, type SkillTarget, type SortMode } from './model';
 import type { SearchProgress, SearchResult } from './search';
 import { readSavedSearch, saveSearch } from './searchPersistence';
+import type { SearchCriteria } from './searchPresets';
 
 export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) {
   const { maxSkillLevels } = data;
@@ -141,6 +142,21 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
     setSearching(false);
     setMessage('検索を中断しました');
   };
+  const loadCriteria = (criteria: SearchCriteria) => {
+    worker.current?.terminate();
+    worker.current = null;
+    setWeaponTargets(criteria.weaponTargets.map((target) => ({ ...target })));
+    setArmorTargets(criteria.armorTargets.map((target) => ({ ...target })));
+    setSeriesTargets(criteria.seriesTargets.map((target) => ({ ...target })));
+    setSort(criteria.sort);
+    setWeaponType(criteria.weaponType);
+    setIncludeMeldingOnly(criteria.includeMeldingOnly);
+    setSearchedTargets([]);
+    setProgress(null);
+    setResults([]);
+    setSearching(false);
+    setMessage('');
+  };
 
   return {
     weaponTargets,
@@ -163,5 +179,6 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
     setMessage,
     startSearch,
     cancelSearch,
+    loadCriteria,
   };
 }

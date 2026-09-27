@@ -95,6 +95,7 @@ export function SimulatorPage() {
     setMessage,
     startSearch,
     cancelSearch,
+    loadCriteria,
     seriesTargets,
     setSeriesTargets,
     searchedTargets,
@@ -147,6 +148,7 @@ export function SimulatorPage() {
         progress={progress}
         onSearch={startSearch}
         onCancel={cancelSearch}
+        onLoadCriteria={loadCriteria}
       />
       {message && <Alert>{message}</Alert>}
       <SearchResults

@@ -17,6 +17,7 @@ type Props = {
   value: string | null;
   onChange: (value: string | null) => void;
   clearable?: boolean;
+  disabled?: boolean;
   groups?: { value: string; label: string }[];
   size?: 'xs' | 'sm' | 'md';
   className?: string;
@@ -32,6 +33,7 @@ export function OptionPicker({
   value,
   onChange,
   clearable = false,
+  disabled = false,
   groups,
   size = 'sm',
   className,
@@ -68,6 +70,7 @@ export function OptionPicker({
         justify="space-between"
         className={buttonClassName}
         aria-label={title}
+        disabled={disabled}
         rightSection={<IconChevronRight size={16} />}
         onClick={() => setOpened(true)}
       >

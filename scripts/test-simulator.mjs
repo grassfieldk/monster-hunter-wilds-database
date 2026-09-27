@@ -22,6 +22,16 @@ const persistenceBundle = await build({
 const { readSavedSearch, saveSearch } = await import(
   `data:text/javascript;base64,${Buffer.from(persistenceBundle.outputFiles[0].text).toString('base64')}`
 );
+const presetsBundle = await build({
+  entryPoints: ['src/simulator/searchPresets.ts'],
+  bundle: true,
+  platform: 'node',
+  format: 'esm',
+  write: false,
+});
+const { deleteSearchPreset, readSearchPresets, saveSearchPreset } = await import(
+  `data:text/javascript;base64,${Buffer.from(presetsBundle.outputFiles[0].text).toString('base64')}`
+);
 
 const skill = (skillId, level) => ({ skill_id: skillId, level });
 const armor = (id, part, slots, defense, skills = []) => ({
@@ -119,6 +129,72 @@ test('検索条件と結果を保存して復元できる', () => {
     assert.deepEqual(readSavedSearch()?.seriesTargets, []);
     assert.deepEqual(readSavedSearch()?.searchedTargets, []);
     assert.equal(readSavedSearch()?.includeMeldingOnly, false);
+  } finally {
+    if (previous === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = previous;
+  }
+});
+
+test('名前付き検索条件を最大 30 件まで保存し、削除後に再度保存できる', () => {
+  const storage = new Map();
+  const previous = globalThis.localStorage;
+  globalThis.localStorage = {
+    getItem: (key) => storage.get(key) ?? null,
+    setItem: (key, value) => storage.set(key, value),
+  };
+  try {
+    const criteria = {
+      weaponTargets: [{ id: 1, level: 2 }],
+      armorTargets: [],
+      seriesTargets: [],
+      sort: 'slots',
+      weaponType: 'LongSword',
+      includeMeldingOnly: false,
+    };
+    const presets = Array.from({ length: 30 }, (_, index) => saveSearchPreset(`条件 ${index}`, criteria));
+    assert.ok(presets.every((result) => 'preset' in result));
+    assert.equal(readSearchPresets().length, 30);
+    assert.deepEqual(saveSearchPreset('条件 0', criteria), { error: 'duplicate' });
+    assert.deepEqual(saveSearchPreset('条件 30', criteria), { error: 'limit' });
+    const first = presets[0].preset;
+    assert.deepEqual(
+      deleteSearchPreset(first.id),
+      presets.slice(1).map((result) => result.preset),
+    );
+    assert.equal(readSearchPresets().length, 29);
+    assert.ok('preset' in saveSearchPreset('条件 30', criteria));
+    assert.equal(readSearchPresets().length, 30);
+  } finally {
+    if (previous === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = previous;
+  }
+});
+
+test('保存済み検索条件が 30 件を超えている場合は新しい 30 件を残す', () => {
+  const storage = new Map();
+  const previous = globalThis.localStorage;
+  globalThis.localStorage = {
+    getItem: (key) => storage.get(key) ?? null,
+    setItem: (key, value) => storage.set(key, value),
+  };
+  try {
+    const criteria = {
+      weaponTargets: [],
+      armorTargets: [],
+      seriesTargets: [],
+      sort: 'slots',
+      weaponType: null,
+      includeMeldingOnly: false,
+    };
+    storage.set(
+      'simulator-search-presets-v1',
+      JSON.stringify(Array.from({ length: 32 }, (_, index) => ({ id: `${index}`, name: `条件 ${index}`, criteria }))),
+    );
+    assert.deepEqual(
+      readSearchPresets().map((preset) => preset.name),
+      Array.from({ length: 30 }, (_, index) => `条件 ${index + 2}`),
+    );
+    assert.equal(JSON.parse(storage.get('simulator-search-presets-v1')).length, 30);
   } finally {
     if (previous === undefined) delete globalThis.localStorage;
     else globalThis.localStorage = previous;
