@@ -33,7 +33,7 @@ export function MonstersPage() {
                     <Text size="sm">{label(monster.species)}</Text>
                   </Table.Td>
                   <Table.Td>
-                    <Anchor component={Link} to={`/monsters/${monster.game_id}`} fw={500}>
+                    <Anchor component={Link} to={`/monsters/${monster.game_id}`}>
                       {text(monster.names)}
                     </Anchor>
                   </Table.Td>

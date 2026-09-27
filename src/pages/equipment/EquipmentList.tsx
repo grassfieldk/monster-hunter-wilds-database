@@ -90,7 +90,7 @@ export function EquipmentList() {
                 return (
                   <Table.Tr key={weapon.game_id}>
                     <Table.Td>
-                      <Anchor component={Link} to={`/equipment/weapons/${encodeURIComponent(weapon.game_id)}`} fw={500}>
+                      <Anchor component={Link} to={`/equipment/weapons/${encodeURIComponent(weapon.game_id)}`}>
                         {text(weapon.names)}
                       </Anchor>
                     </Table.Td>
@@ -104,11 +104,7 @@ export function EquipmentList() {
                 return (
                   <Table.Tr key={series.game_id}>
                     <Table.Td>
-                      <Anchor
-                        component={Link}
-                        to={`/equipment/armor/${encodeURIComponent(String(series.game_id))}`}
-                        fw={500}
-                      >
+                      <Anchor component={Link} to={`/equipment/armor/${encodeURIComponent(String(series.game_id))}`}>
                         {text(series.names)}
                       </Anchor>
                     </Table.Td>
@@ -125,7 +121,6 @@ export function EquipmentList() {
                       <Anchor
                         component={Link}
                         to={`/equipment/amulets/${encodeURIComponent(String(group.amulet_type))}`}
-                        fw={500}
                       >
                         {amuletName(item)}
                       </Anchor>
@@ -143,11 +138,7 @@ export function EquipmentList() {
               return (
                 <Table.Tr key={item.game_id}>
                   <Table.Td>
-                    <Anchor
-                      component={Link}
-                      to={`/equipment/decorations/${encodeURIComponent(String(item.game_id))}`}
-                      fw={500}
-                    >
+                    <Anchor component={Link} to={`/equipment/decorations/${encodeURIComponent(String(item.game_id))}`}>
                       {text(item.names)}
                     </Anchor>
                   </Table.Td>

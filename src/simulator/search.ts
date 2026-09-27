@@ -55,6 +55,12 @@ type SearchNode = {
   result?: SearchResult;
 };
 
+type SearchPhaseContext = {
+  entriesBySlot: Map<EquipmentSlot, Candidate[]>;
+  candidatePotential: Map<Candidate, number[]>;
+  coverageFor: (count: number) => number[][][][] | null;
+};
+
 class MaxHeap<T> {
   private items: T[] = [];
 
@@ -109,6 +115,7 @@ export type SearchProgress = {
   found: number;
   results?: SearchResult[];
   limitReached?: boolean;
+  lowerBound?: boolean;
 };
 
 const resultLimit = 10;
@@ -146,6 +153,10 @@ function rank(result: SearchResult): Rank {
     used: equipmentSlots.filter((slot) => result.build[slot] !== null).length,
     phase: result.phase,
   };
+}
+
+export function compareSearchResults(a: SearchResult, b: SearchResult, sort: SortMode): number {
+  return compare(rank(b), rank(a), sort);
 }
 
 function candidate(item: Gear, owner: EquipmentSlot, targets: SkillTarget[]): Candidate {
@@ -231,9 +242,17 @@ function selectRandomAmulets(
         levels: targets.map((target) => (skill.skill_id === target.id ? skill.level : 0)),
       })),
     );
+  groupEntries.set(0, [{ skill: { skill_id: 0, level: 0 }, mask: allMask, utility: 0, levels: targets.map(() => 0) }]);
+  const combosByGroups = new Map<string, number[]>();
+  for (const [index, combo] of data.randomAmulets.combos.entries()) {
+    const key = combo.groups.join(',');
+    const indices = combosByGroups.get(key) ?? [];
+    indices.push(index);
+    combosByGroups.set(key, indices);
+  }
   let examined = 0;
-  for (const [comboIndex, combo] of data.randomAmulets.combos.entries()) {
-    const [first, second, third] = combo.groups.map((group) => groupEntries.get(group) ?? []);
+  for (const groupKey of combosByGroups.keys()) {
+    const [first, second, third] = groupKey.split(',').map((group) => groupEntries.get(Number(group)) ?? []);
     for (const a of first)
       for (const b of second)
         for (const c of third) {
@@ -250,12 +269,12 @@ function selectRandomAmulets(
           const levels = targets.map((target, index) =>
             Math.min(target.level, a.levels[index] + b.levels[index] + c.levels[index]),
           );
-          const key = `${comboIndex}:${levels.join(',')}:${allowed.toString(16)}`;
+          const key = `${groupKey}|${levels.join(',')}|${allowed.toString(16)}`;
           const group = picks.get(key) ?? [];
           const utility = a.utility + b.utility + c.utility;
           if (group.length === hitLimit && utility < group[hitLimit - 1].utility) continue;
           const skills: Pick['skills'] = [a.skill, b.skill, c.skill];
-          const id = `random-amulet:${comboIndex}:${skills.map((skill) => `${skill.skill_id}.${skill.level}`).join(':')}`;
+          const id = skills.map((skill) => `${skill.skill_id}.${skill.level}`).join(':');
           if (group.length === hitLimit && utility === group[hitLimit - 1].utility && id >= group[hitLimit - 1].id)
             continue;
           let low = 0;
@@ -272,24 +291,26 @@ function selectRandomAmulets(
         }
   }
   const items: VirtualAmulet[] = [];
-  for (const group of picks.values())
-    for (const pick of group) {
-      const combo = data.randomAmulets.combos[Number(pick.id.split(':')[1])];
-      items.push({
-        game_id: pick.id,
-        amulet_type: -1,
-        level: 0,
-        rarity: combo.rarity,
-        price: 0,
-        names: {
-          ja: `鑑定護石 ${pick.skills.map((skill) => `${data.skillNames[skill.skill_id] ?? skill.skill_id} Lv ${skill.level}`).join('・')}`,
-        },
-        descriptions: { ja: '' },
-        skills: pick.skills,
-        slots: combo.slots.map((slot) => slot.level),
-        slotTypes: combo.slots.map((slot) => slot.type),
-      });
-    }
+  for (const [key, group] of picks)
+    for (const comboIndex of combosByGroups.get(key.split('|')[0]) ?? [])
+      for (const pick of group) {
+        const combo = data.randomAmulets.combos[comboIndex];
+        const skills = pick.skills.filter((skill) => skill.skill_id !== 0);
+        items.push({
+          game_id: `random-amulet:${comboIndex}:${pick.id}`,
+          amulet_type: -1,
+          level: 0,
+          rarity: combo.rarity,
+          price: 0,
+          names: {
+            ja: `鑑定護石 ${skills.map((skill) => `${data.skillNames[skill.skill_id] ?? skill.skill_id} Lv ${skill.level}`).join('・')}`,
+          },
+          descriptions: { ja: '' },
+          skills,
+          slots: combo.slots.map((slot) => slot.level),
+          slotTypes: combo.slots.map((slot) => slot.type),
+        });
+      }
   return { items, examined };
 }
 
@@ -703,6 +724,7 @@ export function searchBuilds(
         for (const vector of vectors) {
           const combined = levels.map((value, index) => Math.min(targets[index].level, value + vector[index]));
           next.set(combined.join(','), combined);
+          if (next.size > 50000) return true;
         }
       states = next;
       if (states.size > 50000) return true;
@@ -783,12 +805,7 @@ export function searchBuilds(
       utility: node.utility + placement.utility,
     };
   };
-  const searchCount = (
-    requiredCount: number,
-    phase: number,
-    searchSlots: EquipmentSlot[],
-    potentialBySlot: Map<EquipmentSlot, number[]>,
-  ) => {
+  const prepareSearchPhase = (phase: number, searchSlots: EquipmentSlot[]): SearchPhaseContext => {
     const entriesBySlot = new Map(searchSlots.map((slot) => [slot, candidatesFor(slot, phase)]));
     const candidatePotential = new Map<Candidate, number[]>();
     const potentialVectors = searchSlots.map((slot) => [
@@ -811,26 +828,45 @@ export function searchBuilds(
         }),
       ).values(),
     ]);
-    const coverage = (() => {
-      const zero = targets.map(() => 0);
-      const suffix: number[][][][] = Array.from({ length: searchSlots.length + 1 }, () => []);
-      suffix[searchSlots.length][0] = [zero];
-      for (let depth = searchSlots.length - 1; depth >= 0; depth--) {
-        for (let count = 0; count <= requiredCount; count++) {
+    const zero = targets.map(() => 0);
+    const suffix: number[][][][] = Array.from({ length: searchSlots.length + 1 }, () => []);
+    for (const row of suffix) row[0] = [zero];
+    let preparedCount = 0;
+    let coverageLimit = Number.POSITIVE_INFINITY;
+    const coverageFor = (requiredCount: number): number[][][][] | null => {
+      if (targets.reduce((states, target) => states * (target.level + 1), 1) > 100000) return null;
+      if (requiredCount >= coverageLimit) return null;
+      for (let count = preparedCount + 1; count <= requiredCount; count++) {
+        suffix[searchSlots.length][count] = [];
+        for (let depth = searchSlots.length - 1; depth >= 0; depth--) {
           const states = new Map<string, number[]>();
           for (const vector of suffix[depth + 1][count] ?? []) states.set(vector.join(','), vector);
-          if (count > 0)
-            for (const tail of suffix[depth + 1][count - 1] ?? [])
-              for (const item of potentialVectors[depth]) {
-                const vector = tail.map((value, index) => Math.min(targets[index].level, value + item[index]));
-                states.set(vector.join(','), vector);
-                if (states.size > 50000) return null;
+          for (const tail of suffix[depth + 1][count - 1] ?? [])
+            for (const item of potentialVectors[depth]) {
+              const vector = tail.map((value, index) => Math.min(targets[index].level, value + item[index]));
+              states.set(vector.join(','), vector);
+              if (states.size > 50000) {
+                coverageLimit = count;
+                return null;
               }
+            }
           suffix[depth][count] = [...states.values()];
         }
+        preparedCount = count;
       }
       return suffix;
-    })();
+    };
+    return { entriesBySlot, candidatePotential, coverageFor };
+  };
+  const searchCount = (
+    requiredCount: number,
+    phase: number,
+    searchSlots: EquipmentSlot[],
+    potentialBySlot: Map<EquipmentSlot, number[]>,
+    context: SearchPhaseContext,
+  ) => {
+    const { entriesBySlot, candidatePotential } = context;
+    const coverage = context.coverageFor(requiredCount);
     const strides: number[] = [];
     let stateCount = 1;
     for (const target of targets) {
@@ -1018,8 +1054,9 @@ export function searchBuilds(
       searchSlots.splice(requiresWeapon ? 1 : 0, 0, 'amulet');
     }
     if (phase < 2 && !canMeetDirectly(searchSlots, phase)) continue;
+    const context = prepareSearchPhase(phase, searchSlots);
     for (let requiredCount = 1; requiredCount <= searchSlots.length && found < foundLimit; requiredCount++)
-      searchCount(requiredCount, phase, searchSlots, potentialBySlot);
+      searchCount(requiredCount, phase, searchSlots, potentialBySlot, context);
   }
   reportResults(true);
   return results;

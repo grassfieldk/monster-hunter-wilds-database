@@ -237,6 +237,43 @@ test('鑑定護石の候補整理でも成立する組み合わせを残す', ()
   assert.ok(results.every((result) => result.build.amulet?.includes('random-amulet:0:1.1')));
 });
 
+test('2 スキルの鑑定護石も検索と装備情報の復元に含める', () => {
+  const data = fixture();
+  data.armor = [];
+  data.amulets = [];
+  data.decorations = [];
+  data.randomAmulets = {
+    groups: { 1: [skill(1, 1)], 2: [skill(2, 1)] },
+    combos: [{ rarity: 1, groups: [1, 2, 0], slots: [] }],
+  };
+  const results = searchBuilds(data, [{ id: 1, level: 1 }], 'slots');
+  assert.equal(results.length, 1);
+  assert.equal(results[0].build.amulet, 'random-amulet:0:1.1:2.1:0.0');
+  assert.deepEqual(results[0].skills, [
+    [1, 1],
+    [2, 1],
+  ]);
+});
+
+test('同じスキル抽選枠を持つ鑑定護石のスロット違いを残す', () => {
+  const data = fixture();
+  data.armor = [];
+  data.amulets = [];
+  data.decorations = [];
+  data.randomAmulets = {
+    groups: { 1: [skill(1, 1)], 2: [skill(2, 1)] },
+    combos: [
+      { rarity: 1, groups: [1, 2, 0], slots: [] },
+      { rarity: 1, groups: [1, 2, 0], slots: [{ level: 3, type: 1842954880 }] },
+    ],
+  };
+  const results = searchBuilds(data, [{ id: 1, level: 1 }], 'slots');
+  assert.deepEqual(
+    results.map((result) => result.build.amulet),
+    ['random-amulet:1:1.1:2.1:0.0', 'random-amulet:0:1.1:2.1:0.0'],
+  );
+});
+
 test('防具、通常護石、装飾品、鑑定護石の順に検索する', () => {
   const data = fixture();
   data.armor = [armor('direct-head', 0, [], 1, [skill(1, 1)]), armor('slotted-head', 0, [1], 0)];

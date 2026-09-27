@@ -9,9 +9,7 @@ export function EquipmentStats({ stats }: { stats: { label: string; value: React
           <Text size="sm" c="dimmed">
             {stat.label}
           </Text>
-          <Text size="sm" fw={500}>
-            {stat.value}
-          </Text>
+          <Text size="sm">{stat.value}</Text>
         </div>
       ))}
     </SimpleGrid>

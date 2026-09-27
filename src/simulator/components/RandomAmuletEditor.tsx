@@ -23,9 +23,7 @@ export function RandomAmuletEditor({ build, setBuild, data }: Props) {
   };
   return (
     <Stack gap="xs">
-      <Text size="sm" fw={600}>
-        鑑定護石
-      </Text>
+      <Text size="sm">鑑定護石</Text>
       <Group gap="xs">
         <Button
           size="xs"

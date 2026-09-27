@@ -19,9 +19,7 @@ export function ArtianSkillEditor({ build, setBuild, data, weapon }: Props) {
     <>
       {selectedArtianId && artianSkills.weaponIds.includes(selectedArtianId) && (
         <Stack gap="xs">
-          <Text size="sm" fw={600}>
-            アーティアスキル
-          </Text>
+          <Text size="sm">アーティアスキル</Text>
           <OptionPicker
             placeholder="スキルの組み合わせを選択"
             data={artianSkills.skillPairs.map((pair) => ({

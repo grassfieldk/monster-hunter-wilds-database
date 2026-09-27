@@ -63,7 +63,7 @@ export function QuestsPage() {
                 </Table.Td>
                 <Table.Td>
                   <Box>
-                    <Anchor component={Link} to={`/quests/${quest.game_id}`} fw={500} display="block">
+                    <Anchor component={Link} to={`/quests/${quest.game_id}`} display="block">
                       {text(quest.names)}
                     </Anchor>
                     <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-line' }}>

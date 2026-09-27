@@ -42,7 +42,7 @@ export function ItemsPage() {
                     <Text size="sm">{item.rarity}</Text>
                   </Table.Td>
                   <Table.Td>
-                    <Anchor component={Link} to={`/items/${item.game_id}`} fw={500}>
+                    <Anchor component={Link} to={`/items/${item.game_id}`}>
                       {text(item.names)}
                     </Anchor>
                   </Table.Td>

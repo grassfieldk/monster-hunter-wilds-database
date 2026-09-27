@@ -152,9 +152,7 @@ export function ItemSources({ item }: { item: Item }) {
     <Stack gap="lg">
       {supportedMethods.has('調合') && (
         <section>
-          <Text fw={500} mb="xs">
-            調合
-          </Text>
+          <Text mb="xs">調合</Text>
           {item.recipes.length ? (
             <Stack gap={4}>
               {item.recipes.map((recipe, index) => (
@@ -184,9 +182,7 @@ export function ItemSources({ item }: { item: Item }) {
         if (!rows.length)
           return (
             <section key={group}>
-              <Text fw={500} mb="xs">
-                {group}
-              </Text>
+              <Text mb="xs">{group}</Text>
               <Text size="sm" c="dimmed">
                 入手方法はありません
               </Text>
@@ -254,9 +250,7 @@ export function ItemSources({ item }: { item: Item }) {
           columns.push({ title: 'ランク', render: (row) => row.rank ?? '不明' });
         return (
           <section key={group}>
-            <Text fw={500} mb="xs">
-              {group}
-            </Text>
+            <Text mb="xs">{group}</Text>
             {columns.length === 1 ? (
               <Stack gap={4}>
                 {rows.map((row, index) => (

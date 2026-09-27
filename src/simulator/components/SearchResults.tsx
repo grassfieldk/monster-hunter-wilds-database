@@ -16,6 +16,7 @@ type Props = {
   availableLevels: Map<number, number[]>;
   unusableSkillIds: Set<number>;
   limitReached: boolean;
+  partial: boolean;
   searching: boolean;
   onEdit: (build: Build) => void;
 };
@@ -30,6 +31,7 @@ export function SearchResults({
   availableLevels,
   unusableSkillIds,
   limitReached,
+  partial,
   searching,
   onEdit,
 }: Props) {
@@ -49,14 +51,19 @@ export function SearchResults({
       {results.length > 0 && (
         <Stack gap="sm">
           <Group justify="space-between">
-            <Text fw={600}>{searching ? '検索中の結果' : '検索結果'}</Text>
+            <Text>{searching ? '検索中の結果' : '検索結果'}</Text>
             <Badge variant="light" radius="sm">
-              上位 {results.length} 件
+              {partial ? '候補' : '上位'} {results.length} 件
             </Badge>
           </Group>
           {limitReached && (
             <Text size="xs" c="dimmed">
               200 件で探索を終了しました。順位は探索済みの候補内での比較です
+            </Text>
+          )}
+          {partial && !searching && (
+            <Text size="xs" c="dimmed">
+              順位は見つかった候補内での比較です
             </Text>
           )}
           <Stack gap="xs">
@@ -94,7 +101,7 @@ export function SearchResults({
                             {equipmentLabels[slotIndex]}
                           </Text>
                           <div className="simulator-result-equipment-detail">
-                            <Text size="sm" fw={500} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                            <Text size="sm" style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                               {text(item.names)}
                             </Text>
                             {slotLevels.some((level) => level > 0) && (
@@ -140,11 +147,14 @@ export function SearchResults({
                           >
                             <Text
                               size="xs"
-                              fw={searchedIds.has(id) ? 700 : undefined}
                               c={searchedIds.has(id) && !unusableSkillIds.has(id) ? 'sand.2' : undefined}
                               style={{ minWidth: 0, overflowWrap: 'anywhere' }}
                             >
-                              <SkillDescriptionTooltip skillId={id} level={activeLevel(id, level) ?? level}>
+                              <SkillDescriptionTooltip
+                                skillId={id}
+                                level={activeLevel(id, level) ?? level}
+                                underline={false}
+                              >
                                 {text(skillById.get(id)?.names)}
                               </SkillDescriptionTooltip>
                             </Text>

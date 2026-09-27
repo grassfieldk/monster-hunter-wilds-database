@@ -1,7 +1,8 @@
+import { findConstraintBuilds } from './constraintSearch';
 import type { GearData, SkillTarget, SortMode } from './model';
-import { searchBuilds } from './search';
+import { compareSearchResults, searchBuilds } from './search';
 
-self.onmessage = (
+self.onmessage = async (
   event: MessageEvent<{
     data: GearData;
     targets: SkillTarget[];
@@ -14,6 +15,29 @@ self.onmessage = (
   }>,
 ) => {
   try {
+    if (event.data.targets.length >= 10 && !event.data.seriesTargets.length) {
+      const results = await findConstraintBuilds(
+        event.data.data,
+        event.data.targets,
+        event.data.weaponType,
+        event.data.includeMeldingOnly,
+        10,
+        (found) =>
+          self.postMessage({
+            progress: {
+              stage: 'searching',
+              visited: found.length,
+              found: found.length,
+              lowerBound: true,
+              results: [...found].sort((a, b) => compareSearchResults(a, b, event.data.sort)),
+            },
+          }),
+      );
+      if (results.length) {
+        self.postMessage({ results: results.sort((a, b) => compareSearchResults(a, b, event.data.sort)) });
+        return;
+      }
+    }
     self.postMessage({
       results: searchBuilds(
         event.data.data,

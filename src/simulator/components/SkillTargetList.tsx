@@ -62,9 +62,7 @@ export function SkillTargetList({
 
   return (
     <Stack gap={4}>
-      <Text fw={600} size="sm">
-        {title}
-      </Text>
+      <Text size="sm">{title}</Text>
       {targets.length === 0 && (
         <Text size="xs" c="dimmed">
           指定なし
@@ -75,7 +73,6 @@ export function SkillTargetList({
           <Button
             variant="default"
             fullWidth
-            fw={400}
             justify="flex-start"
             styles={{ root: { paddingInline: 8 }, label: { width: '100%' } }}
             className={unusableSkillIds.has(target.id) ? 'simulator-skill-unusable' : undefined}
@@ -135,7 +132,7 @@ export function SkillTargetList({
                 一覧に戻る
               </Button>
             </Group>
-            <Text fw={600}>{preview.name}</Text>
+            <Text>{preview.name}</Text>
             {preview.description && (
               <Text size="sm" c="dimmed">
                 {preview.description}
@@ -149,7 +146,6 @@ export function SkillTargetList({
                     variant="subtle"
                     color="gray"
                     fullWidth
-                    fw={400}
                     justify="flex-start"
                     styles={{
                       root: { height: 'auto', minHeight: 0, padding: 0 },
@@ -219,7 +215,7 @@ export function SkillTargetList({
                     onClick={() => setPreviewId(option.id)}
                   >
                     <Group justify="space-between" gap="xs" wrap="nowrap">
-                      <Text fw={600} size="sm" style={{ flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>
+                      <Text size="sm" style={{ flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>
                         {option.name}
                       </Text>
                       <SkillLevelMarks level={maxLevel} maxLevel={maxLevel} slotCount={maxLevel} />

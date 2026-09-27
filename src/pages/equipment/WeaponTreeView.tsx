@@ -64,9 +64,7 @@ export function WeaponTreeView({
       renderNode={({ node, elementProps }) => (
         <Group gap={4} wrap="nowrap" {...elementProps}>
           {node.value === currentId ? (
-            <Text className="equipment-tree-label" fw={600}>
-              {node.label}
-            </Text>
+            <Text className="equipment-tree-label">{node.label}</Text>
           ) : (
             <Anchor
               className="equipment-tree-label"

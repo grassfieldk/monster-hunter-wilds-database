@@ -7,10 +7,12 @@ export function SkillDescriptionTooltip({
   skillId,
   level,
   children,
+  underline = true,
 }: {
   skillId: number | undefined;
   level?: number;
   children: ReactNode;
+  underline?: boolean;
 }) {
   const { skillById, skillLevels } = useDatabase();
   const effect =
@@ -37,8 +39,8 @@ export function SkillDescriptionTooltip({
           font: 'inherit',
           textAlign: 'inherit',
           cursor: 'help',
-          textDecoration: 'underline dotted',
-          textUnderlineOffset: 3,
+          textDecoration: underline ? 'underline dotted' : 'none',
+          textUnderlineOffset: underline ? 3 : undefined,
         }}
       >
         {children}

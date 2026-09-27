@@ -159,9 +159,7 @@ export function ArmorSeriesDetail() {
       <Stack gap="xs">
         <Group gap="xs">
           <Badge variant="light">防具</Badge>
-          <Text size="lg" fw={600}>
-            {text(series.names)}
-          </Text>
+          <Text size="lg">{text(series.names)}</Text>
         </Group>
         <EquipmentStats
           stats={[
@@ -210,7 +208,7 @@ export function ArmorSeriesDetail() {
         {pieces.map((item) => (
           <Stack key={item.game_id} gap={4}>
             <Group justify="space-between" align="flex-start" wrap="nowrap">
-              <Text size="sm" fw={600} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+              <Text size="sm" style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                 {armorParts[item.part] ?? `部位 ${item.part}`}　{text(item.names)}
               </Text>
               <Text size="sm" className="numeric-cell" style={{ flexShrink: 0 }}>
@@ -231,18 +229,14 @@ export function ArmorSeriesDetail() {
       </Stack>
 
       <Stack gap="xs">
-        <Text size="sm" fw={600}>
-          必要素材
-        </Text>
+        <Text size="sm">必要素材</Text>
         {recipeGroups.length ? (
           <EquipmentMaterialGroups
             groups={recipeGroups.map(({ item, materials }) => ({
               key: item.game_id,
               label: (
                 <Group justify="space-between" gap="xs" wrap="nowrap">
-                  <Text size="sm" fw={600}>
-                    {armorParts[item.part] ?? `部位 ${item.part}`}
-                  </Text>
+                  <Text size="sm">{armorParts[item.part] ?? `部位 ${item.part}`}</Text>
                   <Text size="sm" className="numeric-cell" style={{ flexShrink: 0 }}>
                     {item.price?.toLocaleString('ja-JP') ?? '不明'} z
                   </Text>
@@ -261,9 +255,7 @@ export function ArmorSeriesDetail() {
 
       {upgradeMaterials.length > 0 && (
         <Stack gap="xs">
-          <Text size="sm" fw={600}>
-            強化素材
-          </Text>
+          <Text size="sm">強化素材</Text>
           <EquipmentMaterialTable materials={upgradeMaterials} itemById={itemById} />
         </Stack>
       )}
@@ -330,9 +322,7 @@ export function EquipmentDetail() {
                   ? '護石'
                   : '装飾品'}
           </Badge>
-          <Text size="lg" fw={600}>
-            {equipmentName}
-          </Text>
+          <Text size="lg">{equipmentName}</Text>
         </Group>
         <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-line' }}>
           {text(equipment.descriptions)}
@@ -348,9 +338,7 @@ export function EquipmentDetail() {
               <EquipmentRecipeSection recipes={recipes} itemById={itemById} />
               {hasTree && (
                 <Stack gap="xs">
-                  <Text size="sm" fw={600}>
-                    派生
-                  </Text>
+                  <Text size="sm">派生</Text>
                   <WeaponTreeView currentId={item.game_id} weapons={weapons} weaponTrees={weaponTrees} />
                 </Stack>
               )}
@@ -369,9 +357,7 @@ export function EquipmentDetail() {
               <EquipmentRecipeSection recipes={recipes} itemById={itemById} />
               {upgradeMaterials.length > 0 && (
                 <Stack gap="xs">
-                  <Text size="sm" fw={600}>
-                    強化素材
-                  </Text>
+                  <Text size="sm">強化素材</Text>
                   <EquipmentMaterialTable materials={upgradeMaterials} itemById={itemById} />
                 </Stack>
               )}
@@ -382,9 +368,7 @@ export function EquipmentDetail() {
         <>
           <AmuletDetailStats group={amuletGroup} skillById={skillById} />
           <Stack gap="xs">
-            <Text size="sm" fw={600}>
-              必要素材
-            </Text>
+            <Text size="sm">必要素材</Text>
             {recipes.length ? (
               <EquipmentMaterialGroups
                 groups={[...recipes]
@@ -395,9 +379,7 @@ export function EquipmentDetail() {
                       key: recipe.amulet_id ?? recipe.level ?? 'unknown',
                       label: (
                         <Group justify="space-between" gap="xs" wrap="nowrap">
-                          <Text size="sm" fw={600}>
-                            レベル {recipe.level ?? '不明'}
-                          </Text>
+                          <Text size="sm">レベル {recipe.level ?? '不明'}</Text>
                           <Text size="sm" className="numeric-cell" style={{ flexShrink: 0 }}>
                             {amulet?.price.toLocaleString('ja-JP') ?? '不明'} z
                           </Text>

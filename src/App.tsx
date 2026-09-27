@@ -58,12 +58,8 @@ export function App() {
           <Container visibleFrom="sm" size="lg" h="100%" px={{ base: 'xs', sm: 'md' }}>
             <Group h="100%" justify="space-between" wrap="nowrap">
               <Anchor component={Link} to="/" c="inherit" underline="never">
-                <Text fw={600} visibleFrom="md">
-                  MHWilds データベース
-                </Text>
-                <Text fw={600} hiddenFrom="md">
-                  MHWilds DB
-                </Text>
+                <Text visibleFrom="md">MHWilds データベース</Text>
+                <Text hiddenFrom="md">MHWilds DB</Text>
               </Anchor>
               <Group visibleFrom="sm" gap="xs" wrap="nowrap" className="desktop-header-nav">
                 <Anchor component={Link} to="/monsters" c="inherit">

@@ -129,7 +129,7 @@ export function SearchControls({
 
   return (
     <Stack gap="sm">
-      <Text fw={600}>検索条件</Text>
+      <Text>検索条件</Text>
       <SimpleGrid cols={{ base: 2, sm: 2 }} spacing="sm" className="simulator-search-settings">
         <OptionPicker
           label="武器種"
@@ -142,9 +142,7 @@ export function SearchControls({
           style={{ width: '100%' }}
         />
         <Stack gap={4}>
-          <Text size="sm" fw={500}>
-            ランダム装備
-          </Text>
+          <Text size="sm">ランダム装備</Text>
           <div className="simulator-random-equipment-control">
             <Group gap="xs" wrap="nowrap">
               <Checkbox
@@ -218,7 +216,9 @@ export function SearchControls({
       {(searching || progress) && (
         <Text size="sm">
           検索済: {progress?.visited.toLocaleString() ?? 0} 件、ヒット:{' '}
-          {progress?.limitReached ? '200 件以上' : `${progress?.found.toLocaleString() ?? 0} 件`}
+          {progress?.limitReached
+            ? '200 件以上'
+            : `${progress?.found.toLocaleString() ?? 0} 件${progress?.lowerBound && progress.found ? '以上' : ''}`}
         </Text>
       )}
       <Text size="xs" c="dimmed">

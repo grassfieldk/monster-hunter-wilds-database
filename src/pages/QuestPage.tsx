@@ -55,7 +55,7 @@ export function QuestPage() {
               <Text size="sm" c="dimmed">
                 受注条件
               </Text>
-              <Text size="sm" fw={500}>
+              <Text size="sm">
                 {quest.order_rank === null ? '不明' : quest.order_rank > 0 ? `HR ${quest.order_rank}` : 'なし'}
               </Text>
             </div>
@@ -63,7 +63,7 @@ export function QuestPage() {
               <Text size="sm" c="dimmed">
                 フィールド
               </Text>
-              <Text size="sm" fw={500}>
+              <Text size="sm">
                 {quest.locations.map(stageName).join('、') || quest.location_names?.join('、') || '不明'}
               </Text>
             </div>
@@ -71,15 +71,13 @@ export function QuestPage() {
               <Text size="sm" c="dimmed">
                 制限時間
               </Text>
-              <Text size="sm" fw={500}>
-                {quest.time_limit === null ? '不明' : `${quest.time_limit} 分`}
-              </Text>
+              <Text size="sm">{quest.time_limit === null ? '不明' : `${quest.time_limit} 分`}</Text>
             </div>
             <div>
               <Text size="sm" c="dimmed">
                 報酬金
               </Text>
-              <Text size="sm" fw={500}>
+              <Text size="sm">
                 {quest.reward_money === null ? '不明' : `${quest.reward_money.toLocaleString('ja-JP')} z`}
               </Text>
             </div>
@@ -87,7 +85,7 @@ export function QuestPage() {
               <Text size="sm" c="dimmed">
                 HR ポイント
               </Text>
-              <Text size="sm" fw={500}>
+              <Text size="sm">
                 {quest.hunter_rank_points === null ? '不明' : quest.hunter_rank_points.toLocaleString('ja-JP')}
               </Text>
             </div>

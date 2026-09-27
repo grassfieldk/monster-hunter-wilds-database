@@ -115,7 +115,7 @@ export function BuildEditor({
   return (
     <Stack gap="md">
       <Group justify="space-between" align="start">
-        <Text fw={600}>装備を組む</Text>
+        <Text>装備を組む</Text>
         <Button size="xs" variant="light" onClick={onShare}>
           URL をコピー
         </Button>

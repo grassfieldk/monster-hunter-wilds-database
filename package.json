@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
-    "test:simulator": "node --test scripts/test-simulator.mjs",
+    "test:simulator": "node --test scripts/test-simulator.mjs scripts/test-constraint-search.mjs",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check .",
@@ -20,6 +20,7 @@
     "@mantine/core": "^8.3.2",
     "@mantine/hooks": "^8.3.2",
     "@tabler/icons-react": "^3.35.0",
+    "highs": "^1.15.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.8.2"

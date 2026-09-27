@@ -12,13 +12,13 @@ export function MonsterBasicSection({ monster, stageName }: Props) {
       <Stack>
         <Stack gap="xs">
           <Group gap="xs" align="flex-start" wrap="nowrap">
-            <Text size="sm" fw={500} w={64} flex="0 0 auto">
+            <Text size="sm" w={64} flex="0 0 auto">
               出現場所
             </Text>
             <Text size="sm">{monster.locations.map(stageName).join('、') || '不明'}</Text>
           </Group>
           <Group gap="xs" align="flex-start" wrap="nowrap">
-            <Text size="sm" fw={500} w={64} flex="0 0 auto">
+            <Text size="sm" w={64} flex="0 0 auto">
               弱点
             </Text>
             <Group gap={4}>
@@ -37,7 +37,7 @@ export function MonsterBasicSection({ monster, stageName }: Props) {
             </Group>
           </Group>
           <Group gap="xs" align="flex-start" wrap="nowrap">
-            <Text size="sm" fw={500} w={64} flex="0 0 auto">
+            <Text size="sm" w={64} flex="0 0 auto">
               耐性
             </Text>
             <Group gap={4}>
@@ -62,39 +62,31 @@ export function MonsterBasicSection({ monster, stageName }: Props) {
             <Text size="sm" c="dimmed">
               基礎体力
             </Text>
-            <Text size="sm" fw={500}>
-              {monster.base_health?.toLocaleString('ja-JP') ?? '不明'}
-            </Text>
+            <Text size="sm">{monster.base_health?.toLocaleString('ja-JP') ?? '不明'}</Text>
           </div>
           <div>
             <Text size="sm" c="dimmed">
               基準サイズ
             </Text>
-            <Text size="sm" fw={500}>
-              {monster.size.base?.toFixed(2) ?? '不明'}
-            </Text>
+            <Text size="sm">{monster.size.base?.toFixed(2) ?? '不明'}</Text>
           </div>
           <div>
             <Text size="sm" c="dimmed">
               最小金冠
             </Text>
-            <Text size="sm" fw={500}>
-              {monster.size.mini?.toFixed(2) ?? '不明'}
-            </Text>
+            <Text size="sm">{monster.size.mini?.toFixed(2) ?? '不明'}</Text>
           </div>
           <div>
             <Text size="sm" c="dimmed">
               最大金冠
             </Text>
-            <Text size="sm" fw={500}>
-              {monster.size.gold?.toFixed(2) ?? '不明'}
-            </Text>
+            <Text size="sm">{monster.size.gold?.toFixed(2) ?? '不明'}</Text>
           </div>
         </SimpleGrid>
         <Divider />
         <Stack gap="sm">
           <div>
-            <Text size="sm" fw={500} c="dimmed" mb={4}>
+            <Text size="sm" c="dimmed" mb={4}>
               説明
             </Text>
             <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>
@@ -102,7 +94,7 @@ export function MonsterBasicSection({ monster, stageName }: Props) {
             </FormattedText>
           </div>
           <div>
-            <Text size="sm" fw={500} c="dimmed" mb={4}>
+            <Text size="sm" c="dimmed" mb={4}>
               特徴
             </Text>
             <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>
@@ -110,7 +102,7 @@ export function MonsterBasicSection({ monster, stageName }: Props) {
             </FormattedText>
           </div>
           <div>
-            <Text size="sm" fw={500} c="dimmed" mb={4}>
+            <Text size="sm" c="dimmed" mb={4}>
               攻略の要点
             </Text>
             <FormattedText className="long-description" size="sm" style={{ whiteSpace: 'pre-line' }}>

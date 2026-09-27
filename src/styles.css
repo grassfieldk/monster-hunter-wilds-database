@@ -315,6 +315,10 @@ a {
   min-width: 0;
 }
 
+.option-picker > .mantine-Button-root {
+  font-weight: 400;
+}
+
 .simulator-skill-targets .mantine-Button-root,
 .simulator-skill-targets .mantine-Button-label {
   min-width: 0;

@@ -103,15 +103,16 @@ function virtualAmulet(id: string, data: GearData): VirtualAmulet | null {
     const match = part.match(/^(-?\d+)\.(\d+)$/u);
     if (!match) return null;
     const skill = { skill_id: Number(match[1]), level: Number(match[2]) };
-    return data.randomAmulets.groups[combo.groups[index]]?.some(
-      (option) => option.skill_id === skill.skill_id && option.level === skill.level,
-    )
+    return (combo.groups[index] === 0 && skill.skill_id === 0 && skill.level === 0) ||
+      data.randomAmulets.groups[combo.groups[index]]?.some(
+        (option) => option.skill_id === skill.skill_id && option.level === skill.level,
+      )
       ? skill
       : null;
   });
   if (skills.some((skill) => !skill) || new Set(skills.map((skill) => skill?.skill_id)).size !== skills.length)
     return null;
-  const entries = skills as EquipmentSkill[];
+  const entries = (skills as EquipmentSkill[]).filter((skill) => skill.skill_id !== 0);
   return {
     game_id: id,
     amulet_type: -1,

@@ -163,6 +163,7 @@ export function SimulatorPage() {
         availableLevels={availableLevels}
         unusableSkillIds={unusableSkillIds}
         limitReached={progress?.limitReached ?? false}
+        partial={progress?.lowerBound ?? false}
         searching={searching}
         onEdit={setBuild}
       />

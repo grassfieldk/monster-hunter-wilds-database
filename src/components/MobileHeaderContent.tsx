@@ -14,42 +14,12 @@ export function MobileHeaderContent() {
   const skillMatch = pathname.match(/^\/skills\/([^/]+)$/u);
   const equipmentMatch = pathname.match(/^\/equipment\/([^/]+)\/([^/]+)$/u);
 
-  if (pathname === '/')
-    return (
-      <Text size="md" fw={600}>
-        Monster Hunter Wilds DB
-      </Text>
-    );
-  if (pathname === '/monsters')
-    return (
-      <Text size="md" fw={600}>
-        モンスター一覧
-      </Text>
-    );
-  if (pathname === '/items')
-    return (
-      <Text size="md" fw={600}>
-        アイテム一覧
-      </Text>
-    );
-  if (pathname === '/quests')
-    return (
-      <Text size="md" fw={600}>
-        クエスト一覧
-      </Text>
-    );
-  if (pathname === '/equipment')
-    return (
-      <Text size="md" fw={600}>
-        装備一覧
-      </Text>
-    );
-  if (pathname === '/simulator')
-    return (
-      <Text size="md" fw={600}>
-        装備検索ツール
-      </Text>
-    );
+  if (pathname === '/') return <Text size="md">Monster Hunter Wilds DB</Text>;
+  if (pathname === '/monsters') return <Text size="md">モンスター一覧</Text>;
+  if (pathname === '/items') return <Text size="md">アイテム一覧</Text>;
+  if (pathname === '/quests') return <Text size="md">クエスト一覧</Text>;
+  if (pathname === '/equipment') return <Text size="md">装備一覧</Text>;
+  if (pathname === '/simulator') return <Text size="md">装備検索ツール</Text>;
 
   if (monsterMatch) {
     const monster = monsterById.get(Number(monsterMatch[1]));
@@ -62,12 +32,12 @@ export function MobileHeaderContent() {
             <Badge size="sm" variant="light">
               {label(monster.species)}
             </Badge>
-            <Text size="md" fw={600} truncate>
+            <Text size="md" truncate>
               {monsterName}
             </Text>
           </Group>
           {epithet && (
-            <Text size="md" fw={600} ta="right" truncate>
+            <Text size="md" ta="right" truncate>
               <MonsterEpithet value={epithet} className="monster-epithet" />
             </Text>
           )}
@@ -84,7 +54,7 @@ export function MobileHeaderContent() {
           <Badge size="sm" variant="light">
             RARE {item.rarity}
           </Badge>
-          <Text size="md" fw={600} truncate>
+          <Text size="md" truncate>
             {text(item.names)}
           </Text>
           <Text size="sm" c="dimmed" truncate>
@@ -103,7 +73,7 @@ export function MobileHeaderContent() {
           <Badge size="sm" variant="light">
             {quest.category}
           </Badge>
-          <Text size="md" fw={600} truncate>
+          <Text size="md" truncate>
             {text(quest.names)}
           </Text>
         </Group>
@@ -119,7 +89,7 @@ export function MobileHeaderContent() {
           <Badge size="sm" variant="light">
             スキル
           </Badge>
-          <Text size="md" fw={600} truncate>
+          <Text size="md" truncate>
             {text(skill.names)}
           </Text>
         </Group>
@@ -158,7 +128,7 @@ export function MobileHeaderContent() {
           <Badge size="sm" variant="light">
             {category}
           </Badge>
-          <Text size="md" fw={600} truncate>
+          <Text size="md" truncate>
             {equipmentName}
           </Text>
         </Group>

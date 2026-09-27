@@ -223,7 +223,7 @@ export function SearchBox({
                         {result.label}
                       </Badge>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <Text fw={500} lh={1.25} truncate>
+                        <Text lh={1.25} truncate>
                           {result.name}
                         </Text>
                         <FormattedText size="sm" c="dimmed" lh={1.25} lineClamp={1}>

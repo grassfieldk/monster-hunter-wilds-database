@@ -57,13 +57,7 @@ export function EquipmentMaterialGroups({
     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
       {groups.map((group) => (
         <Stack key={group.key} gap={4}>
-          {typeof group.label === 'string' ? (
-            <Text size="sm" fw={600}>
-              {group.label}
-            </Text>
-          ) : (
-            group.label
-          )}
+          {typeof group.label === 'string' ? <Text size="sm">{group.label}</Text> : group.label}
           {group.materials.map((material, index) => (
             <Group
               key={`${material.item_id}-${index}`}
@@ -89,9 +83,7 @@ export function EquipmentMaterialGroups({
 export function EquipmentRecipeSection({ recipes, itemById }: { recipes: EquipmentRecipe[]; itemById: ItemById }) {
   return (
     <Stack gap="xs">
-      <Text size="sm" fw={600}>
-        必要素材
-      </Text>
+      <Text size="sm">必要素材</Text>
       {recipes.length ? (
         <EquipmentMaterialTable materials={recipes.flatMap((recipe) => recipe.materials)} itemById={itemById} />
       ) : (

@@ -57,7 +57,7 @@ export function OptionPicker({
   return (
     <div className={['option-picker', className].filter(Boolean).join(' ')} style={style}>
       {label && (
-        <Text size="sm" fw={500} mb={4}>
+        <Text size="sm" mb={4}>
           {label}
         </Text>
       )}
@@ -65,7 +65,6 @@ export function OptionPicker({
         type="button"
         variant="default"
         size={size}
-        fw={400}
         fullWidth
         justify="space-between"
         className={buttonClassName}
@@ -108,9 +107,7 @@ export function OptionPicker({
                       className="option-picker-option"
                       onClick={() => setGroup(entry.value)}
                     >
-                      <Text size="sm" fw={600}>
-                        {entry.label}
-                      </Text>
+                      <Text size="sm">{entry.label}</Text>
                     </UnstyledButton>
                   ))
                 : options.map((option) => (
@@ -120,9 +117,7 @@ export function OptionPicker({
                       aria-label={option.label}
                       onClick={() => choose(option.value)}
                     >
-                      <Text size="sm" fw={value === option.value ? 700 : 500}>
-                        {option.label}
-                      </Text>
+                      <Text size="sm">{option.label}</Text>
                       {option.description && (
                         <Text size="xs" c="dimmed" lineClamp={2}>
                           {option.description}

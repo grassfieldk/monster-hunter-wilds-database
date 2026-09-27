@@ -18,9 +18,7 @@ export function ArtianBonusEditor({ build, setBuild, data, weapon }: Props) {
     <>
       {isVirtualWeapon(equipped.weapon) && (
         <Stack gap="xs">
-          <Text size="sm" fw={600}>
-            アーティア武器の復元強化
-          </Text>
+          <Text size="sm">アーティア武器の復元強化</Text>
           {(build.weaponBonuses ?? []).map((id, index) => (
             <Group key={index} gap="xs" wrap="wrap">
               <OptionPicker
