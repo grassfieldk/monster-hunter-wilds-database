@@ -6,6 +6,12 @@ import type { SearchCriteria } from './searchPresets';
 
 export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) {
   const { maxSkillLevels } = data;
+  const validWeaponId = (weaponType: string | null, weaponId: string | null, includeArtian: boolean) =>
+    weaponId &&
+    data.weapons.some((weapon) => weapon.game_id === weaponId && weapon.weapon_type === weaponType) &&
+    (includeArtian || !data.artianSkills.weaponIds.includes(weaponId))
+      ? weaponId
+      : null;
   const [saved] = useState(readSavedSearch);
   const [weaponTargets, setWeaponTargets] = useState<SkillTarget[]>(saved?.weaponTargets ?? []);
   const [armorTargets, setArmorTargets] = useState<SkillTarget[]>(
@@ -20,6 +26,9 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
   const [searchedTargets, setSearchedTargets] = useState<SkillTarget[]>(saved?.searchedTargets ?? []);
   const [sort, setSort] = useState<SortMode>(saved?.sort ?? 'slots');
   const [weaponType, setWeaponType] = useState<string | null>(saved?.weaponType ?? null);
+  const [weaponId, setWeaponId] = useState<string | null>(() =>
+    validWeaponId(saved?.weaponType ?? null, saved?.weaponId ?? null, saved?.includeArtian ?? true),
+  );
   const [includeMeldingOnly, setIncludeMeldingOnly] = useState(saved?.includeMeldingOnly ?? false);
   const [includeArtian, setIncludeArtian] = useState(saved?.includeArtian ?? true);
   const [progress, setProgress] = useState<SearchProgress | null>(saved?.progress ?? null);
@@ -38,6 +47,7 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
       searchedTargets,
       sort,
       weaponType,
+      weaponId,
       includeMeldingOnly,
       includeArtian,
       progress,
@@ -55,6 +65,7 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
     searchedTargets,
     sort,
     weaponType,
+    weaponId,
     includeMeldingOnly,
     includeArtian,
     progress,
@@ -134,6 +145,7 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
       targets: selected,
       sort,
       weaponType,
+      weaponId,
       weaponRequired: weaponTargets.length > 0,
       includeMeldingOnly,
       seriesTargets: selectedSeries,
@@ -154,6 +166,7 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
     setSeriesTargets(criteria.seriesTargets.map((target) => ({ ...target })));
     setSort(criteria.sort);
     setWeaponType(criteria.weaponType);
+    setWeaponId(validWeaponId(criteria.weaponType, criteria.weaponId, criteria.includeArtian));
     setIncludeMeldingOnly(criteria.includeMeldingOnly);
     setIncludeArtian(criteria.includeArtian);
     setSearchedTargets([]);
@@ -175,6 +188,8 @@ export function useSimulatorSearch(data: GearData, seriesSkillIds: Set<number>) 
     setSort,
     weaponType,
     setWeaponType,
+    weaponId,
+    setWeaponId,
     includeMeldingOnly,
     setIncludeMeldingOnly,
     includeArtian,

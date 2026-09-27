@@ -9,6 +9,7 @@ export type SearchCriteria = {
   seriesTargets: SkillTarget[];
   sort: SortMode;
   weaponType: string | null;
+  weaponId: string | null;
   includeMeldingOnly: boolean;
   includeArtian: boolean;
 };
@@ -47,6 +48,7 @@ function validCriteria(value: unknown): value is SearchCriteria {
     value.seriesTargets.length <= maxSeriesSkillTargets &&
     (value.sort === 'slots' || value.sort === 'defense') &&
     (value.weaponType === null || typeof value.weaponType === 'string') &&
+    (value.weaponId === null || typeof value.weaponId === 'string') &&
     typeof value.includeMeldingOnly === 'boolean' &&
     typeof value.includeArtian === 'boolean'
   );
@@ -56,7 +58,11 @@ function parsePreset(value: unknown): SearchPreset | null {
   if (!isRecord(value) || typeof value.id !== 'string' || typeof value.name !== 'string' || !value.name.trim())
     return null;
   if (!isRecord(value.criteria)) return null;
-  const criteria = { ...value.criteria, includeArtian: value.criteria.includeArtian ?? true };
+  const criteria = {
+    ...value.criteria,
+    weaponId: value.criteria.weaponId ?? null,
+    includeArtian: value.criteria.includeArtian ?? true,
+  };
   return validCriteria(criteria) ? { id: value.id, name: value.name, criteria } : null;
 }
 

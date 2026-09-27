@@ -314,12 +314,23 @@ function selectRandomAmulets(
   return { items, examined };
 }
 
-function* allWeapons(data: GearData, weaponType: string | null, includeArtian: boolean): Generator<Gear> {
+function* allWeapons(
+  data: GearData,
+  weaponType: string | null,
+  includeArtian: boolean,
+  weaponId: string | null,
+): Generator<Gear> {
   for (const weapon of data.weapons)
-    if (!data.artianSkills.weaponIds.includes(weapon.game_id) && (!weaponType || weapon.weapon_type === weaponType))
+    if (
+      !data.artianSkills.weaponIds.includes(weapon.game_id) &&
+      (!weaponType || weapon.weapon_type === weaponType) &&
+      (!weaponId || weapon.game_id === weaponId)
+    )
       yield weapon;
   if (includeArtian)
-    for (const weapon of artianWeapons(data)) if (!weaponType || weapon.weapon_type === weaponType) yield weapon;
+    for (const weapon of artianWeapons(data))
+      if ((!weaponType || weapon.weapon_type === weaponType) && (!weaponId || weapon.sourceWeaponId === weaponId))
+        yield weapon;
 }
 
 function makeCandidates(
@@ -499,6 +510,7 @@ export function searchBuilds(
   seriesTargets: SkillTarget[] = [],
   stopAfterFirst = false,
   includeArtian = true,
+  weaponId: string | null = null,
 ): SearchResult[] {
   if (!targets.length) return [];
   const seriesRequirements = seriesTargets.slice(0, maxSeriesSkillTargets);
@@ -514,6 +526,7 @@ export function searchBuilds(
       [],
       true,
       includeArtian,
+      weaponId,
     );
     if (!seriesResults.length) {
       onProgress?.({ stage: 'searching', visited: 0, found: 0, results: [] });
@@ -558,7 +571,10 @@ export function searchBuilds(
   const profiles = [
     ...new Map(
       data.weapons
-        .filter((weapon) => includeArtian || !artianWeaponIds.has(weapon.game_id))
+        .filter(
+          (weapon) =>
+            (includeArtian || !artianWeaponIds.has(weapon.game_id)) && (!weaponId || weapon.game_id === weaponId),
+        )
         .map((weapon) => [
           `${weapon.weapon_type}:${weapon.attribute_value > 0 ? weapon.attribute : 0}:${weapon.sub_attribute_value > 0 ? weapon.sub_attribute : 0}`,
           weapon,
@@ -575,7 +591,8 @@ export function searchBuilds(
     });
     skillMasks.set(Number(idText), mask);
   }
-  const requiresWeapon = weaponRequired || targets.some((target) => restrictedSkill(data.skillNames[target.id] ?? ''));
+  const requiresWeapon =
+    weaponRequired || weaponId !== null || targets.some((target) => restrictedSkill(data.skillNames[target.id] ?? ''));
   const decorationGain = new Map<string, number>();
   const gainForSlot = (type: number, level: number, targetId: number) => {
     const key = `${type}:${level}:${targetId}`;
@@ -625,7 +642,9 @@ export function searchBuilds(
       slot === 'weapon'
         ? data.weapons.filter(
             (item) =>
-              (!weaponType || item.weapon_type === weaponType) && (includeArtian || !artianWeaponIds.has(item.game_id)),
+              (!weaponType || item.weapon_type === weaponType) &&
+              (!weaponId || item.game_id === weaponId) &&
+              (includeArtian || !artianWeaponIds.has(item.game_id)),
           )
         : slot === 'amulet'
           ? data.amulets
@@ -691,7 +710,7 @@ export function searchBuilds(
     const selectedAmulets = slot === 'amulet' && phase === 3 ? selectedRandomAmulets : null;
     const items: Iterable<Gear> =
       slot === 'weapon'
-        ? allWeapons(data, weaponType, includeArtian)
+        ? allWeapons(data, weaponType, includeArtian, weaponId)
         : slot === 'amulet'
           ? (selectedAmulets?.items ?? data.amulets)
           : data.armor.filter((item) => item.part === armorSlots.indexOf(slot));

@@ -174,6 +174,7 @@ export async function findConstraintBuilds(
   includeMeldingOnly: boolean,
   limit = 10,
   onResult?: (results: SearchResult[]) => void,
+  weaponId: string | null = null,
 ): Promise<SearchResult[]> {
   const excludedDecorations = includeMeldingOnly ? new Set<number>() : new Set(data.meldingOnlyDecorationIds ?? []);
   const artianIds = new Set(data.artianSkills.weaponIds);
@@ -186,6 +187,7 @@ export async function findConstraintBuilds(
     const weapons = data.weapons.filter(
       (weapon) =>
         weapon.weapon_type === type &&
+        (!weaponId || weapon.game_id === weaponId) &&
         !artianIds.has(weapon.game_id) &&
         targets.every((target) => skillUsable(data.skillNames[target.id] ?? '', weapon)),
     );

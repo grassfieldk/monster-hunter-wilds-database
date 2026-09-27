@@ -2,7 +2,7 @@ import { Button, Checkbox, Group, SimpleGrid, Stack, Text } from '@mantine/core'
 import { type Dispatch, type SetStateAction, useMemo } from 'react';
 import { OptionPicker } from '../../components/OptionPicker';
 import { text } from '../../data';
-import type { Skill, SkillLevel } from '../../types';
+import type { Skill, SkillLevel, Weapon } from '../../types';
 import { decorationTypeForSlot, type GearData, maxSeriesSkillTargets, type SkillTarget, type SortMode } from '../model';
 import type { SearchProgress } from '../search';
 import type { SearchCriteria } from '../searchPresets';
@@ -11,6 +11,7 @@ import { type SkillOption, SkillTargetList } from './SkillTargetList';
 
 type Props = {
   data: GearData;
+  selectableWeapons: Weapon[];
   skills: Skill[];
   skillLevels: SkillLevel[];
   availableLevels: Map<number, number[]>;
@@ -25,6 +26,8 @@ type Props = {
   setSort: Dispatch<SetStateAction<SortMode>>;
   weaponType: string | null;
   setWeaponType: Dispatch<SetStateAction<string | null>>;
+  weaponId: string | null;
+  setWeaponId: Dispatch<SetStateAction<string | null>>;
   includeMeldingOnly: boolean;
   setIncludeMeldingOnly: Dispatch<SetStateAction<boolean>>;
   includeArtian: boolean;
@@ -38,6 +41,7 @@ type Props = {
 
 export function SearchControls({
   data,
+  selectableWeapons,
   skills,
   skillLevels,
   availableLevels,
@@ -52,6 +56,8 @@ export function SearchControls({
   setSort,
   weaponType,
   setWeaponType,
+  weaponId,
+  setWeaponId,
   includeMeldingOnly,
   setIncludeMeldingOnly,
   includeArtian,
@@ -122,9 +128,32 @@ export function SearchControls({
       })),
     [weapons],
   );
+  const weaponOptions = useMemo(() => {
+    const selected = selectableWeapons.filter((weapon) => weapon.weapon_type === weaponType);
+    const names = selected.map((weapon) => text(weapon.names));
+    return selected
+      .map((weapon, index) => ({
+        value: weapon.game_id,
+        label:
+          names.filter((name) => name === names[index]).length > 1
+            ? `${names[index]}（攻撃 ${weapon.attack}・会心 ${weapon.affinity}%）`
+            : names[index],
+      }))
+      .filter((option) => includeArtian || !artianSkills.weaponIds.includes(option.value))
+      .sort((a, b) => a.label.localeCompare(b.label, 'ja'));
+  }, [selectableWeapons, weaponType, includeArtian, artianSkills.weaponIds]);
   const criteria = useMemo(
-    () => ({ weaponTargets, armorTargets, seriesTargets, sort, weaponType, includeMeldingOnly, includeArtian }),
-    [weaponTargets, armorTargets, seriesTargets, sort, weaponType, includeMeldingOnly, includeArtian],
+    () => ({
+      weaponTargets,
+      armorTargets,
+      seriesTargets,
+      sort,
+      weaponType,
+      weaponId,
+      includeMeldingOnly,
+      includeArtian,
+    }),
+    [weaponTargets, armorTargets, seriesTargets, sort, weaponType, weaponId, includeMeldingOnly, includeArtian],
   );
 
   return (
@@ -137,29 +166,24 @@ export function SearchControls({
           clearable
           data={weaponTypeOptions}
           value={weaponType}
-          onChange={setWeaponType}
+          onChange={(value) => {
+            setWeaponType(value);
+            setWeaponId(null);
+          }}
           buttonClassName="simulator-compact-select"
           style={{ width: '100%' }}
         />
-        <Stack gap={4}>
-          <Text size="sm">ランダム装備</Text>
-          <div className="simulator-random-equipment-control">
-            <Group gap="xs" wrap="nowrap">
-              <Checkbox
-                size="xs"
-                label="錬金装飾"
-                checked={includeMeldingOnly}
-                onChange={(event) => setIncludeMeldingOnly(event.currentTarget.checked)}
-              />
-              <Checkbox
-                size="xs"
-                label="アーティア"
-                checked={includeArtian}
-                onChange={(event) => setIncludeArtian(event.currentTarget.checked)}
-              />
-            </Group>
-          </div>
-        </Stack>
+        <OptionPicker
+          label="武器"
+          placeholder="指定なし"
+          clearable
+          disabled={!weaponType}
+          data={weaponOptions}
+          value={weaponId}
+          onChange={setWeaponId}
+          buttonClassName="simulator-compact-select"
+          style={{ width: '100%' }}
+        />
       </SimpleGrid>
       <SimpleGrid cols={{ base: 2, sm: 2 }} spacing="sm" className="simulator-skill-targets">
         <SkillTargetList
@@ -191,6 +215,29 @@ export function SearchControls({
         unusableSkillIds={unusableSkillIds}
         levelDescriptions={levelDescriptions}
       />
+      <Stack gap={4}>
+        <Text size="sm">ランダム装備</Text>
+        <div className="simulator-random-equipment-control">
+          <Group gap="xs" wrap="nowrap">
+            <Checkbox
+              size="xs"
+              label="錬金装飾"
+              checked={includeMeldingOnly}
+              onChange={(event) => setIncludeMeldingOnly(event.currentTarget.checked)}
+            />
+            <Checkbox
+              size="xs"
+              label="アーティア"
+              checked={includeArtian}
+              onChange={(event) => {
+                const checked = event.currentTarget.checked;
+                setIncludeArtian(checked);
+                if (!checked && weaponId && artianSkills.weaponIds.includes(weaponId)) setWeaponId(null);
+              }}
+            />
+          </Group>
+        </div>
+      </Stack>
       <SavedSearchPresets criteria={criteria} onLoad={onLoadCriteria} />
       <SimpleGrid cols={{ base: 2, sm: 2 }} spacing="sm" className="simulator-search-actions">
         <Button

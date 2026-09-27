@@ -5,6 +5,7 @@ import { text, useDatabase } from '../data';
 import { BuildEditor } from '../simulator/components/BuildEditor';
 import { SearchControls } from '../simulator/components/SearchControls';
 import { SearchResults } from '../simulator/components/SearchResults';
+import { finalWeapons } from '../simulator/finalWeapons';
 import type { Build } from '../simulator/model';
 import { skillUsable } from '../simulator/relevance';
 import { readSharedBuild } from '../simulator/share';
@@ -13,6 +14,7 @@ import { useSimulatorSearch } from '../simulator/useSimulatorSearch';
 export function SimulatorPage() {
   const {
     weapons,
+    weaponTrees,
     armor,
     amulets,
     decorations,
@@ -73,6 +75,7 @@ export function SimulatorPage() {
     () => new Set(skills.filter((skill) => skill.category === 1).map((skill) => skill.game_id)),
     [skills],
   );
+  const selectableWeapons = useMemo(() => finalWeapons(weapons, weaponTrees), [weapons, weaponTrees]);
   const [params, setParams] = useSearchParams();
   const sharedBuild = params.get('build');
   const [build, setBuild] = useState<Build>(() => readSharedBuild(sharedBuild));
@@ -86,6 +89,8 @@ export function SimulatorPage() {
     setSort,
     weaponType,
     setWeaponType,
+    weaponId,
+    setWeaponId,
     includeMeldingOnly,
     setIncludeMeldingOnly,
     includeArtian,
@@ -104,13 +109,15 @@ export function SimulatorPage() {
   } = useSimulatorSearch(data, seriesSkillIds);
   const unusableSkillIds = useMemo(() => {
     if (!weaponType) return new Set<number>();
-    const selectedWeapons = weapons.filter((weapon) => weapon.weapon_type === weaponType);
+    const selectedWeapons = weapons.filter(
+      (weapon) => weapon.weapon_type === weaponType && (!weaponId || weapon.game_id === weaponId),
+    );
     return new Set(
       skills
         .filter((skill) => !selectedWeapons.some((weapon) => skillUsable(text(skill.names), weapon)))
         .map((skill) => skill.game_id),
     );
-  }, [weaponType, weapons, skills]);
+  }, [weaponType, weaponId, weapons, skills]);
 
   const share = async () => {
     const next = new URLSearchParams(params);
@@ -130,6 +137,7 @@ export function SimulatorPage() {
     <Stack className="page-stack" gap="lg">
       <SearchControls
         data={data}
+        selectableWeapons={selectableWeapons}
         skills={skills}
         skillLevels={skillLevels}
         availableLevels={availableLevels}
@@ -144,6 +152,8 @@ export function SimulatorPage() {
         setSort={setSort}
         weaponType={weaponType}
         setWeaponType={setWeaponType}
+        weaponId={weaponId}
+        setWeaponId={setWeaponId}
         includeMeldingOnly={includeMeldingOnly}
         setIncludeMeldingOnly={setIncludeMeldingOnly}
         includeArtian={includeArtian}

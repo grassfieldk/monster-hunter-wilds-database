@@ -8,6 +8,7 @@ self.onmessage = async (
     targets: SkillTarget[];
     sort: SortMode;
     weaponType: string | null;
+    weaponId: string | null;
     weaponRequired: boolean;
     includeMeldingOnly: boolean;
     seriesTargets: SkillTarget[];
@@ -15,7 +16,11 @@ self.onmessage = async (
   }>,
 ) => {
   try {
-    if (event.data.targets.length >= 10 && !event.data.seriesTargets.length) {
+    if (
+      event.data.targets.length >= 10 &&
+      !event.data.seriesTargets.length &&
+      (!event.data.weaponId || !event.data.data.artianSkills.weaponIds.includes(event.data.weaponId))
+    ) {
       let results: SearchResult[] = [];
       try {
         results = await findConstraintBuilds(
@@ -34,6 +39,7 @@ self.onmessage = async (
                 results: [...found].sort((a, b) => compareSearchResults(a, b, event.data.sort)),
               },
             }),
+          event.data.weaponId,
         );
       } catch {
         results = [];
@@ -55,6 +61,7 @@ self.onmessage = async (
         event.data.seriesTargets,
         false,
         event.data.includeArtian,
+        event.data.weaponId,
       ),
     });
   } catch (error) {

@@ -89,4 +89,8 @@ test('画像と同じ 13 スキルの装備が見つかる', async () => {
         build.amulet === amuletId,
     ),
   );
+  const selectedWeaponId = results[0].build.weapon;
+  const selectedResults = await findConstraintBuilds(data, targets, null, false, 1, undefined, selectedWeaponId);
+  assert.ok(selectedResults.length > 0);
+  assert.ok(selectedResults.every((result) => result.build.weapon === selectedWeaponId));
 });

@@ -10,6 +10,7 @@ export type SavedSearch = {
   searchedTargets: SkillTarget[];
   sort: SortMode;
   weaponType: string | null;
+  weaponId: string | null;
   includeMeldingOnly: boolean;
   includeArtian: boolean;
   progress: SearchProgress | null;
@@ -67,6 +68,7 @@ export function readSavedSearch(): SavedSearch | null {
     if (saved.searchedTargets !== undefined && !validTargets(saved.searchedTargets)) return null;
     if (saved.sort !== 'slots' && saved.sort !== 'defense') return null;
     if (saved.weaponType !== null && typeof saved.weaponType !== 'string') return null;
+    if (saved.weaponId !== undefined && saved.weaponId !== null && typeof saved.weaponId !== 'string') return null;
     if (saved.includeMeldingOnly !== undefined && typeof saved.includeMeldingOnly !== 'boolean') return null;
     if (saved.includeArtian !== undefined && typeof saved.includeArtian !== 'boolean') return null;
     if (!Array.isArray(saved.results) || !saved.results.every(validResult)) return null;
@@ -86,6 +88,7 @@ export function readSavedSearch(): SavedSearch | null {
       searchedTargets: saved.searchedTargets ?? [],
       sort: saved.sort,
       weaponType: saved.weaponType,
+      weaponId: saved.weaponId ?? null,
       includeMeldingOnly: saved.includeMeldingOnly ?? false,
       includeArtian: saved.includeArtian ?? true,
       progress: progress as SearchProgress | null,
