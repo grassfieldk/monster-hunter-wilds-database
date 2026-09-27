@@ -1,4 +1,15 @@
-import { ActionIcon, Box, Button, Group, Modal, ScrollArea, Stack, Text, UnstyledButton } from '@mantine/core';
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Group,
+  Modal,
+  ScrollArea,
+  SimpleGrid,
+  Stack,
+  Text,
+  UnstyledButton,
+} from '@mantine/core';
 import { IconArrowLeft, IconPlus, IconX } from '@tabler/icons-react';
 import { type Dispatch, type SetStateAction, useState } from 'react';
 import type { SkillTarget } from '../model';
@@ -8,6 +19,24 @@ export type SkillOption = {
   id: number;
   name: string;
   description: string;
+  icon: number;
+};
+
+const skillGroupNames: Record<number, string> = {
+  1: '攻撃',
+  2: '会心',
+  3: '属性・状態異常',
+  4: '斬れ味',
+  5: '弾・ビン',
+  6: '防御・耐性',
+  7: '回復',
+  8: 'スタミナ',
+  9: '戦闘補助',
+  10: '立ち回り',
+  11: 'アイテム',
+  12: '採集・生活',
+  13: 'グループスキル',
+  14: 'シリーズスキル',
 };
 
 type Props = {
@@ -39,6 +68,12 @@ export function SkillTargetList({
       !unusableSkillIds.has(option.id) &&
       !targets.some((target, index) => index !== editingIndex && target.id === option.id),
   );
+  const groupedOptions = new Map<number, SkillOption[]>();
+  for (const option of visibleOptions) {
+    const group = groupedOptions.get(option.icon) ?? [];
+    group.push(option);
+    groupedOptions.set(option.icon, group);
+  }
 
   const open = (index: number, id: number | null) => {
     setEditingIndex(index);
@@ -206,28 +241,39 @@ export function SkillTargetList({
         ) : (
           <ScrollArea.Autosize mah="min(70dvh, 560px)">
             <Stack gap={4}>
-              {visibleOptions.map((option) => {
-                const maxLevel = availableLevels.get(option.id)?.at(-1) ?? 1;
-                return (
-                  <UnstyledButton
-                    key={option.id}
-                    className="simulator-skill-option"
-                    onClick={() => setPreviewId(option.id)}
-                  >
-                    <Group justify="space-between" gap="xs" wrap="nowrap">
-                      <Text size="sm" style={{ flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>
-                        {option.name}
-                      </Text>
-                      <SkillLevelMarks level={maxLevel} maxLevel={maxLevel} slotCount={maxLevel} />
-                    </Group>
-                    {option.description && (
-                      <Text size="xs" c="dimmed" lineClamp={2}>
-                        {option.description}
-                      </Text>
-                    )}
-                  </UnstyledButton>
-                );
-              })}
+              {[...groupedOptions]
+                .sort(([left], [right]) => left - right)
+                .map(([icon, group]) => (
+                  <Stack key={icon} gap={4}>
+                    <Text size="sm" fw={600} c="dimmed">
+                      {skillGroupNames[icon] ?? 'その他'}
+                    </Text>
+                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={4} verticalSpacing={4}>
+                      {group.map((option) => {
+                        const maxLevel = availableLevels.get(option.id)?.at(-1) ?? 1;
+                        return (
+                          <UnstyledButton
+                            key={option.id}
+                            className="simulator-skill-option"
+                            onClick={() => setPreviewId(option.id)}
+                          >
+                            <Group justify="space-between" gap="xs" wrap="nowrap">
+                              <Text size="sm" style={{ flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>
+                                {option.name}
+                              </Text>
+                              <SkillLevelMarks level={maxLevel} maxLevel={maxLevel} slotCount={maxLevel} />
+                            </Group>
+                            {option.description && (
+                              <Text size="xs" c="dimmed" lineClamp={2}>
+                                {option.description}
+                              </Text>
+                            )}
+                          </UnstyledButton>
+                        );
+                      })}
+                    </SimpleGrid>
+                  </Stack>
+                ))}
             </Stack>
           </ScrollArea.Autosize>
         )}

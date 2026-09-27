@@ -81,6 +81,7 @@ export function SearchControls({
             id: item.game_id,
             name: text(item.names),
             description: description.startsWith('#Rejected#') ? '' : description,
+            icon: item.icon,
           };
         })
         .sort((a, b) => a.name.localeCompare(b.name, 'ja')),
